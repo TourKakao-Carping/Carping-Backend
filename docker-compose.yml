@@ -7,8 +7,8 @@ services:
     ports:
       - "80:80/tcp"
     volumes:
-      - ../nginx:/etc/nginx/conf.d
-      - ../static:/staticfiles
+      - ../volume/nginx:/etc/nginx/conf.d
+      - ../volume/static:/staticfiles
     depends_on:
       - web
   web:
@@ -18,6 +18,6 @@ services:
     container_name: web
     command: gunicorn carping.wsgi:application --bind 0.0.0.0:8000
     volumes:
-      - ../static:/usr/src/app/staticfiles
+      - ../volume/static:/usr/src/app/staticfiles
     expose:
       - "8000"
