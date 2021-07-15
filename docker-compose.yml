@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: web
-    command: gunicorn humanplanet.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn carping.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ../static:/usr/src/app/staticfiles
     expose:
