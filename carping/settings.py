@@ -33,7 +33,7 @@ for key, value in secrets.items():
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.chanjongp.co.kr',
+ALLOWED_HOSTS = ['www.chanjongp.co.kr', 'web',
                  'ec2-3-35-16-222.ap-northeast-2.compute.amazonaws.com']
 
 
