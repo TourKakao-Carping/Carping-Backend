@@ -89,6 +89,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'carping.wsgi.application'
 
+DATABASES = secrets['DB_SETTINGS']
+
+SECRET_KEY = secrets['SECRET_KEY']
+
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -145,3 +149,6 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
 }
+
+GOOGLE_OAUTH2_CLIENT_ID = secrets['GOOGLE_OAUTH2_CLIENT_ID']
+GOOGLE_OAUTH2_CLIENT_SECRET = secrets['GOOGLE_OAUTH2_CLIENT_SECRET']
