@@ -35,7 +35,6 @@ ALLOWED_HOSTS = ['web', 'chanjongp.co.kr',
 
 DATABASES = secrets['DB_SETTINGS']
 
-
 # Application definition
 
 INSTALLED_APPS = [
