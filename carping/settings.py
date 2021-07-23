@@ -33,8 +33,8 @@ for key, value in secrets.items():
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.chanjongp.co.kr', 'web',
-                 'ec2-3-35-16-222.ap-northeast-2.compute.amazonaws.com']
+ALLOWED_HOSTS = ['web', 'chanjongp.co.kr',
+                 'ec2-3-35-16-222.ap-northeast-2.compute.amazonaws.com', 'localhost']
 
 
 # Application definition
@@ -49,12 +49,16 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     # django-rest-framework
     "rest_framework",
-    'rest_framework.authtoken',
+    # 'rest_framework.authtoken',
     "rest_framework_simplejwt.token_blacklist",
     # authentication
     'dj_rest_auth',
+    # 'dj_rest_auth.registration',
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.kakao',
     # mh app
     'accounts',
 ]
@@ -135,9 +139,19 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# djangorestframework
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+    ),
+}
+
 # djangorestframework-simplejwt
 REST_USE_JWT = True
-
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
@@ -145,3 +159,17 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
 }
+
+# User Authentication
+
+AUTH_USER_MODEL = "accounts.User"
+
+# AUTHENTICATION_BACKENDS = (
+#     "accounts.backend.AuthCodeBackend",
+#     "allauth.account.auth_backends.AuthenticationBackend",
+# )
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
