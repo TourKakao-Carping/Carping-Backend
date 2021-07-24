@@ -2,7 +2,7 @@ from allauth.socialaccount.models import SocialAccount
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.utils.translation import ugettext_lazy as _
-from django.contrib.auth.models import BaseUserManager, PermissionsMixin, AbstractBaseUser
+from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.utils import timezone
 
 
@@ -12,19 +12,19 @@ class UserManager(BaseUserManager):
     for authentication instead of usernames.
     """
 
-    def create_user(self, email, password, **extra_fields):
+    def create_user(self, username, password, **extra_fields):
         """
-        Create and save a User with the given email and password.
+        Create and save a User with the given username and password.
         """
-        if not email:
-            raise ValueError(_("The Email must be set"))
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        if not username:
+            raise ValueError(_("The username must be set"))
+        # username = self.normalize_username(username)
+        user = self.model(username=username, **extra_fields)
         user.set_password(password)
         user.save()
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, username, password, **extra_fields):
         """
         Create and save a SuperUser with the given email and password.
         """
@@ -36,38 +36,24 @@ class UserManager(BaseUserManager):
             raise ValueError(_("Superuser must have is_staff=True."))
         if extra_fields.get("is_superuser") is not True:
             raise ValueError(_("Superuser must have is_superuser=True."))
-        return self.create_user(email, password, **extra_fields)
+        return self.create_user(username, password, **extra_fields)
 
 
-class User(AbstractBaseUser, PermissionsMixin):
-    username = None
+class User(AbstractUser):
+    # username = None
     email = models.EmailField(unique=True, max_length=255)
-    # profile = models.ForeignKey(
-    #     Profile, on_delete=CASCADE, null=True, related_name="profile_fk"
-    # )
-    is_staff = models.BooleanField(
-        _("staff status"),
-        default=False,
-        help_text=_(
-            "Designates whether the user can log into this admin site."),
-    )
-    is_active = models.BooleanField(
-        _("active"),
-        default=True,
-        help_text=_(
-            "Designates whether this user should be treated as active. "
-            "Unselect this instead of deleting accounts."
-        ),
-    )
-    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
-
-    USERNAME_FIELD = "email"
+    first_name = None
+    last_name = None
+    # USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     objects = UserManager()
 
     def __str__(self):
-        return self.email
+        if self.username == "":
+            return self.email
+        else:
+            return self.username
 
 
 class ProfileManager(models.Manager):
