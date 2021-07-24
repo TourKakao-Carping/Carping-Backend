@@ -13,7 +13,6 @@ from accounts.adapters import CustomKakaoOAuth2Adapter
 
 from accounts.models import User
 from accounts.serializers import GoogleLoginSerializer
-from carping.settings import JWT_SECRET
 
 from accounts.adapters import CustomKakaoOAuth2Adapter
 from allauth.socialaccount.providers import kakao
@@ -65,7 +64,7 @@ def google_login_view(request):
         user, created = User.objects.update_or_create(email=email)
 
         token = jwt.encode({'id': user.id},
-                           JWT_SECRET, algorithm='HS256')
+                           getattr(settings, 'JWT_SECRET'), algorithm='HS256')
 
         return JsonResponse({
             'token': token,

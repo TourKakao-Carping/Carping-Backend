@@ -7,6 +7,6 @@ urlpatterns = [
     path("login/kakao/finish",
          views.KakaoLoginViewFinish.as_view(), name="kakao_social"),
     path("login/kakao", views.KakaoLoginView.as_view(), name="kakao_social"),
-
+    path("login/google/", views.google_login_view, name="google_social"),
     # path('kakao/login/finish/', views.KakaoLoginView.as_view(), name='kakao_login'),
 ]
