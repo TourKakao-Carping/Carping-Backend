@@ -14,9 +14,8 @@ class CustomKakaoOAuth2Adapter(KakaoOAuth2Adapter):
         extra_data = resp.json()
 
         make_account = self.get_provider().sociallogin_from_response(request, extra_data)
-        print(make_account.json())
-        uid = extra_data.get("id")
-        social_account = SocialAccount.objects.filter(uid=uid)
+        # uid = extra_data.get("id")
+        # social_account = SocialAccount.objects.filter(uid=uid)
         # if not social_account.exists():
         #     user = social_account[0].user
         #     kakao_account = extra_data.get("kakao_account")

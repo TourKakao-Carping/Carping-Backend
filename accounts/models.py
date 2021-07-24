@@ -50,7 +50,10 @@ class User(AbstractUser):
     objects = UserManager()
 
     def __str__(self):
-        return self.email
+        if self.username == "":
+            return self.email
+        else:
+            return self.username
 
 
 class ProfileManager(models.Manager):
