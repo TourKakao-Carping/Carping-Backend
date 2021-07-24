@@ -84,7 +84,6 @@ class Profile(models.Model):
     birthdate               생년월일
     image                   프로필 사진
     gender                  성별
-
     """
 
     nickname = models.CharField(max_length=50)
