@@ -1,3 +1,4 @@
+import jwt
 import json
 from django.http.response import JsonResponse
 import requests
@@ -34,6 +35,7 @@ from json.decoder import JSONDecodeError
 
 
 BASE_URL = "http://chanjongp.co.kr"
+
 KAKAO_CALLBACK_URI = BASE_URL + "/accounts/kakao/callback"
 
 
@@ -144,13 +146,6 @@ class KakaoLoginView(APIView):
         else:
             gender = 1
 
-        """
-        nickname
-        profile_image_url
-        email
-        birthday
-        gender
-        """
         try:
             user = User.objects.get(email=email)
             # 기존에 가입된 유저의 Provider가 kakao가 아니면 에러 발생, 맞으면 로그인
