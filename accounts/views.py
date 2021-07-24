@@ -1,3 +1,5 @@
+import datetime
+
 import jwt
 import json
 from django.http.response import JsonResponse
@@ -32,7 +34,6 @@ from allauth.socialaccount.models import SocialAccount
 from rest_framework import status
 from json.decoder import JSONDecodeError
 
-
 BASE_URL = "http://chanjongp.co.kr"
 
 KAKAO_CALLBACK_URI = BASE_URL + "/accounts/kakao/callback"
@@ -53,23 +54,30 @@ def google_login_view(request):
         email_req_json = email_req.json()
         email = email_req_json.get('email')
 
-        # profile_request = requests.get(
-        #     "https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
-        # profile_json = profile_request.json()
+        profile_request = requests.get(
+            "https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
+        profile_json = profile_request.json()
         # error = profile_json.get("error")
         # if error is not None:
         #     raise JSONDecodeError(error)
-        # print("구글 계정", profile_json)
+        print("구글 계정", profile_json)
 
         user, created = User.objects.update_or_create(email=email)
 
-        token = jwt.encode({'id': user.id},
-                           getattr(settings, 'JWT_SECRET'), algorithm='HS256')
+        jwt_token = jwt.encode({'user_id': user.id,
+                                'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=2)},
+                               getattr(settings, 'JWT_SECRET'), algorithm='HS256')
+
+        refresh_token = jwt.encode({'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)},
+                                   getattr(settings, 'JWT_SECRET'), algorithm='HS256')
 
         return JsonResponse({
-            'token': token,
-            'email': email,
-            'username': user.username,
+            'jwt_token': jwt_token,
+            'refresh_token': refresh_token,
+            'user': {
+                'email': email,
+                'username': user.username,
+            }
         }, json_dumps_params={'ensure_ascii': False}, status=200)
 
 
@@ -109,7 +117,6 @@ def kakao_callback(request):
     email
     birthday
     gender
-
     kakao_account에서 이메일 외에
     카카오톡 프로필 이미지, 배경 이미지 url 가져올 수 있음
     print(kakao_account) 참고
