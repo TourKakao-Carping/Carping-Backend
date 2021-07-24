@@ -1,56 +1,9 @@
+from allauth.socialaccount.models import SocialAccount
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin, AbstractBaseUser
 from django.utils import timezone
-
-
-# class ProfileManager(models.Manager):
-#     @classmethod
-#     def normalize_email(cls, email):
-#         """
-#         Normalize the email address by lowercasing the domain part of it.
-#         """
-#         email = email or ""
-#         try:
-#             email_name, domain_part = email.strip().rsplit("@", 1)
-#         except ValueError:
-#             pass
-#         else:
-#             email = email_name + "@" + domain_part.lower()
-#         return email
-
-#     def create(self, officer_email, **extra_fields):
-#         officer_email = self.normalize_email(officer_email)
-#         profile = self.model(officer_email=officer_email, **extra_fields)
-#         profile.save()
-#         return profile
-
-
-# class Profile(models.Model):
-#     """
-#     business_number         사업장 번호
-#     business_name           사업장 이름
-#     officer_name            책임자 이름
-#     officer_phone           책임자 번호
-#     officer_position        책임자 직급
-#     officer_email           책임자 이메일
-#     password                회원가입 시 설정할 비밀번호
-#     industry                업종
-#     location_name           지역
-#     """
-
-#     business_number = models.CharField(max_length=60, unique=True)
-#     business_name = models.CharField(max_length=20, unique=True)
-#     officer_name = models.CharField(max_length=30)
-#     officer_phone = models.CharField(unique=True, max_length=30)
-#     officer_position = models.CharField(max_length=60)
-#     officer_email = models.EmailField(unique=True, max_length=255)
-#     password = models.CharField(_("password"), max_length=128)
-#     location_name = models.CharField(max_length=20)
-#     industry = models.CharField(max_length=100)
-
-#     objects = ProfileManager()
 
 
 class UserManager(BaseUserManager):
@@ -115,3 +68,45 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+
+class ProfileManager(models.Manager):
+    # @classmethod
+    # def normalize_email(cls, email):
+    #     """
+    #     Normalize the email address by lowercasing the domain part of it.
+    #     """
+    #     email = email or ""
+    #     try:
+    #         email_name, domain_part = email.strip().rsplit("@", 1)
+    #     except ValueError:
+    #         pass
+    #     else:
+    #         email = email_name + "@" + domain_part.lower()
+    #     return email
+
+    def create(self, **extra_fields):
+        # officer_email = self.normalize_email(officer_email)
+        profile = self.model(**extra_fields)
+        profile.save()
+        return profile
+
+
+class Profile(models.Model):
+    """
+    nickname                닉네임
+    birthdate               생년월일
+    image                   프로필 사진
+    gender                  성별
+    """
+
+    nickname = models.CharField(max_length=50)
+    birthdate = models.CharField(max_length=20, null=True)
+    image = models.URLField(null=True)
+    gender = models.IntegerField(default=0)
+    user = models.ForeignKey(User, on_delete=CASCADE,
+                             related_name="user_fk", null=True)
+    # socialaccount = models.ForeignKey(
+    #     SocialAccount, on_delete=CASCADE, null=True, related_name="socialaccount_fk")
+
+    objects = ProfileManager()
