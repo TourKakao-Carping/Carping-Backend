@@ -162,9 +162,6 @@ class KakaoLoginViewFinish(SocialLoginView):
 
 
 def google_login(request):
-    """
-    Code Request
-    """
     scope = "https://www.googleapis.com/auth/userinfo.email"
     client_id = getattr(settings, 'GOOGLE_OAUTH2_CLIENT_ID')
     return redirect(f"https://accounts.google.com/o/oauth2/v2/auth?client_id="
@@ -206,7 +203,7 @@ class GoogleLoginView(APIView):
             "https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
         profile_json = profile_request.json()
         email = profile_json.get('email')
-        nickname = profile_json.get('name')
+        nickname = email.split('@')[0]
         birthday = profile_json.get('birthday')
         profile_image_url = profile_json.get('picture')
         gender = profile_json.get('gender')
@@ -218,7 +215,6 @@ class GoogleLoginView(APIView):
         try:
             user = User.objects.get(email=email)
             # 기존에 가입된 유저의 Provider가 google이 아니면 에러 발생, 맞으면 로그인
-            # 다른 SNS로 가입된 유저
             social_user = SocialAccount.objects.get(user=user)
             if social_user is None:
                 return JsonResponse({'err_msg': 'email exists but not social user'}, status=status.HTTP_400_BAD_REQUEST)
