@@ -11,6 +11,5 @@ urlpatterns = [
 
     path('google/social', views.google_login, name='google_login'),
     path('google/callback', views.google_callback, name='google_callback'),
-    path("google/login/finish", views.GoogleLoginViewFinish.as_view(), name="google_social"),
     path("login/google", views.GoogleLoginView.as_view(), name="google_social"),
 ]
