@@ -1,9 +1,19 @@
+import re
 from allauth.socialaccount.models import SocialAccount
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.utils import timezone
+
+from bases.models import Base
+
+
+def validate_phone(value):
+    regex = re.compile('\d{2,3}-\d{3,4}-\d{4}')
+    if not regex.match(value):
+        raise ValidationError("O-O-O 형식의 번호를 입력해주세요.")
 
 
 class UserManager(BaseUserManager):
@@ -39,7 +49,7 @@ class UserManager(BaseUserManager):
         return self.create_user(username, password, **extra_fields)
 
 
-class User(AbstractUser):
+class User(AbstractUser, Base):
     # username = None
     email = models.EmailField(unique=True, max_length=255)
     first_name = None
@@ -78,20 +88,17 @@ class ProfileManager(models.Manager):
         return profile
 
 
-class Profile(models.Model):
+class Profile(Base):
     """
-    nickname                닉네임
-    birthdate               생년월일
+    phone                   휴대폰 번호
     image                   프로필 사진
     gender                  성별
     """
 
-    nickname = models.CharField(max_length=50)
-    birthdate = models.CharField(max_length=20, null=True)
+    phone = models.CharField(max_length=50, null=True, blank=True, validators=[validate_phone])
     image = models.URLField(null=True)
     gender = models.IntegerField(default=0)
-    user = models.ForeignKey(User, on_delete=CASCADE,
-                             related_name="user_fk", null=True)
+    user = models.ForeignKey(User, on_delete=CASCADE, related_name="profile", null=True)
     # socialaccount = models.ForeignKey(
     #     SocialAccount, on_delete=CASCADE, null=True, related_name="socialaccount_fk")
 
