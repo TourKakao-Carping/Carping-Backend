@@ -1,13 +1,10 @@
 import json
-from django.http.response import JsonResponse
 import requests
 from json.decoder import JSONDecodeError
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from dj_rest_auth.registration.views import SocialLoginView
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework import status
@@ -30,7 +27,7 @@ KAKAO_CALLBACK_URI = BASE_URL + "/accounts/kakao/callback"
 
 state = getattr(settings, 'STATE')
 BASE_URL2 = 'http://localhost:8000'
-GOOGLE_CALLBACK_URI = BASE_URL2 + '/accounts/google/callback'
+GOOGLE_CALLBACK_URI = BASE_URL + '/accounts/google/callback'
 
 
 def kakao_login(request):
