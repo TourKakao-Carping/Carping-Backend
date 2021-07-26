@@ -30,7 +30,7 @@ KAKAO_CALLBACK_URI = BASE_URL + "/accounts/kakao/callback"
 
 state = getattr(settings, 'STATE')
 BASE_URL2 = 'http://localhost:8000'
-GOOGLE_CALLBACK_URI = BASE_URL2 + '/accounts/google/callback'
+GOOGLE_CALLBACK_URI = BASE_URL + '/accounts/google/callback'
 
 
 def kakao_login(request):
@@ -221,7 +221,8 @@ class GoogleLoginView(APIView):
             if social_user.provider != 'google':
                 return JsonResponse({'err_msg': 'no matching social type'}, status=status.HTTP_400_BAD_REQUEST)
             data = {'access_token': access_token}
-            accept = requests.post(f"{BASE_URL}/accounts/google/login/finish", data=data)
+            accept = requests.post(
+                f"{BASE_URL}/accounts/google/login/finish", data=data)
             accept_status = accept.status_code
             if accept_status != 200:
                 return JsonResponse({'err_msg': 'failed to signin'}, status=accept_status)
