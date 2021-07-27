@@ -4,8 +4,6 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
 from rest_framework import status
 
 
@@ -124,27 +122,39 @@ class KakaoLoginView(SocialLoginView):
         user = User.objects.filter(email=email)
         if user.exists():
             return True
+        else:
+            return False
 
     def exception(self):
         is_email_user = self.get_email()
         if not is_email_user:
             return JsonResponse({"err_msg": "email already exists."}, status=status.HTTP_400_BAD_REQUEST)
-        return super().post()
+        return super().post
 
     def get_response(self):
-        if Profile.objects.filter(user=self.user).exists():
-            return super().get_response()
+        self.exception()
+        user = self.user
+        profile_qs = Profile.objects.filter(user=user)
+        if profile_qs.exists():
+            profile = profile_qs.first()
+        else:
+            extra_data = self.user.socialaccount_set.values("extra_data")[
+                0].get("extra_data")
+            kakao_account = extra_data.get("kakao_account")
+            profile = kakao_account.get('profile')
+            profile_image = profile.get('profile_image_url')
+            gender = profile.get('gender')
+            profile = Profile.objects.create(
+                image=profile_image, gender=gender, user=user)
 
-        extra_data = self.user.socialaccount_set.values("extra_data")[
-            0].get("extra_data")
-        kakao_account = extra_data.get("kakao_account")
-        profile = kakao_account.get('profile')
-        profile_image = profile.get('profile_image_url')
-        gender = profile.get('gender')
+        profile_data = {
+            "image": profile.image
+        }
 
-        Profile.objects.create(
-            image=profile_image, gender=gender, user=self.user)
+        response = super().get_response()
+        del response.data["user"]["first_name"], response.data["user"]["last_name"]
+        response.data["user"]["profile"] = profile_data
 
-        return super().get_response()
+        return response
 
     adapter_class = kakao_view.KakaoOAuth2Adapter
