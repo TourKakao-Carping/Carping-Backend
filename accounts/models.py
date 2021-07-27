@@ -54,6 +54,7 @@ class User(AbstractUser, Base):
     email = models.EmailField(unique=True, max_length=255)
     first_name = None
     last_name = None
+    date_joined = None
     # USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -67,22 +68,7 @@ class User(AbstractUser, Base):
 
 
 class ProfileManager(models.Manager):
-    # @classmethod
-    # def normalize_email(cls, email):
-    #     """
-    #     Normalize the email address by lowercasing the domain part of it.
-    #     """
-    #     email = email or ""
-    #     try:
-    #         email_name, domain_part = email.strip().rsplit("@", 1)
-    #     except ValueError:
-    #         pass
-    #     else:
-    #         email = email_name + "@" + domain_part.lower()
-    #     return email
-
     def create(self, **extra_fields):
-        # officer_email = self.normalize_email(officer_email)
         profile = self.model(**extra_fields)
         profile.save()
         return profile
@@ -95,10 +81,12 @@ class Profile(Base):
     gender                  성별
     """
 
-    phone = models.CharField(max_length=50, null=True, blank=True, validators=[validate_phone])
+    phone = models.CharField(max_length=50, null=True,
+                             blank=True, validators=[validate_phone])
     image = models.URLField(null=True)
-    gender = models.IntegerField(default=0)
-    user = models.ForeignKey(User, on_delete=CASCADE, related_name="profile", null=True)
+    gender = models.IntegerField(default=0, null=True)
+    user = models.ForeignKey(User, on_delete=CASCADE,
+                             related_name="profile", null=True)
     # socialaccount = models.ForeignKey(
     #     SocialAccount, on_delete=CASCADE, null=True, related_name="socialaccount_fk")
 
