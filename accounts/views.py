@@ -81,22 +81,20 @@ def google_callback(request):
 
 
 class GoogleLoginView(SocialLoginView):
-    def get_email(self):
+    def check_email(self):
         access_token = self.request.data['access_token']
         profile_request = requests.get(
             "https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
         profile_json = profile_request.json()
         email = profile_json.get('email')
-        # user = User.objects.filter(email=email)
-        user = EmailAddress.objects.get(email=email).user
-        print(user)
+        user = User.objects.filter(email=email)
         if user:
             return True
         else:
             return False
 
     def exception(self):
-        is_email_user = self.get_email()
+        is_email_user = self.check_email()
         if not is_email_user:
             return JsonResponse({"err_msg": "email already exists."}, status=status.HTTP_400_BAD_REQUEST)
         return super().post
@@ -109,7 +107,8 @@ class GoogleLoginView(SocialLoginView):
             profile = profile_qs.first()
             profile_image = profile.image
         else:
-            profile_image = self.user.socialaccount_set.values("extra_data")[0].get("extra_data")['picture']
+            profile_image = self.user.socialaccount_set.values(
+                "extra_data")[0].get("extra_data")['picture']
             Profile.objects.update_or_create(image=profile_image, user=user)
         profile_data = {
             'image': profile_image,
@@ -123,7 +122,7 @@ class GoogleLoginView(SocialLoginView):
 
 
 class KakaoLoginView(SocialLoginView):
-    def get_email(self):
+    def check_email(self):
         access_token = self.request.data['access_token']
         profile_request = requests.get(
             "https://kapi.kakao.com/v2/user/me", headers={"Authorization": f"Bearer {access_token}"})
@@ -137,7 +136,7 @@ class KakaoLoginView(SocialLoginView):
             return False
 
     def exception(self):
-        is_email_user = self.get_email()
+        is_email_user = self.check_email()
         if not is_email_user:
             return JsonResponse({"err_msg": "email already exists."}, status=status.HTTP_400_BAD_REQUEST)
         return super().post
