@@ -88,7 +88,7 @@ class GoogleLoginView(SocialLoginView):
         profile_json = profile_request.json()
         email = profile_json.get('email')
         user = User.objects.filter(email=email)
-        if user:
+        if user.exists():
             return True
         else:
             return False
