@@ -1,5 +1,4 @@
 from allauth.account.adapter import get_adapter
-from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from rest_framework import serializers
 
 # class CustomKakaoLoginSerializer(SocialLoginSerializer):
