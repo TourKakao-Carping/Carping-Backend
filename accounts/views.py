@@ -82,30 +82,39 @@ def google_callback(request):
 
 
 class GoogleLoginView(SocialLoginView):
+    def check_email(self):
+        access_token = self.request.data['access_token']
+        profile_request = requests.get(
+            "https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
+        profile_json = profile_request.json()
+        email = profile_json.get('email')
+        user = User.objects.filter(email=email)
+        if user:
+            return True
+        else:
+            return False
+
     def exception(self):
-        user = self.user
-        social_user = SocialAccount.objects.get(user=user)
-        if social_user is None:
-            return JsonResponse({'err_msg': 'email exists but not social user'}, status=status.HTTP_400_BAD_REQUEST)
-        if social_user.provider != 'google':
-            return JsonResponse({'err_msg': 'no matching social type'}, status=status.HTTP_400_BAD_REQUEST)
+        is_email_user = self.check_email()
+        if not is_email_user:
+            return JsonResponse({"err_msg": "email already exists."}, status=status.HTTP_400_BAD_REQUEST)
         return super().post
 
     def get_response(self):
         self.exception()
         user = self.user
-        access_token = self.request.data['access_token']
-        response = super().get_response()
-
-        profile_request = requests.get(
-            "https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
-        profile_json = profile_request.json()
-        profile_image_url = profile_json.get('picture')
-        profile = Profile.objects.update_or_create(
-            image=profile_image_url, user=user)
+        profile_qs = Profile.objects.filter(user=user)
+        if profile_qs.exists():
+            profile = profile_qs.first()
+            profile_image = profile.image
+        else:
+            profile_image = self.user.socialaccount_set.values(
+                "extra_data")[0].get("extra_data")['picture']
+            Profile.objects.update_or_create(image=profile_image, user=user)
         profile_data = {
-            'image': profile[0].image,
+            'image': profile_image,
         }
+        response = super().get_response()
         del response.data["user"]["first_name"], response.data["user"]["last_name"]
         response.data["user"]["profile"] = profile_data
         return response
@@ -114,7 +123,7 @@ class GoogleLoginView(SocialLoginView):
 
 
 class KakaoLoginView(SocialLoginView):
-    def get_email(self):
+    def check_email(self):
         access_token = self.request.data['access_token']
         profile_request = requests.get(
             "https://kapi.kakao.com/v2/user/me", headers={"Authorization": f"Bearer {access_token}"})
@@ -126,7 +135,7 @@ class KakaoLoginView(SocialLoginView):
             return True
 
     def exception(self):
-        is_email_user = self.get_email()
+        is_email_user = self.check_email()
         if not is_email_user:
             return JsonResponse({"err_msg": "email already exists."}, status=status.HTTP_400_BAD_REQUEST)
         return super().post()
