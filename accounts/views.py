@@ -1,5 +1,6 @@
 import json
 import requests
+from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -86,8 +87,10 @@ class GoogleLoginView(SocialLoginView):
             "https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
         profile_json = profile_request.json()
         email = profile_json.get('email')
-        user = User.objects.filter(email=email)
-        if user.exists():
+        # user = User.objects.filter(email=email)
+        user = EmailAddress.objects.get(email=email).user
+        print(user)
+        if user:
             return True
         else:
             return False
@@ -104,12 +107,12 @@ class GoogleLoginView(SocialLoginView):
         profile_qs = Profile.objects.filter(user=user)
         if profile_qs.exists():
             profile = profile_qs.first()
+            profile_image = profile.image
         else:
             profile_image = self.user.socialaccount_set.values("extra_data")[0].get("extra_data")['picture']
-            profile = Profile.objects.update_or_create(image=profile_image, user=user)
-
+            Profile.objects.update_or_create(image=profile_image, user=user)
         profile_data = {
-            'image': profile.image,
+            'image': profile_image,
         }
         response = super().get_response()
         del response.data["user"]["first_name"], response.data["user"]["last_name"]
