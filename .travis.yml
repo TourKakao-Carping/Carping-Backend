@@ -25,7 +25,6 @@ deploy:
   secret_access_key:
     secure: Up3WddMVSmS9BtWZZIAT7WHTCKkkWso8Y3IJjCQbWaXNYXwGiReAcW5uNjkAZlmhLZ5Uj/KT+s2pLK+EgJVa/S9espRKfXJnjoG1OgkQ/DDKzF8alWp7tfz2wYWz+w6hnO9EACg8SMgHMpIAwNCf0ORip4Sy2RJ+PCcvaZ0ErlyqXHATrUD93EXbmXTCV47oA4jKDxxB8HjnDSyoqgLFdDSRLVQMFjqhnXLf6VDU0n405oZUmn07/A/bO4bJUobgEQ87rwFbfaBM02T+Dd2vmzg0Jg2tCnuMLY51NAUQ1Hx/M+C8FmsyOsuvOwWiyRGVhtX4m4IldSpq3OqR53FnPcXhRsuWgk9Z3T21Ee937MJZPD/Wxr8P1S0hhrh4EjqVBXVYBNExRzY20rroGR47COkCxybxJN15AZ8sNCyxOYR4ej/WJip+iPxtwVFAOKRTqGIRAv4xVOX2XWl2GUOcZ0myKzmaxOANG32H6B/DmTEBH8Nw/kfSl5Q1EXMIqpYehcA5AIGpf6W0eNMmb6ROwmnZFJCtCt8eEB6XMNCGsBhdlfNuWYQOth+ent/zT8TDe8MGc+pO/rNXyHzPzdg6eOvDa5/9qmuTi9RIKVMDrPDtfTFPeZjU0hwx2sAzxpwyQKu637Sr+Tk8ATivPDeoaSP5cfO1nkh9Y192N7ymJm0=
   bucket: chanjongs
-  acl: ""
   on:
     repo: TourKakao-Carping/Carping-Backend
     branch: main
