@@ -1,10 +1,36 @@
 language: python
-
 python:
   - 3.8
 before_install:
-  - openssl aes-256-cbc -K $encrypted_fb088dcee1f3_key -iv $encrypted_fb088dcee1f3_iv -in secrets.json.enc -out secrets.json -d
+  - openssl aes-256-cbc -K $encrypted_fb088dcee1f3_key -iv $encrypted_fb088dcee1f3_iv
+    -in secrets.json.enc -out secrets.json -d
 install:
   - pip install -r requirements.txt
 script:
   - python manage.py test
+cache:
+  directories:
+    - "$HOME/.m2/repository"
+    - "$HOME/.gradle"
+before_deploy:
+  - mkdir -p before-deploy # zip에 포함시킬 파일들을 담을 디렉토리 생성
+  - cp scripts/*.sh before-deploy/
+  - cp Dockerfile before-deploy/ # Dockerfile 복사하기
+  - cp appspec.yml before-deploy/ # CodeDeploy 에게 필요한 appspec.yml 파일
+  - cp build/libs/*.jar before-deploy/
+  - cd before-deploy && zip -r before-deploy * # before-deploy로 이동후 전체 압축
+  - cd ../ && mkdir -p deploy # 상위 디렉토리로 이동후 deploy 디렉토리 생성
+  - mv before-deploy/before-deploy.zip deploy/aws-carping.zip # deploy로 zip파일 이동
+deploy:
+  provider: s3
+  access_key_id:
+    secure: DDYhLR8/hlftT096FoexUl6698h7JB6OcCGw7YGp5nj6F3lI58oSekvi2np8ScIC3D8v+U6Qwyc+057qVAdFh4RccUzeagS6xeh2773OnNEEe9ZTG72BRAg7D6YXg/fjEggzIa44xTtsAlx91uWrj/+wAgsxBkaTXC9B+FwgrNyGjLAijU6xXCUnh6eA9+eo/KhyB1NgEWOWTYKDGdI8+1jI8KkVQxw5632wLS5kagvEH69VAtItGT91WTdRn4rhAJ01BVJdA/n9uiGW/BKNRlT3NX3ToumBY+Ybx1Bw9RL9orVcj5Kn8vAnnt3WdRmyFRdN6mDpkljFx2a0gtxyI4KGdaX3Ng9IKRUhaIJoIcAMFZQvx7huCgLqiru79cS+XKZQkG56+sXxmJtY4Dw9PXwmcbzQwFl0BqWpS48V83poU/7iXJl3DgzgzhUQfs0qwlhzENIKD79VddTxJUc4FZOE8ifatC2TjdfLoRBSMcBxBxSU6Zw7BKVnoT7WOWJqL3x26F4CUNke31b1CcuTVsuNkjPrL9N4I9fkzvZTDvqfRdEZEIG73bV/3LI9zpcucCv0OyL4ljBmKhKgqWL5VoWXqez02zr7qpf0FU8H9+TvgC0y4os3EmgKxwPTZJv/Hs41F3JPLBQYMica9gHrJD49vDuXXf2048K8S51vzUM=
+  secret_access_key:
+    secure: Up3WddMVSmS9BtWZZIAT7WHTCKkkWso8Y3IJjCQbWaXNYXwGiReAcW5uNjkAZlmhLZ5Uj/KT+s2pLK+EgJVa/S9espRKfXJnjoG1OgkQ/DDKzF8alWp7tfz2wYWz+w6hnO9EACg8SMgHMpIAwNCf0ORip4Sy2RJ+PCcvaZ0ErlyqXHATrUD93EXbmXTCV47oA4jKDxxB8HjnDSyoqgLFdDSRLVQMFjqhnXLf6VDU0n405oZUmn07/A/bO4bJUobgEQ87rwFbfaBM02T+Dd2vmzg0Jg2tCnuMLY51NAUQ1Hx/M+C8FmsyOsuvOwWiyRGVhtX4m4IldSpq3OqR53FnPcXhRsuWgk9Z3T21Ee937MJZPD/Wxr8P1S0hhrh4EjqVBXVYBNExRzY20rroGR47COkCxybxJN15AZ8sNCyxOYR4ej/WJip+iPxtwVFAOKRTqGIRAv4xVOX2XWl2GUOcZ0myKzmaxOANG32H6B/DmTEBH8Nw/kfSl5Q1EXMIqpYehcA5AIGpf6W0eNMmb6ROwmnZFJCtCt8eEB6XMNCGsBhdlfNuWYQOth+ent/zT8TDe8MGc+pO/rNXyHzPzdg6eOvDa5/9qmuTi9RIKVMDrPDtfTFPeZjU0hwx2sAzxpwyQKu637Sr+Tk8ATivPDeoaSP5cfO1nkh9Y192N7ymJm0=
+  bucket: chanjongs
+  acl: ""
+  on:
+    repo: TourKakao-Carping/Carping-Backend
+    branch: main
+  skip_cleanup: "true"
+  local_dir: deploy
