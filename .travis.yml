@@ -32,15 +32,3 @@ deploy:
       branch: main
     region: ap-northeast-2
     bucket: chanjongs
-  - provider: codedeploy
-    access_key_id:
-      secure: j3Jo+9vXSWkccc1VAj8KAX8ZbrF9hbQkRMmmbnr8IkVwnJjpCAKFW3mgiaCI8XlsGnL2ujRwlWD6EsFxcFMspgeOsWKLDnQPDUxuYGMzl//YJ5OjJXhLR72RbpRNULLlD1eMLVLnN/WdUkD17m57XClCI/n0o9uLY+03+m5c2ltWrmkuwJ/80bXoNL7S6dedR+WQOA712HiAMxtDXoWBRXXSjM66dxU2OrxLJXBpe/dU7wXAQ6Ft1mn1a+57FMC0do29d/fxFtiqUBDQP0Mt+bey9++hAOF0MFMEN0hp1qa+u0ureUMbL0p7Be5OvhltVwQZhcW4p902L9GuULQ5R1PhbD3ScpsaKGIrZMKYUKuHlKqEew1tLK5RnQO9RSXkmYAkJ2yZ7nzjq4NjAv+tw5G7vEdLmAbRC9x/mMkrnQGUcFghZUzPCEOyUw/fy7Hqh6azduDyPdu359NokUEMbqbasj6sS2q0+B1QnXhKxhFI8hc4eA/Kese7HpdvkmTs15/1ur2sWCVMX+wAYjUYwSm97CH0upLVp6oJhanxnXln9voMTCEQQpplwSJjsodBdZ3+YH3yZxJeqjTgm0l2ybt3T6Iq0Edwa4MRyhC/fK9Leho+JsZ09/F4l3IEGHQYJaNJ7Q6ZlK/i1T83vdpSkL9HJy7hN6c+5ep/H6rOKcg=
-    secret_access_key: *1
-    bucket: chanjongs
-    key: aws-carping.zip
-    bundle_type: zip
-    region: ap-northeast-2
-    application: Carping-Backend
-    deployment_group: CarpingGroup
-    on: *2
-    skip_cleanup: "true"
