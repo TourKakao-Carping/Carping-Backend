@@ -21,3 +21,4 @@ services:
       - ../volume/static:/usr/src/app/staticfiles
     expose:
       - "8000"
+    image: pcj0198/web

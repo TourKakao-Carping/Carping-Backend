@@ -13,20 +13,26 @@ cache:
     - "$HOME/.m2/repository"
     - "$HOME/.gradle"
 before_deploy:
-  - mkdir -p before-deploy # zip에 포함시킬 파일들을 담을 디렉토리 생성
-  - cp Dockerfile before-deploy/ # Dockerfile 복사하기
-  - cd before-deploy && zip -r before-deploy * # before-deploy로 이동후 전체 압축
-  - cd ../ && mkdir -p deploy # 상위 디렉토리로 이동후 deploy 디렉토리 생성
-  - mv before-deploy/before-deploy.zip deploy/aws-carping.zip # deploy로 zip파일 이동
+  - mkdir -p dpl_cd_upload
+  - mv AKIA4W33QLUKQBFDETKM dpl_cd_upload/AKIA4W33QLUKQBFDETKM
 deploy:
-  provider: s3
-  access_key_id:
-    secure: DDYhLR8/hlftT096FoexUl6698h7JB6OcCGw7YGp5nj6F3lI58oSekvi2np8ScIC3D8v+U6Qwyc+057qVAdFh4RccUzeagS6xeh2773OnNEEe9ZTG72BRAg7D6YXg/fjEggzIa44xTtsAlx91uWrj/+wAgsxBkaTXC9B+FwgrNyGjLAijU6xXCUnh6eA9+eo/KhyB1NgEWOWTYKDGdI8+1jI8KkVQxw5632wLS5kagvEH69VAtItGT91WTdRn4rhAJ01BVJdA/n9uiGW/BKNRlT3NX3ToumBY+Ybx1Bw9RL9orVcj5Kn8vAnnt3WdRmyFRdN6mDpkljFx2a0gtxyI4KGdaX3Ng9IKRUhaIJoIcAMFZQvx7huCgLqiru79cS+XKZQkG56+sXxmJtY4Dw9PXwmcbzQwFl0BqWpS48V83poU/7iXJl3DgzgzhUQfs0qwlhzENIKD79VddTxJUc4FZOE8ifatC2TjdfLoRBSMcBxBxSU6Zw7BKVnoT7WOWJqL3x26F4CUNke31b1CcuTVsuNkjPrL9N4I9fkzvZTDvqfRdEZEIG73bV/3LI9zpcucCv0OyL4ljBmKhKgqWL5VoWXqez02zr7qpf0FU8H9+TvgC0y4os3EmgKxwPTZJv/Hs41F3JPLBQYMica9gHrJD49vDuXXf2048K8S51vzUM=
-  secret_access_key:
-    secure: Up3WddMVSmS9BtWZZIAT7WHTCKkkWso8Y3IJjCQbWaXNYXwGiReAcW5uNjkAZlmhLZ5Uj/KT+s2pLK+EgJVa/S9espRKfXJnjoG1OgkQ/DDKzF8alWp7tfz2wYWz+w6hnO9EACg8SMgHMpIAwNCf0ORip4Sy2RJ+PCcvaZ0ErlyqXHATrUD93EXbmXTCV47oA4jKDxxB8HjnDSyoqgLFdDSRLVQMFjqhnXLf6VDU0n405oZUmn07/A/bO4bJUobgEQ87rwFbfaBM02T+Dd2vmzg0Jg2tCnuMLY51NAUQ1Hx/M+C8FmsyOsuvOwWiyRGVhtX4m4IldSpq3OqR53FnPcXhRsuWgk9Z3T21Ee937MJZPD/Wxr8P1S0hhrh4EjqVBXVYBNExRzY20rroGR47COkCxybxJN15AZ8sNCyxOYR4ej/WJip+iPxtwVFAOKRTqGIRAv4xVOX2XWl2GUOcZ0myKzmaxOANG32H6B/DmTEBH8Nw/kfSl5Q1EXMIqpYehcA5AIGpf6W0eNMmb6ROwmnZFJCtCt8eEB6XMNCGsBhdlfNuWYQOth+ent/zT8TDe8MGc+pO/rNXyHzPzdg6eOvDa5/9qmuTi9RIKVMDrPDtfTFPeZjU0hwx2sAzxpwyQKu637Sr+Tk8ATivPDeoaSP5cfO1nkh9Y192N7ymJm0=
-  bucket: chanjongs
-  on:
-    repo: TourKakao-Carping/Carping-Backend
-    branch: main
-  skip_cleanup: "true"
-  local_dir: deploy
+  - provider: s3
+    access_key_id: j3Jo+9vXSWkccc1VAj8KAX8ZbrF9hbQkRMmmbnr8IkVwnJjpCAKFW3mgiaCI8XlsGnL2ujRwlWD6EsFxcFMspgeOsWKLDnQPDUxuYGMzl//YJ5OjJXhLR72RbpRNULLlD1eMLVLnN/WdUkD17m57XClCI/n0o9uLY+03+m5c2ltWrmkuwJ/80bXoNL7S6dedR+WQOA712HiAMxtDXoWBRXXSjM66dxU2OrxLJXBpe/dU7wXAQ6Ft1mn1a+57FMC0do29d/fxFtiqUBDQP0Mt+bey9++hAOF0MFMEN0hp1qa+u0ureUMbL0p7Be5OvhltVwQZhcW4p902L9GuULQ5R1PhbD3ScpsaKGIrZMKYUKuHlKqEew1tLK5RnQO9RSXkmYAkJ2yZ7nzjq4NjAv+tw5G7vEdLmAbRC9x/mMkrnQGUcFghZUzPCEOyUw/fy7Hqh6azduDyPdu359NokUEMbqbasj6sS2q0+B1QnXhKxhFI8hc4eA/Kese7HpdvkmTs15/1ur2sWCVMX+wAYjUYwSm97CH0upLVp6oJhanxnXln9voMTCEQQpplwSJjsodBdZ3+YH3yZxJeqjTgm0l2ybt3T6Iq0Edwa4MRyhC/fK9Leho+JsZ09/F4l3IEGHQYJaNJ7Q6ZlK/i1T83vdpSkL9HJy7hN6c+5ep/H6rOKcg="
+    secret_access_key: &1
+      secure: vaytseV8dvuqHgp0x2pDAY1dTFu/MP+GTcJj2BxH3XSCTEoPtDl0fnV6T4xkUpXDVSW2b44mEW4gCqGBBW42CpSRLs4ZB7wVmroLvd2TQOX6WQRx6TpyW9LFP4Zf3lf9JKFjE3U9nvXpUrNFwEEOm9E/f/uAaiqm8NxLzRFMzIJGzdvO+Mhd1/tMfeDiGFygYyc7INkmDZ8T1ke84W8kY/iKyqKXpOIMZ5BSvpTdA1tS7laeOEFkjwPcgLOFiYA+OFZHgmNf+JkjoHECTYZLBmp9agClyqikmBsJ9Zp5BD4E6Z8Md3L4sn5KuqvSEH6+fO3qJ1YK8rZQVRbJhEEnHB2BldflQ2LqdtvdNDXTxBFPwbjZR7Y19KBX/vmtv1oVshTb+tVH8zeZRJ+aOL/1Sysm3QCPNmRKYXGq0zc/GnbGoyJLNrI2lI8j1qI8lfrg1vma0FBla2LreqSNh01/X0eBqNPvFy+Vr02PSzTQHwkWbebrpmmzJ5chImLOTts1RafL8S3QODSSfOE+D83b7r0c27Xb2Fh9ZZz9RHca3I0x8hGpRFpQX4wQSJ/HlJblThgGOaDJEwAUAVJeh3q9Pxld8qB/xlUoYyiSqAPbHbnHpxSQyuVV+eb8AO1JaJOMWkVm2KlYkG+Qdr1B7kBD3QA0cM84yEymeEcWogi91GI=
+    local_dir: dpl_cd_upload
+    skip_cleanup: true
+    on: &2
+      repo: TourKakao-Carping/Carping-Backend
+      branch: main
+    bucket: chanjongs
+  - provider: codedeploy
+    access_key_id: j3Jo+9vXSWkccc1VAj8KAX8ZbrF9hbQkRMmmbnr8IkVwnJjpCAKFW3mgiaCI8XlsGnL2ujRwlWD6EsFxcFMspgeOsWKLDnQPDUxuYGMzl//YJ5OjJXhLR72RbpRNULLlD1eMLVLnN/WdUkD17m57XClCI/n0o9uLY+03+m5c2ltWrmkuwJ/80bXoNL7S6dedR+WQOA712HiAMxtDXoWBRXXSjM66dxU2OrxLJXBpe/dU7wXAQ6Ft1mn1a+57FMC0do29d/fxFtiqUBDQP0Mt+bey9++hAOF0MFMEN0hp1qa+u0ureUMbL0p7Be5OvhltVwQZhcW4p902L9GuULQ5R1PhbD3ScpsaKGIrZMKYUKuHlKqEew1tLK5RnQO9RSXkmYAkJ2yZ7nzjq4NjAv+tw5G7vEdLmAbRC9x/mMkrnQGUcFghZUzPCEOyUw/fy7Hqh6azduDyPdu359NokUEMbqbasj6sS2q0+B1QnXhKxhFI8hc4eA/Kese7HpdvkmTs15/1ur2sWCVMX+wAYjUYwSm97CH0upLVp6oJhanxnXln9voMTCEQQpplwSJjsodBdZ3+YH3yZxJeqjTgm0l2ybt3T6Iq0Edwa4MRyhC/fK9Leho+JsZ09/F4l3IEGHQYJaNJ7Q6ZlK/i1T83vdpSkL9HJy7hN6c+5ep/H6rOKcg="
+    secret_access_key: *1
+    bucket: chanjongs
+    key: aws-carping.zip
+    bundle_type: zip
+    application: Carping-Backend
+    deployment_group: CarpingGroup
+    on: *2
+    skip_cleanup: "true"
