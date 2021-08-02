@@ -36,6 +36,7 @@ deploy:
     bucket: chanjongs
     key: aws-carping.zip
     bundle_type: zip
+    region: ap-northeast-2
     application: Carping-Backend
     deployment_group: CarpingGroup
     on: *2
