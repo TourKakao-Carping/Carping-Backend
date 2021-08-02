@@ -13,6 +13,7 @@ cache:
     - "$HOME/.m2/repository"
     - "$HOME/.gradle"
 before_deploy:
+  - zip -r aws-carping ./* # zip add
   - mkdir -p dpl_cd_upload
   - mv aws-carping.zip dpl_cd_upload/aws-carping.zip
 deploy:
@@ -26,13 +27,15 @@ deploy:
       repo: TourKakao-Carping/Carping-Backend
       branch: main
     bucket: chanjongs
+    region: ap-northeast-2
   - provider: codedeploy
     access_key_id: AKIA4W33QLUKQBFDETKM
     secret_access_key: *1
     bucket: chanjongs
     key: aws-carping.zip
     bundle_type: zip
-    application: Carping-Backend
+    application: aws-chanjong
     deployment_group: ChanCD
     on: *2
     skip_cleanup: "true"
+    region: ap-northeast-2
