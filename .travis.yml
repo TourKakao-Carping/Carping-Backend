@@ -41,8 +41,8 @@ deploy:
     key: aws-carping.zip
 
     bundle_type: zip
-    application: carping
+    application: aws-chanjong # CodeDeploy App 이름
 
-    deplyment_group: carping-group
+    deplyment_group: ChanCD # CodeDeploy App의 배포 그룹
     region: ap-northeast-2
     wait-until-deployed: true
