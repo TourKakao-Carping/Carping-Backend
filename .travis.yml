@@ -30,6 +30,7 @@ deploy:
       repo: TourKakao-Carping/Carping-Backend
       branch: main
     skip_cleanup: "true"
+    region: ap-northeast-2
     local_dir: deploy
   - provider: codedeploy
     access_key_id:
