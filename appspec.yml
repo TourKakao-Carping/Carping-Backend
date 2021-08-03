@@ -4,12 +4,3 @@ files:
   - source: /
     destination: /home/ubuntu/carping/zip/
     overwrite: yes
-hooks:
-  ApplicationStop:
-    - location: kill_container.sh
-      timeout: 30
-      runas: ubuntu
-  ApplicationStart:
-    - location: start_compose_up.sh
-      timeout: 30
-      runas: ubuntu
