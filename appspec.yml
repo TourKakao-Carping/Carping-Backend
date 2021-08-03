@@ -5,6 +5,8 @@ files:
     destination: /home/ubuntu/carping/zip/
     overwrite: yes
 hooks:
+  ApplicationStop:
+    - location: kill_container.sh
   ApplicationStart:
-    - location: scripts/start_compose_up.sh
-      timeout: 10
+    - location: start_compose_up.sh
+      timeout: 180
