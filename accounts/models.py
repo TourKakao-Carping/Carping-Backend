@@ -52,6 +52,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser, Base):
     # username = None
     email = models.EmailField(unique=True, max_length=255)
+    badge = models.ForeignKey('Badge', null=True, on_delete=CASCADE, related_name="user",)
     first_name = None
     last_name = None
     date_joined = None
@@ -91,3 +92,15 @@ class Profile(Base):
     #     SocialAccount, on_delete=CASCADE, null=True, related_name="socialaccount_fk")
 
     objects = ProfileManager()
+
+
+class Certification(Base):
+    user = models.ForeignKey(User, on_delete=CASCADE, related_name="certification")
+    marketing = models.BooleanField(default=1)
+    authorized = models.BooleanField(default=0)
+
+
+class Badge(Base):
+    name = models.CharField(max_length=50)
+    image = models.TextField()
+
