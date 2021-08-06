@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
+from taggit.managers import TaggableManager
 
 from accounts.models import User
 from bases.models import Base
@@ -39,3 +40,4 @@ class AutoCamp(Base):
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
     views = models.IntegerField(default=0)
+    tags = TaggableManager(blank=True)
