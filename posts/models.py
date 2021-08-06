@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
+from taggit.managers import TaggableManager
 
 from accounts.models import User
 from bases.models import Base
@@ -12,6 +13,7 @@ class Post(Base):
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
     views = models.IntegerField(default=0)
+    tags = TaggableManager(blank=True)
 
 
 class EcoCarping(Base):
@@ -21,6 +23,7 @@ class EcoCarping(Base):
     image = models.CharField(max_length=100, null=True)
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
+    tags = TaggableManager(blank=True)
 
 
 class Share(Base):
@@ -30,3 +33,4 @@ class Share(Base):
     image = models.CharField(max_length=100, null=True)
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
+    tags = TaggableManager(blank=True)

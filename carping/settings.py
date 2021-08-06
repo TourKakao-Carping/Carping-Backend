@@ -60,6 +60,8 @@ INSTALLED_APPS = [
     'camps',
     'posts',
     'comments',
+    'taggit',
+    'taggit_serializer',
 ]
 
 MIDDLEWARE = [
