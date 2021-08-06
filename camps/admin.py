@@ -1,3 +1,5 @@
 from django.contrib import admin
+from camps.models import CampSite, AutoCamp
 
-# Register your models here.
+admin.site.register(CampSite)
+admin.site.register(AutoCamp)
