@@ -91,3 +91,16 @@ class Profile(Base):
     #     SocialAccount, on_delete=CASCADE, null=True, related_name="socialaccount_fk")
 
     objects = ProfileManager()
+
+
+class Certification(Base):
+    user = models.ForeignKey(User, on_delete=CASCADE, related_name="certification")
+    marketing = models.BooleanField(default=1)
+    authorized = models.BooleanField(default=0)
+
+
+class Badge(Base):
+    user = models.ForeignKey(User, on_delete=CASCADE, related_name="badge")
+    name = models.CharField(max_length=50)
+    image = models.TextField()
+
