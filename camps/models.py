@@ -32,7 +32,7 @@ class CampSite(Base):
 
 
 class AutoCamp(Base):
-    user = models.ForeignKey(User, on_delete=CASCADE, related_name="user", null=True)
+    user = models.ForeignKey(User, on_delete=CASCADE, related_name="autocamp", null=True)
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
     image = models.CharField(max_length=100, null=True)
