@@ -1,8 +1,9 @@
 import requests
 from urllib.parse import urlencode, quote_plus
-
-API_KEY = 'iN2MyW0y826slyTaUpwpzEHzUJDo%2B3Ax9mGKTUu%2FNozBfu1w8FgP7yDxvz6ubbKpkiVt0d1d8YNLNaUhBapFeA%3D%3D'
+from django.conf import settings
 # 전체 num : 2649
+
+API_KEY = getattr(settings, "CAMP_API_KEY")
 
 
 def get_data():
