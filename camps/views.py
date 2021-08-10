@@ -7,9 +7,8 @@ from camps.models import CampSite
 from rest_framework.views import APIView
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.conf import settings
 
-
-API_KEY = 'iN2MyW0y826slyTaUpwpzEHzUJDo%2B3Ax9mGKTUu%2FNozBfu1w8FgP7yDxvz6ubbKpkiVt0d1d8YNLNaUhBapFeA%3D%3D'
 # 전체 num : 2649
 
 # 21개
@@ -23,6 +22,7 @@ json_column = ['facltNm', 'mapX', 'mapY', 'animalCmgCl', 'homepage', 'tel', 'add
 
 class InputDataAPIView(APIView):
     def get_data(self):
+        API_KEY = getattr(settings, "CAMP_API_KEY")
         url = "http://api.visitkorea.or.kr/openapi/service/rest/GoCamping/basedList"
         queryParams = '?' + urlencode({quote_plus(
             'numOfRows'): '2649',
