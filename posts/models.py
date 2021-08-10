@@ -9,11 +9,22 @@ from camps.models import CampSite
 
 class Post(Base):
     user = models.ForeignKey(User, on_delete=CASCADE, related_name="post", null=True)
-    campsite = models.ForeignKey(CampSite, on_delete=CASCADE, related_name="post", null=True)
     title = models.CharField(max_length=100, null=False)
-    text = models.TextField()
+    thumbnail = models.CharField(max_length=100, null=True)
     views = models.IntegerField(default=0)
     tags = TaggableManager(blank=True)
+    campsite1 = models.ForeignKey(CampSite, on_delete=CASCADE, related_name="post1", null=True)
+    text1 = models.TextField()
+    image1 = models.CharField(max_length=255, null=True)
+    source1 = models.CharField(max_length=255, null=True)
+    campsite2 = models.ForeignKey(CampSite, on_delete=CASCADE, related_name="post2", null=True)
+    text2 = models.TextField(null=True, blank=True)
+    image2 = models.CharField(max_length=255, null=True)
+    source2 = models.CharField(max_length=255, null=True)
+    campsite3 = models.ForeignKey(CampSite, on_delete=CASCADE, related_name="post3", null=True)
+    text3 = models.TextField(null=True, blank=True)
+    image3 = models.CharField(max_length=255, null=True)
+    source3 = models.CharField(max_length=255, null=True)
 
 
 class EcoCarping(Base):
