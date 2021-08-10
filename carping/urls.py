@@ -22,4 +22,5 @@ urlpatterns = [
     # path('accounts/', include('dj_rest_auth.registration.urls')),
     path('accounts/', include('allauth.urls'), name="socialaccount_signup"),
     path('accounts/', include('accounts.urls')),
+    path('camps/', include('camps.urls'))
 ]
