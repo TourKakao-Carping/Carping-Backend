@@ -61,7 +61,8 @@ INSTALLED_APPS = [
     'posts',
     'comments',
     'taggit',
-    # 'taggit_serializer',
+    'taggit_serializer',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
