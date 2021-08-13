@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'comments',
     'taggit',
     'taggit_serializer',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
