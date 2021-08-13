@@ -32,6 +32,9 @@ class CampSite(models.Model):
     views = models.IntegerField(default=0)
     area = models.CharField(max_length=50, null=False)
 
+    def __str__(self):
+        return self.name
+
 
 class AutoCamp(Base):
     user = models.ForeignKey(User, on_delete=CASCADE,

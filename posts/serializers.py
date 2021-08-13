@@ -2,7 +2,7 @@ from rest_framework import serializers
 from taggit.serializers import TagListSerializerField
 
 from bases.serializers import ModelSerializer
-from posts.models import EcoCarping
+from posts.models import EcoCarping, Post
 
 
 class EcoCarpingSerializer(ModelSerializer):
@@ -10,4 +10,13 @@ class EcoCarpingSerializer(ModelSerializer):
 
     class Meta:
         model = EcoCarping
-        fields = ['id', 'user', 'latitude', 'longitude', 'image', 'title', 'text', 'tags']
+        fields = ['id', 'user', 'latitude', 'longitude',
+                  'image', 'title', 'text', 'tags']
+
+
+class AutoCampPostForWeekendSerializer(ModelSerializer):
+    tags = TagListSerializerField()
+
+    class Meta:
+        model = Post
+        fields = ['id', 'tags', 'title', 'thumbnail']
