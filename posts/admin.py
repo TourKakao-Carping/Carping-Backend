@@ -1,3 +1,6 @@
 from django.contrib import admin
+from posts.models import EcoCarping, Post, Share
 
-# Register your models here.
+admin.site.register(EcoCarping)
+admin.site.register(Post)
+admin.site.register(Share)

@@ -1,8 +1,12 @@
 from rest_framework import routers
 from django.urls import path, include
-from posts.views import EcoCarpingViewSet
+from posts.views import EcoCarpingViewSet, EcoRankingView
 
 router = routers.DefaultRouter()
 router.register('eco-carping', EcoCarpingViewSet)
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('eco-ranking', EcoRankingView.as_view(), name='eco-ranking')
+]
+
+urlpatterns += router.urls
