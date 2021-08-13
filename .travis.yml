@@ -35,5 +35,5 @@ deploy:
     application: aws-chanjong
     deployment_group: ChanCD
     on: *2
-    skip_cleanup: "true"
+    skip_cleanup: true
     region: ap-northeast-2
