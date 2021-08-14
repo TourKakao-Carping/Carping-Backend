@@ -10,16 +10,11 @@ from posts.models import EcoCarping
 
 class EcoCarpingSerializer(ModelSerializer):
     tags = TagListSerializerField()
-    today_count = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
 
     class Meta:
         model = EcoCarping
-        fields = ['id', 'user', 'latitude', 'longitude', 'image', 'title', 'text', 'tags', 'today_count', 'created_at']
-
-    def get_today_count(self, data):
-        today = datetime.date.today()
-        return EcoCarping.objects.filter(created_at__contains=today).count()
+        fields = ['id', 'user', 'latitude', 'longitude', 'image', 'title', 'text', 'tags', 'created_at']
 
     def get_created_at(self, data):
         return data.created_at.strftime("%Y-%m-%d %H:%M")

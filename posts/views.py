@@ -1,3 +1,5 @@
+import datetime
+
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from drf_yasg import openapi
@@ -17,6 +19,12 @@ class EcoCarpingViewSet(viewsets.ModelViewSet):
     serializer_class = EcoCarpingSerializer
     queryset = EcoCarping.objects.all()
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        today_count = EcoCarping.objects.filter(created_at__contains=datetime.date.today()).count()
+        return Response(status=HTTP_200_OK, data={"today_count": today_count,
+                                                  "results": self.get_serializer(queryset, many=True).data})
+
 
 # 5. 에코랭킹 api - 상위 7개 (프사, 뱃지, 아이디, 순위, 에카포스트 수)
 class EcoRankingView(APIView):
@@ -32,5 +40,4 @@ class EcoRankingView(APIView):
     )
     def get(self, request):
         eco = User.objects.all()
-        print("데이터", eco)
         return Response(status=HTTP_200_OK, data=EcoRankingSerializer(eco, many=True).data)
