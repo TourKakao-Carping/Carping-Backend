@@ -7,7 +7,7 @@ from carping.docs import schema_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('accounts/', include('dj_rest_auth.urls')),
+    path('accounts/', include('dj_rest_auth.urls')),
     # path('accounts/', include('dj_rest_auth.registration.urls')),
     path('accounts/', include('allauth.urls'), name="socialaccount_signup"),
     path('accounts/', include('accounts.urls')),
@@ -17,14 +17,19 @@ urlpatterns = [
 
 # Swagger
 urlpatterns += [
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui',),
-    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    path('swagger/', schema_view.with_ui('swagger',
+         cache_timeout=0), name='schema-swagger-ui',),
+    path("redoc/", schema_view.with_ui("redoc",
+         cache_timeout=0), name="schema-redoc"),
 ]
 
 if settings.DEBUG:
     urlpatterns += [
-        path("400/", default_views.bad_request, kwargs={"exception": Exception("Bad Request!")},),
-        path("403/", default_views.permission_denied, kwargs={"exception": Exception("Permission Denied")},),
-        path("404/", default_views.page_not_found, kwargs={"exception": Exception("Page not Found")},),
+        path("400/", default_views.bad_request,
+             kwargs={"exception": Exception("Bad Request!")},),
+        path("403/", default_views.permission_denied,
+             kwargs={"exception": Exception("Permission Denied")},),
+        path("404/", default_views.page_not_found,
+             kwargs={"exception": Exception("Page not Found")},),
         path("500/", default_views.server_error),
     ]

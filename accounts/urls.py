@@ -1,5 +1,5 @@
 from django.urls import path, include
-from accounts import views
+from accounts import views, tokens
 
 urlpatterns = [
     path('kakao/social', views.kakao_login, name='kakao_login'),
@@ -10,4 +10,8 @@ urlpatterns = [
 
     path("login/kakao", views.KakaoLoginView.as_view(), name="kakao_social"),
     path("login/google", views.GoogleLoginView.as_view(), name="google_social"),
+
+    path("token/refresh", tokens.CustomTokenRefreshView.as_view(),
+         name="token_refresh"),
+
 ]
