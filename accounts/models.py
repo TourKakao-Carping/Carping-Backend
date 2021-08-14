@@ -86,6 +86,7 @@ class Profile(Base):
                              blank=True, validators=[validate_phone])
     image = models.URLField(null=True)
     gender = models.IntegerField(default=0, null=True)
+    level = models.ForeignKey('EcoLevel', null=True, on_delete=CASCADE, related_name="user")
     user = models.ForeignKey(User, on_delete=CASCADE,
                              related_name="profile", null=True)
     # socialaccount = models.ForeignKey(
@@ -102,5 +103,9 @@ class Certification(Base):
 
 class Badge(Base):
     name = models.CharField(max_length=50)
-    image = models.TextField()
+    image = models.CharField(max_length=100, null=True)
 
+
+class EcoLevel(Base):
+    level = models.IntegerField(default=1, null=True)
+    image = models.CharField(max_length=100, null=True)
