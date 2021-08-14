@@ -22,7 +22,8 @@ class EcoCarpingViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        today_count = EcoCarping.objects.filter(created_at__contains=datetime.date.today()).count()
+        today_count = EcoCarping.objects.filter(
+            created_at__contains=datetime.date.today()).count()
         return Response(status=HTTP_200_OK, data={"today_count": today_count,
                                                   "results": self.get_serializer(queryset, many=True).data})
 
