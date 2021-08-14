@@ -51,13 +51,8 @@ json_column = ['facltNm', 'mapX', 'mapY', 'animalCmgCl', 'homepage', 'tel', 'add
 count = 0
 
 for i in item:
-    sub_fac1 = i.get('sbrsCl')
-    sub_fac2 = i.get('sbrsEtc')
-    # if not sub_fac1 == None and sub_fac2 == None:
-    #     print(sub_fac1, sub_fac2)
-    #     count += 1
-    if sub_fac1 == None and not sub_fac2 == None:
-        print(sub_fac2)
+    induty = i.get('induty')
+    if '자동차야영장' in induty:
         count += 1
 print(count)
 #위도 : x

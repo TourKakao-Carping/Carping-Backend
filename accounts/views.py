@@ -1,4 +1,5 @@
 import json
+from allauth.account import app_settings
 import requests
 from allauth.account.models import EmailAddress
 from django.conf import settings
@@ -12,6 +13,8 @@ from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao import views as kakao_view
 from allauth.socialaccount.providers.google import views as google_view
 from allauth.socialaccount.models import SocialAccount
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import Profile, User
 
@@ -114,6 +117,18 @@ class GoogleLoginView(SocialLoginView):
             'image': profile_image,
         }
         response = super().get_response()
+
+        if settings.SIMPLE_JWT['ROTATE_REFRESH_TOKENS']:
+            user_refresh = OutstandingToken.objects.filter(user=user)
+            if user_refresh.count() > 1:
+                last_refresh = user_refresh.order_by(
+                    '-created_at')[1].token
+                blacklist_refresh = RefreshToken(last_refresh)
+                try:
+                    blacklist_refresh.blacklist()
+                except AttributeError:
+                    pass
+
         del response.data["user"]["first_name"], response.data["user"]["last_name"]
         response.data["user"]["profile"] = profile_data
         return response
@@ -162,6 +177,18 @@ class KakaoLoginView(SocialLoginView):
         }
 
         response = super().get_response()
+
+        if settings.SIMPLE_JWT['ROTATE_REFRESH_TOKENS']:
+            user_refresh = OutstandingToken.objects.filter(user=user)
+            if user_refresh.count() > 1:
+                last_refresh = user_refresh.order_by(
+                    '-created_at')[1].token
+                blacklist_refresh = RefreshToken(last_refresh)
+                try:
+                    blacklist_refresh.blacklist()
+                except AttributeError:
+                    pass
+
         del response.data["user"]["first_name"], response.data["user"]["last_name"]
         response.data["user"]["profile"] = profile_data
 
