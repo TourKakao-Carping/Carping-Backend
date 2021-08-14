@@ -1,4 +1,5 @@
 import datetime
+from dateutil.relativedelta import relativedelta
 
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
@@ -40,4 +41,13 @@ class EcoRankingView(APIView):
     )
     def get(self, request):
         eco = User.objects.all()
-        return Response(status=HTTP_200_OK, data=EcoRankingSerializer(eco, many=True).data)
+        today = datetime.date.today() + relativedelta(days=1)
+        pre_month = today - relativedelta(months=1)
+        current_user = request.user
+        # 에코지수, 에코레벨 필요
+        monthly_eco_count = EcoCarping.objects.filter(user_id=current_user.id,
+                                                      created_at__range=[pre_month, today]).count()
+
+        return Response(status=HTTP_200_OK, data={"current_user": [EcoRankingSerializer(current_user).data,
+                                                                   {"monthly_eco_count": monthly_eco_count}],
+                                                  "results": EcoRankingSerializer(eco, many=True).data})
