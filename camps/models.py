@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
 from taggit.managers import TaggableManager
+from camps.managers import AutoCampManager, CampSiteManager
 
 from accounts.models import User
 from bases.models import Base
@@ -32,6 +33,8 @@ class CampSite(models.Model):
     views = models.IntegerField(default=0)
     area = models.CharField(max_length=50, null=False)
 
+    objects = CampSiteManager()
+
     def __str__(self):
         return self.name
 
@@ -46,3 +49,5 @@ class AutoCamp(Base):
     text = models.TextField()
     views = models.IntegerField(default=0)
     tags = TaggableManager(blank=True)
+
+    objects = AutoCampManager()
