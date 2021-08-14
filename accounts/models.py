@@ -52,7 +52,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser, Base):
     # username = None
     email = models.EmailField(unique=True, max_length=255)
-    badge = models.ForeignKey('Badge', null=True, on_delete=CASCADE, related_name="user",)
+    badge = models.ForeignKey('Badge', null=True, on_delete=CASCADE, related_name="user", )
     first_name = None
     last_name = None
     date_joined = None
@@ -87,6 +87,7 @@ class Profile(Base):
     image = models.URLField(null=True)
     gender = models.IntegerField(default=0, null=True)
     level = models.ForeignKey('EcoLevel', null=True, on_delete=CASCADE, related_name="user")
+    # 데이터 넣은 후 level --> default=EcoLevel.objects.get(id=1)
     user = models.ForeignKey(User, on_delete=CASCADE,
                              related_name="profile", null=True)
     # socialaccount = models.ForeignKey(

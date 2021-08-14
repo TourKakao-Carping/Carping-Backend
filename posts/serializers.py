@@ -22,16 +22,20 @@ class EcoCarpingSerializer(ModelSerializer):
 
 class EcoRankingSerializer(ModelSerializer):
     image = serializers.SerializerMethodField()
+    level = serializers.SerializerMethodField()
     eco_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'image', 'badge', 'eco_count']
+        fields = ['id', 'username', 'image', 'level', 'badge', 'eco_count']
         order_by = ['-eco_count']
         # 아직 에코랭킹 적용 x
 
     def get_image(self, data):
         return data.profile.get().image
+
+    def get_level(self, data):
+        return data.profile.get().level.level
 
     def get_eco_count(self, data):
         return data.eco.all().count()

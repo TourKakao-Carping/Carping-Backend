@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
-from accounts.models import User
+from accounts.models import User, EcoLevel
 from posts.models import EcoCarping
 from posts.serializers import EcoCarpingSerializer, EcoRankingSerializer
 
@@ -43,11 +43,20 @@ class EcoRankingView(APIView):
         eco = User.objects.all()
         today = datetime.date.today() + relativedelta(days=1)
         pre_month = today - relativedelta(months=1)
-        current_user = request.user
-        # 에코지수, 에코레벨 필요
+        current_user = User.objects.get(id=1)
+
+        if current_user.eco.count() <= 3:
+            current_user.profile.update(level=EcoLevel.objects.get(id=1))
+        elif current_user.eco.count() <= 8:
+            current_user.profile.update(level=EcoLevel.objects.get(id=2))
+        elif current_user.eco.count() >= 9:
+            current_user.profile.update(level=EcoLevel.objects.get(id=3))
+
+        eco_percentage = current_user.eco.count() * 10
         monthly_eco_count = EcoCarping.objects.filter(user_id=current_user.id,
                                                       created_at__range=[pre_month, today]).count()
 
         return Response(status=HTTP_200_OK, data={"current_user": [EcoRankingSerializer(current_user).data,
-                                                                   {"monthly_eco_count": monthly_eco_count}],
+                                                                   {"eco_percentage": eco_percentage,
+                                                                    "monthly_eco_count": monthly_eco_count}],
                                                   "results": EcoRankingSerializer(eco, many=True).data})

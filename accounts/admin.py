@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import User, Profile, Certification, Badge
+from .models import User, Profile, Certification, Badge, EcoLevel
 from django.contrib import admin
 from rest_framework_simplejwt.token_blacklist.admin import OutstandingTokenAdmin
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
@@ -17,3 +17,4 @@ admin.site.register(User)
 admin.site.register(Profile)
 admin.site.register(Certification)
 admin.site.register(Badge)
+admin.site.register(EcoLevel)
