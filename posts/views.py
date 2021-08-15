@@ -11,7 +11,6 @@ from accounts.models import User, EcoLevel
 from posts.models import EcoCarping, Post
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSerializer, EcoRankingSerializer
 
-
 from bases.utils import check_data_key, check_str_digit
 from bases.response import APIResponse
 

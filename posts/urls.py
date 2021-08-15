@@ -1,8 +1,8 @@
-from posts.views import *
 from rest_framework import routers
 from django.urls import path, include
+
 from posts.viewsets import AutoCampPostForWeekendViewSet, EcoCarpingViewSet
-from posts.views import EcoRankingView
+from posts.views import *
 
 urlpatterns = [
     path('autocamp/weekend-post',
