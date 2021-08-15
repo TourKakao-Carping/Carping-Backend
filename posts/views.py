@@ -1,18 +1,12 @@
 from django.http.response import JsonResponse
 from rest_framework.generics import GenericAPIView
-from rest_framework import viewsets
 
 from posts.models import EcoCarping, Post
-from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSerializer
+from posts.serializers import AutoCampPostForWeekendSerializer
 
 from bases.utils import check_data_key, check_str_digit
 
 from bases.response import APIResponse
-
-
-class EcoCarpingViewSet(viewsets.ModelViewSet):
-    serializer_class = EcoCarpingSerializer
-    queryset = EcoCarping.objects.all()
 
 
 class GetAutoCampPostForWeekend(GenericAPIView):
@@ -51,5 +45,4 @@ class GetAutoCampPostForWeekend(GenericAPIView):
 
         if not check_data_key(count) or not check_str_digit(count):
             return APIResponse(False, "INVALID_COUNT").response('', status=400)
-
         return self.list(request)

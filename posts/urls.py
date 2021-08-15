@@ -2,7 +2,7 @@ from django.urls import path, include
 from posts.views import *
 from rest_framework import routers
 from django.urls import path, include
-from posts.views import EcoCarpingViewSet
+from posts.viewsets import AutoCampPostForWeekendViewSet, EcoCarpingViewSet
 
 urlpatterns = [
     path('autocamp/weekend-post',
@@ -11,5 +11,6 @@ urlpatterns = [
 
 router = routers.DefaultRouter()
 router.register('eco-carping', EcoCarpingViewSet)
+router.register('autocamp', AutoCampPostForWeekendViewSet)
 
 urlpatterns += router.urls
