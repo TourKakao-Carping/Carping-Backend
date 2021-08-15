@@ -8,6 +8,11 @@ from bases.response import APIResponse
 
 
 class GetAutoCampPostForWeekend(GenericAPIView):
+    """
+    이번주말 이런차박지 어때요
+    메인 페이지 및 전체보기 클릭 시 썸네일 포스트들 가져오기
+    (id, tags, title, thumbnail, views)
+    """
     serializer_class = AutoCampPostForWeekendSerializer
 
     def get_queryset(self):
