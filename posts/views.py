@@ -1,3 +1,4 @@
+from rest_framework.generics import GenericAPIView
 import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -50,7 +51,6 @@ class GetAutoCampPostForWeekend(GenericAPIView):
 
         if not check_data_key(count) or not check_str_digit(count):
             return APIResponse(False, "INVALID_COUNT").response('', status=400)
-
         return self.list(request)
 
 

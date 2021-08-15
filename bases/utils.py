@@ -1,5 +1,3 @@
-
-
 def check_data_key(key):
     if key == None:
         return False

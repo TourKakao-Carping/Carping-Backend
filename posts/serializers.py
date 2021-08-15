@@ -1,3 +1,4 @@
+from camps.models import AutoCamp
 from rest_framework import serializers
 from taggit.serializers import TagListSerializerField
 
@@ -25,6 +26,14 @@ class EcoCarpingSerializer(ModelSerializer):
 
     def get_created_at(self, data):
         return data.created_at.strftime("%Y-%m-%d %H:%M")
+
+
+class AutoCampPostSerializer(ModelSerializer):
+    tags = TagListSerializerField()
+
+    class Meta:
+        model = Post
+        fields = '__all__'
 
 
 class EcoRankingSerializer(ModelSerializer):

@@ -26,14 +26,3 @@ deploy:
       branch: main
     bucket: chanjongs
     region: ap-northeast-2
-  - provider: codedeploy
-    access_key_id: $AWS_ACCESS_KEY
-    secret_access_key: $AWS_SECRET_KEY
-    bucket: chanjongs
-    key: aws-carping.zip
-    bundle_type: zip
-    application: aws-chanjong
-    deployment_group: ChanCD
-    on: *2
-    skip_cleanup: true
-    region: ap-northeast-2
