@@ -1,13 +1,8 @@
 import datetime
 from dateutil.relativedelta import relativedelta
 
-from django.utils.translation import ugettext_lazy as _
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-
 from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView
-from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
@@ -34,7 +29,7 @@ class GetAutoCampPostForWeekend(GenericAPIView):
             qs = Post.objects.all().order_by('-views')[:count]
         return qs
 
-    def get(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         response = APIResponse(False, "")
 
