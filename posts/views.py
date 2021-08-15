@@ -34,7 +34,7 @@ class GetAutoCampPostForWeekend(GenericAPIView):
             qs = Post.objects.all().order_by('-views')[:count]
         return qs
 
-    def list(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         response = APIResponse(False, "")
 
@@ -63,34 +63,29 @@ class GetAutoCampPostForWeekend(GenericAPIView):
 class EcoCarpingViewSet(viewsets.ModelViewSet):
     serializer_class = EcoCarpingSerializer
     queryset = EcoCarping.objects.all()
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         today_count = EcoCarping.objects.filter(
             created_at__contains=datetime.date.today()).count()
-        return Response(status=HTTP_200_OK, data={"today_count": today_count,
-                                                  "results": self.get_serializer(queryset, many=True).data})
+        response = APIResponse(False, "")
+        response.success = True
+        return response.response(status=HTTP_200_OK, data={"today_count": today_count,
+                                                           "ecocarping": self.get_serializer(queryset, many=True).data})
 
 
 # 5. 에코랭킹 api - 상위 7개 (프사, 뱃지, 아이디, 순위, 에카포스트 수)
 class EcoRankingView(APIView):
     allowed_method = ["GET"]
 
-    @swagger_auto_schema(
-        operation_id=_("Get Eco-Ranking"),
-        operation_description=_("메인화면 - 에코카핑에서 보여질 에코 랭킹 뷰입니다."),
-        manual_parameters=[
-            openapi.Parameter('page', openapi.IN_QUERY, type='integer')],
-        responses={200: openapi.Response(_("OK"), EcoRankingSerializer, )},
-        tags=[_("에코카핑"), ],
-    )
     def get(self, request):
         eco = User.objects.all()
         today = datetime.date.today() + relativedelta(days=1)
         pre_month = today - relativedelta(months=1)
-        current_user = User.objects.get(id=1) # 테스트용 코드
+        current_user = User.objects.get(id=1)  # 테스트용 코드
         # current_user = request.user - 실제 코드
 
-        if current_user.eco.count() <= 3:
+        if current_user.profile.get().level is None or current_user.eco.count() <= 3:
             current_user.profile.update(level=EcoLevel.objects.get(id=1))
         elif current_user.eco.count() <= 8:
             current_user.profile.update(level=EcoLevel.objects.get(id=2))
@@ -101,7 +96,10 @@ class EcoRankingView(APIView):
         monthly_eco_count = EcoCarping.objects.filter(user_id=current_user.id,
                                                       created_at__range=[pre_month, today]).count()
 
-        return Response(status=HTTP_200_OK, data={"current_user": [EcoRankingSerializer(current_user).data,
-                                                                   {"eco_percentage": eco_percentage,
-                                                                    "monthly_eco_count": monthly_eco_count}],
-                                                  "results": EcoRankingSerializer(eco, many=True).data})
+        response = APIResponse(False, "")
+        response.success = True
+
+        return response.response(status=HTTP_200_OK, data={"current_user": [EcoRankingSerializer(current_user).data,
+                                                                            {"eco_percentage": eco_percentage,
+                                                                             "monthly_eco_count": monthly_eco_count}],
+                                                           "rank": EcoRankingSerializer(eco, many=True).data})
