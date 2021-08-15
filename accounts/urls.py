@@ -14,4 +14,5 @@ urlpatterns = [
     path("token/refresh", tokens.CustomTokenRefreshView.as_view(),
          name="token_refresh"),
 
+    path('eco-ranking', views.EcoRankingView.as_view(), name='eco-ranking'),
 ]

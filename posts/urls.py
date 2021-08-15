@@ -7,7 +7,6 @@ from posts.views import *
 urlpatterns = [
     path('autocamp/weekend-post',
          GetAutoCampPostForWeekend.as_view(), name="weekend-post"),
-    path('eco-ranking', EcoRankingView.as_view(), name='eco-ranking')
 ]
 
 router = routers.DefaultRouter()

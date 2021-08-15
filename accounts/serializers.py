@@ -1,7 +1,8 @@
-from allauth.account.adapter import get_adapter
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from accounts.models import User
+from bases.serializers import ModelSerializer
 
 
 class CustomTokenRefreshSerializer(serializers.Serializer):
@@ -13,3 +14,23 @@ class CustomTokenRefreshSerializer(serializers.Serializer):
 
         data = {'access_token': str(refresh.access_token)}
         return data
+
+
+class EcoRankingSerializer(ModelSerializer):
+    image = serializers.SerializerMethodField()
+    level = serializers.SerializerMethodField()
+    eco_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'image', 'level', 'badge', 'eco_count']
+        order_by = ['-eco_count']
+
+    def get_image(self, data):
+        return data.profile.get().image
+
+    def get_level(self, data):
+        return data.profile.get().level.level
+
+    def get_eco_count(self, data):
+        return data.eco.all().count()

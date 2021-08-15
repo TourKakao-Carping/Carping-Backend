@@ -1,22 +1,24 @@
+import datetime
 import json
-from allauth.account import app_settings
 import requests
-from allauth.account.models import EmailAddress
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import redirect
-from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-
 
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao import views as kakao_view
 from allauth.socialaccount.providers.google import views as google_view
-from allauth.socialaccount.models import SocialAccount
+from rest_framework.status import HTTP_200_OK
+from rest_framework.views import APIView
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import Profile, User
+from accounts.models import Profile, User, EcoLevel
+from accounts.serializers import EcoRankingSerializer
+from bases.response import APIResponse
+from posts.models import EcoCarping
 
 BASE_URL = "http://localhost:8000"
 
@@ -195,3 +197,34 @@ class KakaoLoginView(SocialLoginView):
         return response
 
     adapter_class = kakao_view.KakaoOAuth2Adapter
+
+
+# 5. 에코랭킹 api - 상위 7개 (프사, 뱃지, 아이디, 순위, 에카포스트 수)
+class EcoRankingView(APIView):
+    allowed_method = ["GET"]
+
+    def get(self, request):
+        eco = User.objects.all()
+        today = datetime.date.today() + relativedelta(days=1)
+        pre_month = today - relativedelta(months=1)
+        current_user = User.objects.get(id=1)  # 테스트용 코드
+        # current_user = request.user - 실제 코드
+
+        if current_user.profile.get().level is None or current_user.eco.count() <= 3:
+            current_user.profile.update(level=EcoLevel.objects.get(id=1))
+        elif current_user.eco.count() <= 8:
+            current_user.profile.update(level=EcoLevel.objects.get(id=2))
+        elif current_user.eco.count() >= 9:
+            current_user.profile.update(level=EcoLevel.objects.get(id=3))
+
+        eco_percentage = current_user.eco.count() * 10
+        monthly_eco_count = EcoCarping.objects.filter(user_id=current_user.id,
+                                                      created_at__range=[pre_month, today]).count()
+
+        response = APIResponse(False, "")
+        response.success = True
+
+        return response.response(status=HTTP_200_OK, data={"current_user": [EcoRankingSerializer(current_user).data,
+                                                                            {"eco_percentage": eco_percentage,
+                                                                             "monthly_eco_count": monthly_eco_count}],
+                                                           "rank": EcoRankingSerializer(eco, many=True).data})
