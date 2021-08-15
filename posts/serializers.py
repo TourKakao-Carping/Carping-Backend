@@ -19,4 +19,4 @@ class AutoCampPostForWeekendSerializer(ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'tags', 'title', 'thumbnail']
+        fields = ['id', 'tags', 'title', 'thumbnail', 'views']
