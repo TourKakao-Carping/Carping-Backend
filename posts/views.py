@@ -1,4 +1,11 @@
+import datetime
+
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from django.utils.translation import ugettext_lazy as _
 from rest_framework.generics import GenericAPIView
+from rest_framework.status import HTTP_200_OK
+from rest_framework.views import APIView
 
 from posts.models import EcoCarping, Post
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSerializer
@@ -49,3 +56,29 @@ class GetAutoCampPostForWeekend(GenericAPIView):
         if not check_data_key(count) or not check_str_digit(count):
             return APIResponse(False, "INVALID_COUNT").response('', status=400)
         return self.list(request)
+
+
+class EcoCarpingPartial(APIView):
+    filterset_fields = ['count']
+
+    @swagger_auto_schema(
+        operation_id=_("eco-carping_list_with_count"),
+        operation_description=_("지정한 수만큼 에코카핑을 보여줍니다. (count가 0이면 전체)"),
+        manual_parameters=[
+            openapi.Parameter('count', openapi.IN_QUERY, type='int')],
+        responses={200: openapi.Response(_("OK"), EcoCarpingSerializer)},
+        tags=[_("posts"), ]
+    )
+    def post(self, request, *args, **kwargs):
+        count = int(request.query_params.get('count', None))
+        if count == 0:
+            qs = EcoCarping.objects.all().order_by('-created_at')
+        elif count > 0:
+            qs = EcoCarping.objects.all().order_by('-created_at')[:count]
+
+        today_count = EcoCarping.objects.filter(
+            created_at__contains=datetime.date.today()).count()
+        response = APIResponse(False, "")
+        response.success = True
+        return response.response(status=HTTP_200_OK, data={"today_count": today_count,
+                                                           "ecocarping": EcoCarpingSerializer(qs, many=True).data})
