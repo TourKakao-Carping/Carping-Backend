@@ -41,7 +41,7 @@ class AutoCampPostForWeekendViewSet(viewsets.ModelViewSet):
             ret = super(AutoCampPostForWeekendViewSet, self).retrieve(request)
 
             response.success = True
-            return response.response(data=ret.data, status=200)
+            return response.response(data=[ret.data], status=200)
         except Exception as e:
             response.code = "NOT_FOUND"
             return response.response(data=str(e), status=404)
