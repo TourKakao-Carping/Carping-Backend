@@ -61,7 +61,10 @@ INSTALLED_APPS = [
     'comments',
     'taggit',
     'taggit_serializer',
+    # swagger
     'drf_yasg',
+    # aws s3
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -165,12 +168,9 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = "accounts.User"
 
-# AUTHENTICATION_BACKENDS = (
-#     "accounts.backend.AuthCodeBackend",
-#     "allauth.account.auth_backends.AuthenticationBackend",
-# )
 
-# ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-# ACCOUNT_EMAIL_REQUIRED = True
-# ACCOUNT_USERNAME_REQUIRED = False
-# ACCOUNT_AUTHENTICATION_METHOD = "email"
+# AWS S3 Settings
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_REGION_NAME = 'ap-northeast-2'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'images/')

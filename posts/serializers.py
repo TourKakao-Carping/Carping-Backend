@@ -36,6 +36,7 @@ class AutoCampPostSerializer(ModelSerializer):
 
     def to_representation(self, instance):
         re_ret = {}
+
         count = 0
         ret = super().to_representation(instance)
         re_ret["id"] = ret.pop("id")
