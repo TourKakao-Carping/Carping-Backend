@@ -44,6 +44,7 @@ class AutoCampPostSerializer(ModelSerializer):
         re_ret["title"] = ret.pop("title")
         re_ret["thumbnail"] = ret.pop("thumbnail")
         re_ret["views"] = ret.pop("views")
+        re_ret["tags"] = ret.pop("tags")
 
         for i in range(3):
             camp = {}
@@ -51,8 +52,11 @@ class AutoCampPostSerializer(ModelSerializer):
             camp["image"] = ret[f"image{i+1}"]
             camp["source"] = ret[f"source{i+1}"]
             campsite_pk = ret[f"campsite{i+1}"]
+            camp["sub_title"] = ret[f"sub_title{i+1}"]
+
             if campsite_pk is not None:
                 campsite = CampSite.objects.get(id=campsite_pk)
+                camp["name"] = campsite.name
                 camp["address"] = campsite.address
                 camp["phone"] = campsite.phone
                 camp["type"] = campsite.type
@@ -67,6 +71,7 @@ class AutoCampPostSerializer(ModelSerializer):
                 camp["oper_day"] = ""
                 camp["website"] = ""
                 camp["sub_facility"] = ""
+
             re_ret[f"campsite{i+1}"] = camp
 
         re_ret["count"] = count
