@@ -6,19 +6,16 @@ from camps.models import CampSite, AutoCamp
 
 # class GetPopularSearchSerializer(serializers.Serializer):
 
+class AutoCampSerializer(ModelSerializer):
+    tags = TagListSerializerField()
 
-# class EcoCarpingSerializer(ModelSerializer):
-#     tags = TagListSerializerField()
-
-#     class Meta:
-#         model = EcoCarping
-#         fields = ['id', 'user', 'latitude', 'longitude',
-#                   'image', 'title', 'text', 'tags']
+    class Meta:
+        model = AutoCamp
+        fields = ['id', 'user', 'latitude', 'longitude', 'image', 'title', 'text', 'views', 'tags']
 
 
-# class AutoCampPostForWeekendSerializer(ModelSerializer):
-#     tags = TagListSerializerField()
+class AutoCampMainSerializer(ModelSerializer):
 
-#     class Meta:
-#         model = Post
-#         fields = ['id', 'tags', 'title', 'thumbnail']
+    class Meta:
+        model = AutoCamp
+        fields = ['id', 'image']
