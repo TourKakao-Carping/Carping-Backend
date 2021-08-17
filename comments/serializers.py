@@ -6,13 +6,17 @@ from comments.models import Comment, Review
 
 
 class ReviewSerializer(ModelSerializer):
+    created_at = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     check_like = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
         fields = ['id', 'user', 'text', 'image', 'star1', 'star2',
-                  'star3', 'star4', 'total_star', 'like_count', 'check_like']
+                  'star3', 'star4', 'total_star', 'created_at', 'like_count', 'check_like']
+
+    def get_created_at(self, data):
+        return data.created_at.strftime("%Y. %m. %d")
 
     def get_like_count(self, data):
         return data.like.count()
@@ -26,12 +30,16 @@ class ReviewSerializer(ModelSerializer):
 
 
 class CommentSerializer(ModelSerializer):
+    created_at = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     check_like = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'text', 'root', 'like_count', 'check_like']
+        fields = ['id', 'user', 'text', 'root', 'created_at', 'like_count', 'check_like']
+
+    def get_created_at(self, data):
+        return data.created_at.strftime("%Y-%m-%d %H:%M")
 
     def get_like_count(self, data):
         return data.like.count()
