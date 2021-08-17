@@ -38,7 +38,9 @@ class EcoCarpingSerializer(ModelSerializer):
         if data.like.count() == 0:
             return 0
         for i in range(len(self.context['request'].user.eco_like.through.objects.all())):
-            return 1 if data == self.context['request'].user.eco_like.through.objects.all()[i].ecocarping else 0
+            if data == self.context['request'].user.eco_like.through.objects.all()[i].ecocarping:
+                return 1
+        return 0
 
 
 class AutoCampPostSerializer(ModelSerializer):

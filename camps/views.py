@@ -57,7 +57,7 @@ class AutoCampPartial(APIView):
         tags=[_("camps"), ]
     )
     def post(self, request, *args, **kwargs):
-        count = int(request.query_params.get('count', None))
+        count = int(self.request.data.get('count', None))
         if count == 0:
             qs = AutoCamp.objects.all().order_by('-created_at')
         elif count > 0:
