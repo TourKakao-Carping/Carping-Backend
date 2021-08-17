@@ -207,8 +207,8 @@ class EcoRankingView(APIView):
         eco = User.objects.all()
         today = datetime.date.today() + relativedelta(days=1)
         pre_month = today - relativedelta(months=1)
-        current_user = User.objects.get(id=1)  # 테스트용 코드
-        # current_user = request.user - 실제 코드
+        # current_user = User.objects.get(id=1)  # 테스트용 코드
+        current_user = request.user  # 실제 코드
 
         if current_user.profile.get().level is None or current_user.eco.count() <= 3:
             current_user.profile.update(level=EcoLevel.objects.get(id=1))

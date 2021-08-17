@@ -16,18 +16,29 @@ class AutoCampPostForWeekendSerializer(ModelSerializer):
 
 
 class EcoCarpingSerializer(ModelSerializer):
-    # like = LikeSerializer(many=True, read_only=True)
     comment = CommentSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
     created_at = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+    check_like = serializers.SerializerMethodField()
 
     class Meta:
         model = EcoCarping
         fields = ['id', 'user', 'latitude', 'longitude',
-                  'image', 'title', 'text', 'tags', 'created_at', 'comment', 'like']
+                  'image', 'title', 'text', 'tags', 'created_at', 'comment', 'like_count', 'check_like']
 
     def get_created_at(self, data):
         return data.created_at.strftime("%Y-%m-%d %H:%M")
+
+    def get_like_count(self, data):
+        return data.like.count()
+
+    def get_check_like(self, data):
+        # 스웨거 테스트 시에는 self.context['request'].user 가 익명일 수 있으니 User.objects.get(id=~)로 바꾸고 할 것
+        if data.like.count() == 0:
+            return 0
+        for i in range(len(self.context['request'].user.eco_like.through.objects.all())):
+            return 1 if data == self.context['request'].user.eco_like.through.objects.all()[i].ecocarping else 0
 
 
 class AutoCampPostSerializer(ModelSerializer):
