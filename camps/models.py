@@ -1,6 +1,8 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
 from taggit.managers import TaggableManager
+
+from bases.functions import upload_user_directory
 from camps.managers import AutoCampManager, CampSiteManager
 
 from accounts.models import User
@@ -32,6 +34,7 @@ class CampSite(models.Model):
     image = models.URLField(null=True, blank=True)
     views = models.IntegerField(default=0)
     area = models.CharField(max_length=50, null=False)
+    bookmark = models.ManyToManyField(User, related_name="campsite_bookmark", null=True, blank=True)
 
     objects = CampSiteManager()
 
@@ -44,10 +47,12 @@ class AutoCamp(Base):
                              related_name="autocamp", null=True)
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
-    image = models.CharField(max_length=100, null=True)
+    image = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
     views = models.IntegerField(default=0)
     tags = TaggableManager(blank=True)
+    bookmark = models.ManyToManyField(User, related_name="autocamp_bookmark", null=True, blank=True)
 
     objects = AutoCampManager()

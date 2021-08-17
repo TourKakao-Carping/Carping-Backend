@@ -2,7 +2,7 @@ from rest_framework import serializers
 from taggit.serializers import TagListSerializerField
 
 from bases.serializers import ModelSerializer
-from comments.serializers import LikeSerializer, CommentSerializer
+from comments.serializers import CommentSerializer
 from posts.models import EcoCarping, Post
 from camps.models import CampSite
 
@@ -16,7 +16,7 @@ class AutoCampPostForWeekendSerializer(ModelSerializer):
 
 
 class EcoCarpingSerializer(ModelSerializer):
-    like = LikeSerializer(many=True, read_only=True)
+    # like = LikeSerializer(many=True, read_only=True)
     comment = CommentSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
     created_at = serializers.SerializerMethodField()

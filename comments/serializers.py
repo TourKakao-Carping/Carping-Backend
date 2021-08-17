@@ -1,15 +1,8 @@
 from bases.serializers import ModelSerializer
-from comments.models import Comment, Like, Review, BookMark
-
-
-class LikeSerializer(ModelSerializer):
-    class Meta:
-        model = Like
-        fields = ['user']
+from comments.models import Comment, Review
 
 
 class ReviewSerializer(ModelSerializer):
-    like = LikeSerializer(many=True, read_only=True)
 
     class Meta:
         model = Review
@@ -17,14 +10,7 @@ class ReviewSerializer(ModelSerializer):
 
 
 class CommentSerializer(ModelSerializer):
-    like = LikeSerializer(many=True, read_only=True)
 
     class Meta:
         model = Comment
         fields = ['id', 'user', 'text', 'root', 'like']
-
-
-class BookMarkSerializer(ModelSerializer):
-    class Meta:
-        model = BookMark
-        fields = ['user']

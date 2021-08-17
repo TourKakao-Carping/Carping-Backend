@@ -63,7 +63,7 @@ class EcoCarpingPartial(APIView):
 
     @swagger_auto_schema(
         operation_id=_("eco-carping_list_with_count"),
-        operation_description=_("지정한 수만큼 에코카핑을 보여줍니다. (count가 0이면 전체)"),
+        operation_description=_("지정한 수만큼 에코카핑을 보여줍니다.(count가 0이면 전체)"),
         manual_parameters=[
             openapi.Parameter('count', openapi.IN_QUERY, type='int')],
         responses={200: openapi.Response(_("OK"), EcoCarpingSerializer)},

@@ -45,10 +45,13 @@ class EcoCarping(Base):
                              related_name="eco", null=True)
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
-    image = models.CharField(max_length=100, null=True)
+    image = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
     tags = TaggableManager(blank=True)
+    like = models.ManyToManyField(User, related_name="eco_like", null=True, blank=True)
+    bookmark = models.ManyToManyField(User, related_name="eco_bookmark", null=True, blank=True)
 
 
 class Share(Base):
@@ -56,7 +59,9 @@ class Share(Base):
                              related_name="share", null=True)
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
-    image = models.CharField(max_length=100, null=True)
+    image = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
     tags = TaggableManager(blank=True)
+    like = models.ManyToManyField(User, related_name="share_like", null=True, blank=True)

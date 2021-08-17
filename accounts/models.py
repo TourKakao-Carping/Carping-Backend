@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.utils import timezone
 
+from bases.functions import upload_user_directory
 from bases.models import Base
 
 
@@ -104,9 +105,11 @@ class Certification(Base):
 
 class Badge(Base):
     name = models.CharField(max_length=50)
-    image = models.CharField(max_length=100, null=True)
+    image = models.ImageField(
+        upload_to='img/badge/', null=True, blank=True)
 
 
 class EcoLevel(Base):
     level = models.IntegerField(default=1, null=True)
-    image = models.CharField(max_length=100, null=True)
+    image = models.ImageField(
+        upload_to='img/badge/', null=True, blank=True)
