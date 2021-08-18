@@ -24,13 +24,11 @@ class AutoCampSerializer(ModelSerializer):
         return data.review.count()
 
     def get_check_bookmark(self, data):
-        print(self.context['request'].user)
         # 스웨거 테스트 시에는 self.context['request'].user 가 익명일 수 있으니 User.objects.get(id=~)로 바꾸고 할 것
         if data.bookmark.count() == 0:
             return 0
-        for i in range(len(self.context['request'].user.autocamp_bookmark.through.objects.all())):
-            if data == self.context['request'].user.autocamp_bookmark.through.objects.all()[i].autocamp:
-                return 1
+        if self.context['request'].user.autocamp_bookmark.through.objects.filter(user=self.context['request'].user):
+            return 1
         return 0
 
 
