@@ -25,7 +25,7 @@ class EcoCarpingSerializer(ModelSerializer):
     class Meta:
         model = EcoCarping
         fields = ['id', 'user', 'latitude', 'longitude',
-                  'image', 'title', 'text', 'tags', 'created_at', 'comment', 'like_count', 'check_like']
+                  'image', 'title', 'text', 'trash', 'tags', 'created_at', 'comment', 'like_count', 'check_like']
 
     def get_created_at(self, data):
         return data.created_at.strftime("%Y-%m-%d %H:%M")
@@ -34,7 +34,6 @@ class EcoCarpingSerializer(ModelSerializer):
         return data.like.count()
 
     def get_check_like(self, data):
-        # 스웨거 테스트 시에는 self.context['request'].user 가 익명일 수 있으니 User.objects.get(id=~)로 바꾸고 할 것
         if data.like.count() == 0:
             return 0
         if self.context['request'].user.eco_like.filter(id=data.id):
