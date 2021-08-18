@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     # django-rest-framework
     "rest_framework",
-    # 'rest_framework.authtoken',
+    'rest_framework.authtoken',
     "rest_framework_simplejwt.token_blacklist",
     # authentication
     'dj_rest_auth',
@@ -150,6 +150,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        "rest_framework.authentication.TokenAuthentication",
+        'rest_framework.authentication.SessionAuthentication',
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     ),
 }
@@ -174,3 +176,11 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 AWS_S3_REGION_NAME = 'ap-northeast-2'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'images/')
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        }
+    },
+}

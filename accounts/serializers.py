@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import User
+from accounts.models import User, EcoLevel
 from bases.serializers import ModelSerializer
 
 
@@ -30,6 +30,8 @@ class EcoRankingSerializer(ModelSerializer):
         return data.profile.get().image
 
     def get_level(self, data):
+        if data.profile.get().level is None:
+            data.profile.update(level=EcoLevel.objects.get(id=1))
         return data.profile.get().level.level
 
     def get_eco_count(self, data):

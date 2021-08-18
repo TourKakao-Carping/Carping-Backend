@@ -1,11 +1,6 @@
 import datetime
 
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from django.utils.translation import ugettext_lazy as _
 from rest_framework.generics import GenericAPIView
-from rest_framework.status import HTTP_200_OK
-from rest_framework.views import APIView
 
 from posts.models import EcoCarping, Post
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSerializer

@@ -1,6 +1,4 @@
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from django.utils.translation import ugettext_lazy as _
+from rest_framework.generics import GenericAPIView
 from rest_framework.status import HTTP_200_OK
 
 from bases.response import APIResponse
@@ -45,17 +43,9 @@ class GetPopularSearchList(APIView):
         return JsonResponse("hi", safe=False)
 
 
-class AutoCampPartial(APIView):
-    filterset_fields = ['count']
+class AutoCampPartial(GenericAPIView):
+    serializer_class = AutoCampMainSerializer
 
-    @swagger_auto_schema(
-        operation_id=_("auto-camp_list_with_count"),
-        operation_description=_("지정한 수만큼 유저들의 차박지를 보여줍니다.(count가 0이면 전체)"),
-        manual_parameters=[
-            openapi.Parameter('count', openapi.IN_QUERY, type='int')],
-        responses={200: openapi.Response(_("OK"), AutoCampMainSerializer)},
-        tags=[_("camps"), ]
-    )
     def post(self, request, *args, **kwargs):
         count = int(self.request.data.get('count', None))
         if count == 0:
