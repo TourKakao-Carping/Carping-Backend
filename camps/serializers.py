@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from taggit.serializers import TagListSerializerField
 
-from accounts.models import User
 from bases.serializers import ModelSerializer
 from camps.models import CampSite, AutoCamp
 from comments.serializers import ReviewSerializer
@@ -27,7 +26,7 @@ class AutoCampSerializer(ModelSerializer):
         # 스웨거 테스트 시에는 self.context['request'].user 가 익명일 수 있으니 User.objects.get(id=~)로 바꾸고 할 것
         if data.bookmark.count() == 0:
             return 0
-        if self.context['request'].user.autocamp_bookmark.through.objects.filter(user=self.context['request'].user):
+        if self.context['request'].user.autocamp_bookmark.filter(id=data.id):
             return 1
         return 0
 

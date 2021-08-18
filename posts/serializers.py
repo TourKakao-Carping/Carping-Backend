@@ -37,7 +37,7 @@ class EcoCarpingSerializer(ModelSerializer):
         # 스웨거 테스트 시에는 self.context['request'].user 가 익명일 수 있으니 User.objects.get(id=~)로 바꾸고 할 것
         if data.like.count() == 0:
             return 0
-        if self.context['request'].user.eco_like.through.objects.filter(user=self.context['request'].user):
+        if self.context['request'].user.eco_like.filter(id=data.id):
             return 1
         return 0
 
