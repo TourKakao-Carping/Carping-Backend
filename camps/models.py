@@ -34,7 +34,7 @@ class CampSite(models.Model):
     image = models.URLField(null=True, blank=True)
     views = models.IntegerField(default=0)
     area = models.CharField(max_length=50, null=False)
-    bookmark = models.ManyToManyField(User, related_name="campsite_bookmark", null=True, blank=True)
+    bookmark = models.ManyToManyField(User, related_name="campsite_bookmark", blank=True)
 
     objects = CampSiteManager()
 
@@ -53,6 +53,6 @@ class AutoCamp(Base):
     text = models.TextField()
     views = models.IntegerField(default=0)
     tags = TaggableManager(blank=True)
-    bookmark = models.ManyToManyField(User, related_name="autocamp_bookmark", null=True, blank=True)
+    bookmark = models.ManyToManyField(User, related_name="autocamp_bookmark", blank=True)
 
     objects = AutoCampManager()

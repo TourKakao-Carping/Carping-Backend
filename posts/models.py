@@ -52,9 +52,15 @@ class EcoCarping(Base):
     text = models.TextField()
     tags = TaggableManager(blank=True)
     like = models.ManyToManyField(
-        User, related_name="eco_like", null=True, blank=True)
-    bookmark = models.ManyToManyField(
-        User, related_name="eco_bookmark", null=True, blank=True)
+        User, related_name="eco_like", blank=True)
+    # TRASH_CHOICES = (
+    #     ('20L', '20L'),
+    #     ('10L', '10L'),
+    #     ('5L', '5L'),
+    #     ('3L', '3L'),
+    #     ('3L 이하', '3L 이하'),
+    # )
+    # trash = models.CharField(max_length=10, choices=TRASH_CHOICES, null=True)
 
 
 class Share(Base):
@@ -68,4 +74,4 @@ class Share(Base):
     text = models.TextField()
     tags = TaggableManager(blank=True)
     like = models.ManyToManyField(
-        User, related_name="share_like", null=True, blank=True)
+        User, related_name="share_like", blank=True)

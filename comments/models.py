@@ -20,7 +20,7 @@ class Review(Base):
     star3 = models.FloatField(null=False, default=0.0)
     star4 = models.FloatField(null=False, default=0.0)
     total_star = models.FloatField(null=False, default=0.0)
-    like = models.ManyToManyField(User, related_name="review_like", null=True, blank=True)
+    like = models.ManyToManyField(User, related_name="review_like", blank=True)
 
 
 class Comment(Base):
@@ -29,7 +29,7 @@ class Comment(Base):
     share = models.ForeignKey(Share, on_delete=CASCADE, related_name="comment", null=True, blank=True)
     text = models.CharField(max_length=50)
     root = models.ForeignKey('self', related_name='root_comment', on_delete=models.CASCADE, null=True, blank=True)
-    like = models.ManyToManyField(User, related_name="comment_like", null=True, blank=True)
+    like = models.ManyToManyField(User, related_name="comment_like", blank=True)
 
     def __str__(self):
         return '{} : {}'.format(self.user, self.text)

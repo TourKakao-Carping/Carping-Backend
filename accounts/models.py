@@ -69,6 +69,12 @@ class User(AbstractUser, Base):
             return self.username
 
 
+class EcoLevel(Base):
+    level = models.IntegerField(default=1, null=True)
+    image = models.ImageField(
+        upload_to='img/badge/', null=True, blank=True)
+
+
 class ProfileManager(models.Manager):
     def create(self, **extra_fields):
         profile = self.model(**extra_fields)
@@ -87,8 +93,21 @@ class Profile(Base):
                              blank=True, validators=[validate_phone])
     image = models.URLField(null=True)
     gender = models.IntegerField(default=0, null=True)
-    level = models.ForeignKey('EcoLevel', null=True, on_delete=CASCADE, related_name="user")
-    # 데이터 넣은 후 level --> default=EcoLevel.objects.get(id=1)
+    level = models.ForeignKey('EcoLevel', on_delete=CASCADE,
+                              related_name="user", default=1)
+    bio = models.TextField(null=True, blank=True),
+    INTEREST_CHOICES = (
+        ('차크닉', '차크닉'),
+        ('혼차박', '혼차박'),
+        ('퇴근박', '퇴근박'),
+        ('불멍', '불멍'),
+        ('바베큐', '바베큐'),
+        ('오지캠핑', '오지캠핑'),
+        ('레저', '레저'),
+        ('낚시', '낚시'),
+        ('클린 차박', '클린 차박'),
+    )
+    interest = models.CharField(max_length=10, choices=INTEREST_CHOICES, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=CASCADE,
                              related_name="profile", null=True)
     # socialaccount = models.ForeignKey(
@@ -105,11 +124,5 @@ class Certification(Base):
 
 class Badge(Base):
     name = models.CharField(max_length=50)
-    image = models.ImageField(
-        upload_to='img/badge/', null=True, blank=True)
-
-
-class EcoLevel(Base):
-    level = models.IntegerField(default=1, null=True)
     image = models.ImageField(
         upload_to='img/badge/', null=True, blank=True)
