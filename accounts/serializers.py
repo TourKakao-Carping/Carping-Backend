@@ -24,7 +24,6 @@ class EcoRankingSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'image', 'level', 'badge', 'eco_count']
-        order_by = ['-eco_count']
 
     def get_image(self, data):
         return data.profile.get().image

@@ -204,7 +204,7 @@ class EcoRankingView(APIView):
     allowed_method = ["GET"]
 
     def get(self, request):
-        eco = User.objects.all()
+        eco = User.objects.all().order_by('-eco')
         today = datetime.date.today() + relativedelta(days=1)
         pre_month = today - relativedelta(months=1)
         # current_user = User.objects.get(id=1)  # 테스트용 코드
