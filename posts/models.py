@@ -12,7 +12,8 @@ class Post(Base):
     user = models.ForeignKey(User, on_delete=CASCADE,
                              related_name="post", null=True)
     title = models.CharField(max_length=100, null=False)
-    thumbnail = models.CharField(max_length=100, null=True)
+    thumbnail = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
     views = models.IntegerField(default=0)
     tags = TaggableManager(blank=True)
     campsite1 = models.ForeignKey(
@@ -50,8 +51,10 @@ class EcoCarping(Base):
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
     tags = TaggableManager(blank=True)
-    like = models.ManyToManyField(User, related_name="eco_like", null=True, blank=True)
-    bookmark = models.ManyToManyField(User, related_name="eco_bookmark", null=True, blank=True)
+    like = models.ManyToManyField(
+        User, related_name="eco_like", null=True, blank=True)
+    bookmark = models.ManyToManyField(
+        User, related_name="eco_bookmark", null=True, blank=True)
 
 
 class Share(Base):
@@ -64,4 +67,5 @@ class Share(Base):
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
     tags = TaggableManager(blank=True)
-    like = models.ManyToManyField(User, related_name="share_like", null=True, blank=True)
+    like = models.ManyToManyField(
+        User, related_name="share_like", null=True, blank=True)
