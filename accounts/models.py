@@ -93,9 +93,8 @@ class Profile(Base):
                              blank=True, validators=[validate_phone])
     image = models.URLField(null=True)
     gender = models.IntegerField(default=0, null=True)
-    level = models.ForeignKey('EcoLevel', on_delete=CASCADE,
-                              related_name="user", default=1)
-    bio = models.TextField(null=True, blank=True),
+    level = models.ForeignKey('EcoLevel', on_delete=CASCADE, related_name="user", default=1)
+    bio = models.TextField(null=True, blank=True)
     INTEREST_CHOICES = (
         ('차크닉', '차크닉'),
         ('혼차박', '혼차박'),
