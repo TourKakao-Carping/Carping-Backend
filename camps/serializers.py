@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from rest_framework import serializers
 from taggit.serializers import TagListSerializerField
 
@@ -11,13 +12,34 @@ from comments.serializers import ReviewSerializer
 class AutoCampSerializer(ModelSerializer):
     review = ReviewSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
+    # star1_avg = serializers.SerializerMethodField()
+    # star2_avg = serializers.SerializerMethodField()
+    # star3_avg = serializers.SerializerMethodField()
+    # star4_avg = serializers.SerializerMethodField()
+    # total_star_avg = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
     check_bookmark = serializers.SerializerMethodField()
 
     class Meta:
         model = AutoCamp
         fields = ['id', 'user', 'latitude', 'longitude', 'image',
-                  'title', 'text', 'views', 'tags', 'review', 'review_count', 'check_bookmark']
+                  'title', 'text', 'views', 'tags', 'review',
+                  'review_count', 'check_bookmark']
+
+    # def get_star1_avg(self, data):
+    #     return data.review.objects.aggregate(Avg('star1'))
+    #
+    # def get_star2_avg(self, data):
+    #     return data.review.objects.aggregate(Avg('star2'))
+    #
+    # def get_star3_avg(self, data):
+    #     return data.review.objects.aggregate(Avg('star3'))
+    #
+    # def get_star4_avg(self, data):
+    #     return data.review.objects.aggregate(Avg('star4'))
+    #
+    # def get_total_star_avg(self, data):
+    #     return data.review.objects.aggregate(Avg('total_star'))
 
     def get_review_count(self, data):
         return data.review.count()

@@ -217,14 +217,18 @@ class EcoRankingView(APIView):
         elif current_user.eco.count() >= 9:
             current_user.profile.update(level=EcoLevel.objects.get(id=3))
 
+        more_info = {}
+
         eco_percentage = current_user.eco.count() * 10
         monthly_eco_count = EcoCarping.objects.filter(user_id=current_user.id,
                                                       created_at__range=[pre_month, today]).count()
 
+        more_info['eco_percentage'] = eco_percentage
+        more_info['monthly_eco_count'] = monthly_eco_count
+
         response = APIResponse(False, "")
         response.success = True
 
-        return response.response(status=HTTP_200_OK, data={"current_user": [EcoRankingSerializer(current_user).data,
-                                                                            {"eco_percentage": eco_percentage,
-                                                                             "monthly_eco_count": monthly_eco_count}],
-                                                           "rank": EcoRankingSerializer(eco, many=True).data})
+        return response.response(status=HTTP_200_OK, data=[{"current_user": EcoRankingSerializer(current_user).data},
+                                                           {"more_info": more_info},
+                                                           EcoRankingSerializer(eco, many=True).data])

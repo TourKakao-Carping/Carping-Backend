@@ -15,11 +15,11 @@ class Review(Base):
     text = models.TextField()
     image = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
-    star1 = models.IntegerField()
-    star2 = models.IntegerField()
-    star3 = models.IntegerField()
-    star4 = models.IntegerField()
-    total_star = models.IntegerField()
+    star1 = models.FloatField(null=False, default=0.0)
+    star2 = models.FloatField(null=False, default=0.0)
+    star3 = models.FloatField(null=False, default=0.0)
+    star4 = models.FloatField(null=False, default=0.0)
+    total_star = models.FloatField(null=False, default=0.0)
     like = models.ManyToManyField(User, related_name="review_like", null=True, blank=True)
 
 
