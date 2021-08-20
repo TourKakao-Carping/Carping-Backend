@@ -7,8 +7,8 @@ from posts.views import *
 urlpatterns = [
     path('autocamp/weekend-post',
          GetAutoCampPostForWeekend.as_view(), name="weekend-post"),
-    path('eco-carping/partial',
-         EcoCarpingPartial.as_view(), name="partial-ecocarping"),
+    path('eco-carping/sort',
+         EcoCarpingSort.as_view(), name="ecocarping-sort"),
 ]
 
 router = routers.DefaultRouter()

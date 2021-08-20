@@ -1,5 +1,6 @@
 import datetime
 
+from django.db.models import Count
 from rest_framework.generics import GenericAPIView
 
 from posts.models import EcoCarping, Post
@@ -53,35 +54,68 @@ class GetAutoCampPostForWeekend(GenericAPIView):
         return self.list(request)
 
 
-class EcoCarpingPartial(GenericAPIView):
+class EcoCarpingSort(GenericAPIView):
     serializer_class = EcoCarpingSerializer
 
     def list(self, request, *args, **kwargs):
         data = self.request.data
-        count = int(data.get('count'))
-        if not check_data_key(count) or not check_str_digit(count):
-            return APIResponse(False, "INVALID_COUNT").response('', status=400)
+        sort = data.get('sort')
 
-        if count == 0:
-            qs = EcoCarping.objects.all().order_by('-created_at')
-        elif count > 0:
-            qs = EcoCarping.objects.all().order_by('-created_at')[:count]
+        if sort == 'recent':
+            count = int(data.get('count'))
+            if count == 0:
+                qs = EcoCarping.objects.all().order_by('-created_at')
+            elif count > 0:
+                qs = EcoCarping.objects.all().order_by('-created_at')[:count]
+            queryset = self.filter_queryset(qs)
+            response = APIResponse(False, "")
 
-        queryset = self.filter_queryset(qs)
-        response = APIResponse(False, "")
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(queryset, many=True).data
+            response.success = True
 
-        serializer = self.get_serializer(queryset, many=True).data
-        response.success = True
+            today_count = EcoCarping.objects.filter(
+                created_at__contains=datetime.date.today()).count()
+            serializer.insert(0, {"today_count": today_count})
+            return response.response(data=serializer, status=200)
 
-        today_count = EcoCarping.objects.filter(
-            created_at__contains=datetime.date.today()).count()
-        serializer.insert(0, {"today_count": today_count})
-        return response.response(data=serializer, status=200)
+        if sort == 'distance':
+            latitude = float(data.get('latitude', None))
+            longitude = float(data.get('longitude', None))
+            print(latitude, longitude)
+            queryset = self.filter_queryset(EcoCarping.objects.all())
+            response = APIResponse(False, "")
+
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            response.success = True
+            return response.response(data=sorted(serializer.data,
+                                                 key=lambda d:
+                                                 pow(d['latitude'] - latitude, 2) +
+                                                 pow(d['longitude'] - longitude, 2)),
+                                     status=200)
+
+        if sort == 'popular':
+            qs = EcoCarping.objects.annotate(like_count=Count('like')).order_by('-like_count')
+            queryset = self.filter_queryset(qs)
+            response = APIResponse(False, "")
+
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            response.success = True
+            return response.response(data=serializer.data, status=200)
 
     def post(self, request, *args, **kwargs):
         return self.list(request)
