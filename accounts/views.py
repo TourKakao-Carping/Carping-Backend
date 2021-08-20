@@ -229,6 +229,6 @@ class EcoRankingView(APIView):
         response = APIResponse(False, "")
         response.success = True
 
-        return response.response(status=HTTP_200_OK, data=[{"current_user": EcoRankingSerializer(current_user).data},
-                                                           {"more_info": more_info},
+        return response.response(status=HTTP_200_OK, data=[EcoRankingSerializer(current_user).data,
+                                                           more_info,
                                                            EcoRankingSerializer(eco, many=True).data])
