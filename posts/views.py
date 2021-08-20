@@ -59,12 +59,10 @@ class EcoCarpingPartial(GenericAPIView):
 
     def list(self, request, *args, **kwargs):
         data = self.request.data
-        count = data.get('count')
-        distance = data.get('distance')
-        popular = data.get('popular')
+        sort = data.get('sort')
 
-        if count:
-            count = int(count)
+        if sort == 'recent':
+            count = int(data.get('count'))
             if count == 0:
                 qs = EcoCarping.objects.all().order_by('-created_at')
             elif count > 0:
@@ -85,9 +83,10 @@ class EcoCarpingPartial(GenericAPIView):
             serializer.insert(0, {"today_count": today_count})
             return response.response(data=serializer, status=200)
 
-        if distance == 'True':
-            latitude = float(data.get('longitude', None))
-            longitude = float(data.get('latitude', None))
+        if sort == 'distance':
+            latitude = float(data.get('latitude', None))
+            longitude = float(data.get('longitude', None))
+            print(latitude, longitude)
             queryset = self.filter_queryset(EcoCarping.objects.all())
             response = APIResponse(False, "")
 
@@ -101,10 +100,10 @@ class EcoCarpingPartial(GenericAPIView):
             return response.response(data=sorted(serializer.data,
                                                  key=lambda d:
                                                  pow(d['latitude'] - latitude, 2) +
-                                                 pow(d['latitude'] - longitude, 2)),
+                                                 pow(d['longitude'] - longitude, 2)),
                                      status=200)
 
-        if popular == 'True':
+        if sort == 'popular':
             qs = EcoCarping.objects.annotate(like_count=Count('like')).order_by('-like_count')
             queryset = self.filter_queryset(qs)
             response = APIResponse(False, "")
