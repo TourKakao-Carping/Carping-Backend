@@ -25,8 +25,6 @@ class ReviewSerializer(ModelSerializer):
         return data.like.count()
 
     def get_check_like(self, data):
-        print(self.context['request'].user)
-        # 스웨거 테스트 시에는 self.context['request'].user 가 익명일 수 있으니 User.objects.get(id=~)로 바꾸고 할 것
         if data.like.count() == 0:
             return 0
         if data.like.filter(id=self.context['request'].user.id):
