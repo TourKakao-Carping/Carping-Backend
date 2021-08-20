@@ -54,7 +54,7 @@ class GetAutoCampPostForWeekend(GenericAPIView):
         return self.list(request)
 
 
-class EcoCarpingPartial(GenericAPIView):
+class EcoCarpingSort(GenericAPIView):
     serializer_class = EcoCarpingSerializer
 
     def list(self, request, *args, **kwargs):
