@@ -5,9 +5,8 @@ from django.db import models
 from django.db.models.deletion import CASCADE
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import BaseUserManager, AbstractUser
-from django.utils import timezone
 
-from bases.functions import upload_user_directory
+from multiselectfield import MultiSelectField
 from bases.models import Base
 
 
@@ -106,7 +105,7 @@ class Profile(Base):
         ('낚시', '낚시'),
         ('클린 차박', '클린 차박'),
     )
-    interest = models.CharField(max_length=10, choices=INTEREST_CHOICES, null=True, blank=True)
+    interest = MultiSelectField(choices=INTEREST_CHOICES, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=CASCADE,
                              related_name="profile", null=True)
     # socialaccount = models.ForeignKey(

@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     # aws s3
     'storages',
+    'multiselectfield',
 ]
 
 MIDDLEWARE = [

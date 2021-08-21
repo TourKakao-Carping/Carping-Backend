@@ -39,8 +39,8 @@ class CampSite(models.Model):
     bookmark = models.ManyToManyField(
         User, related_name="campsite_bookmark", blank=True)
     themenv = models.CharField(max_length=255, null=True)
-    created_at = models.DateTimeField()
-    updated_at = models.DateTimeField()
+    created_at = models.DateTimeField(null=True)
+    updated_at = models.DateTimeField(null=True)
 
     objects = CampSiteManager()
 
