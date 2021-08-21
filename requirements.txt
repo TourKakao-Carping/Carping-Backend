@@ -13,7 +13,7 @@ dj-rest-auth==2.1.9
 Django==3.2.5
 django-allauth==0.45.0
 django-storages==1.11.1
-django-multiselectfield=0.1.12
+django-multiselectfield==0.1.12
 django-taggit==1.5.1
 django-taggit-serializer==0.1.7
 djangorestframework==3.12.4
