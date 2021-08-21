@@ -23,6 +23,12 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
             response.code = "NOT_FOUND"
             return response.response(data=str(e), status=404)
 
+    def create(self, request, *args, **kwargs):
+        response = APIResponse(False, '')
+        ret = super(EcoCarpingViewSet, self).create(request)
+        response.success = True
+        return response.response(data=[ret.data], status=200)
+
 
 class AutoCampPostForWeekendViewSet(viewsets.ModelViewSet):
     """
