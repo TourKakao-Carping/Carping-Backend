@@ -3,12 +3,15 @@ from rest_framework.mixins import ListModelMixin
 from rest_framework.status import HTTP_200_OK
 
 from bases.response import APIResponse
+from bases.serializers import MessageSerializer
 from camps.models import AutoCamp, CampSite
 
 from rest_framework.views import APIView
 from django.http import JsonResponse
+from django.utils.translation import ugettext_lazy as _
 
-from camps.serializers import AutoCampSerializer, AutoCampMainSerializer, MainPageThemeSerializer
+from camps.serializers import AutoCampSerializer, AutoCampMainSerializer, \
+    MainPageThemeSerializer, AutoCampBookMarkSerializer
 
 
 class GetPopularSearchList(APIView):
@@ -57,6 +60,19 @@ class AutoCampPartial(GenericAPIView):
         response = APIResponse(False, "")
         response.success = True
         return response.response(status=HTTP_200_OK, data=AutoCampMainSerializer(qs, many=True).data)
+
+
+class AutoCampBookMark(APIView):
+    def post(self, request):
+        user = request.user
+        serializer = AutoCampBookMarkSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            autocamp_to_bookmark = AutoCamp.objects.get(id=serializer.validated_data["autocamp_to_bookmark"])
+            user.autocamp_bookmark.add(autocamp_to_bookmark)
+            data = MessageSerializer({"message": _("보드를 스크랩했습니다.")}).data
+            response = APIResponse(False, "")
+            response.success = True
+            return response.response(status=HTTP_200_OK, data=data)
 
 
 class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):

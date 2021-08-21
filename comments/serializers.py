@@ -6,17 +6,21 @@ from comments.models import Comment, Review
 
 class ReviewSerializer(ModelSerializer):
     username = serializers.SerializerMethodField()
+    profile = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     check_like = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
-        fields = ['id', 'user', 'username', 'text', 'image', 'star1', 'star2',
+        fields = ['id', 'user', 'username', 'profile', 'text', 'image', 'star1', 'star2',
                   'star3', 'star4', 'total_star', 'created_at', 'like_count', 'check_like']
 
     def get_username(self, data):
         return data.user.username
+
+    def get_profile(self, data):
+        return data.user.profile.get().image
 
     def get_created_at(self, data):
         return data.created_at.strftime("%Y. %m. %d")

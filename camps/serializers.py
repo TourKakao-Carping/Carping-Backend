@@ -61,6 +61,10 @@ class AutoCampMainSerializer(ModelSerializer):
         fields = ['id', 'image']
 
 
+class AutoCampBookMarkSerializer(serializers.Serializer):
+    autocamp_to_bookmark = serializers.IntegerField(write_only=True)
+
+
 class MainPageThemeSerializer(ModelSerializer):
     class Meta:
         model = CampSite
