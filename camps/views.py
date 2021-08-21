@@ -56,3 +56,23 @@ class AutoCampPartial(GenericAPIView):
         response = APIResponse(False, "")
         response.success = True
         return response.response(status=HTTP_200_OK, data=AutoCampMainSerializer(qs, many=True).data)
+
+
+class GetMainPageThemeTravel(GenericAPIView):
+    """
+    Data :
+    theme : 테마
+    sort : 인기순, 거리순, 최신순
+    select : 여행시기, 레포츠, 자연, 체험프로그램
+    """
+
+    def get_queryset(self):
+        data = self.request.data
+        data.get('theme')
+
+        return super().get_queryset()
+
+    # 인기순, 거리순, 최신순
+    # 0, 1, 2
+    def post(self, request):
+        CampSite.objects.all().order_by('views')

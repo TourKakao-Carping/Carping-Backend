@@ -9,6 +9,15 @@ class CampSiteManager(models.Manager):
     def autocamp_type(self, count):
         return self.get_queryset().autocamp_type(count)
 
+    def theme_brazier(self, sort):
+        return self.get_queryset().theme_brazier(sort)
+
+    def theme_animal(self, sort):
+        return self.get_queryset().theme_animal(sort)
+
+    def theme_season(self, select, sort):
+        return self.get_queryset().theme_season(select, sort)
+
 
 class AutoCampManager(models.Manager):
     def get_queryset(self):

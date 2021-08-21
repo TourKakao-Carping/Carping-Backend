@@ -16,6 +16,8 @@ class CampSite(models.Model):
     lat = models.FloatField(null=True)
     lon = models.FloatField(null=True)
     animal = models.CharField(max_length=50, null=True)
+    event = models.CharField(max_length=255, null=True)
+    program = models.CharField(max_length=255, null=True)
     brazier = models.CharField(max_length=10, null=True)
     website = models.CharField(max_length=255, null=True)
     phone = models.CharField(max_length=50, null=True)
@@ -34,7 +36,11 @@ class CampSite(models.Model):
     image = models.URLField(null=True, blank=True)
     views = models.IntegerField(default=0)
     area = models.CharField(max_length=50, null=False)
-    bookmark = models.ManyToManyField(User, related_name="campsite_bookmark", blank=True)
+    bookmark = models.ManyToManyField(
+        User, related_name="campsite_bookmark", blank=True)
+    themenv = models.CharField(max_length=255, null=True)
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
 
     objects = CampSiteManager()
 
@@ -53,6 +59,7 @@ class AutoCamp(Base):
     text = models.TextField()
     views = models.IntegerField(default=0)
     tags = TaggableManager(blank=True)
-    bookmark = models.ManyToManyField(User, related_name="autocamp_bookmark", blank=True)
+    bookmark = models.ManyToManyField(
+        User, related_name="autocamp_bookmark", blank=True)
 
     objects = AutoCampManager()

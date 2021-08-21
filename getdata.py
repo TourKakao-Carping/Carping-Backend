@@ -29,13 +29,13 @@ def get_data():
 item = get_data()
 
 
-# 21개
-column = ['name', 'lat', 'lon' 'animal', 'website', 'phone', 'address', 'brazier', 'oper_day', 'off_day_start',
-          'off_day_end', 'faculty', 'permission_date', 'reservation', 'toilet', 'shower', 'type', 'sub_facility', 'season', 'image', 'area']
+# 26개
+column = ['name', 'lat', 'lon' 'animal', 'event', 'program', 'website', 'phone', 'address', 'brazier', 'oper_day', 'off_day_start',
+          'off_day_end', 'faculty', 'permission_date', 'reservation', 'toilet', 'shower', 'type', 'sub_facility', 'season', 'image', 'area', 'themenv', 'created_at', 'updated_at']
 
-# 22개
-json_column = ['facltNm', 'mapX', 'mapY', 'animalCmgCl', 'homepage', 'tel', 'addr1',
-               'brazierCl', 'operDeCl', 'hvofBgnde', 'hvofEnddle', 'facltDivNm', 'prmisnDe', 'resveCl', 'toiletCo', 'swrmCo', 'induty', 'sbrsCl', 'sbrsEtc', 'operPdCl', 'firstImageUrl', 'doNm']
+# 27개
+json_column = ['facltNm', 'mapX', 'mapY', 'animalCmgCl', 'clturEvent', 'exprnProgrm', 'homepage', 'tel', 'addr1',
+               'brazierCl', 'operDeCl', 'hvofBgnde', 'hvofEnddle', 'facltDivNm', 'prmisnDe', 'resveCl', 'toiletCo', 'swrmCo', 'induty', 'sbrsCl', 'sbrsEtc', 'operPdCl', 'firstImageUrl', 'doNm', 'themaEnvrnCl', 'createdtime', 'modifiedtime']
 
 # data = []
 
