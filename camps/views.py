@@ -69,10 +69,10 @@ class AutoCampBookMark(APIView):
         if serializer.is_valid(raise_exception=True):
             autocamp_to_bookmark = AutoCamp.objects.get(id=serializer.validated_data["autocamp_to_bookmark"])
             user.autocamp_bookmark.add(autocamp_to_bookmark)
-            data = MessageSerializer({"message": _("보드를 스크랩했습니다.")}).data
+            data = MessageSerializer({"message": _("차박지를 스크랩했습니다.")}).data
             response = APIResponse(False, "")
             response.success = True
-            return response.response(status=HTTP_200_OK, data=data)
+            return response.response(status=HTTP_200_OK, data=[data])
 
 
 class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):

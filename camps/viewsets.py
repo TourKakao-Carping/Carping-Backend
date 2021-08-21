@@ -20,3 +20,9 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         except Exception as e:
             response.code = "NOT_FOUND"
             return response.response(data=str(e), status=404)
+
+    def create(self, request, *args, **kwargs):
+        response = APIResponse(False, '')
+        ret = super(AutoCampViewSet, self).create(request)
+        response.success = True
+        return response.response(data=[ret.data], status=200)
