@@ -1,6 +1,8 @@
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from bases.response import APIResponse
 from bases.serializers import MessageSerializer
@@ -63,6 +65,13 @@ class AutoCampPartial(GenericAPIView):
 
 
 class AutoCampBookMark(APIView):
+    @swagger_auto_schema(
+        operation_id=_("Add Scrap AutoCamp"),
+        operation_description=_("차박지를 스크랩합니다."),
+        request_body=AutoCampBookMarkSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("posts"), ]
+    )
     def post(self, request):
         user = request.user
         serializer = AutoCampBookMarkSerializer(data=request.data)
@@ -70,6 +79,23 @@ class AutoCampBookMark(APIView):
             autocamp_to_bookmark = AutoCamp.objects.get(id=serializer.validated_data["autocamp_to_bookmark"])
             user.autocamp_bookmark.add(autocamp_to_bookmark)
             data = MessageSerializer({"message": _("차박지를 스크랩했습니다.")}).data
+            response = APIResponse(False, "")
+            response.success = True
+            return response.response(status=HTTP_200_OK, data=[data])
+
+    @swagger_auto_schema(
+        operation_id=_("Delete Scrap AutoCamp"),
+        operation_description=_("차박지 스크랩을 취소합니다."),
+        request_body=AutoCampBookMarkSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("posts"), ]
+    )
+    def delete(self, request):
+        user = request.user
+        serializer = AutoCampBookMarkSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user.autocamp_bookmark.through.objects.filter(user=user, autocamp=serializer.validated_data["autocamp_to_bookmark"]).delete()
+            data = MessageSerializer({"message": _("차박지 스크랩을 취소했습니다.")}).data
             response = APIResponse(False, "")
             response.success = True
             return response.response(status=HTTP_200_OK, data=[data])
