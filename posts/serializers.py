@@ -41,6 +41,13 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
         return 0
 
 
+class EcoCarpingSortSerializer(TaggitSerializer, ModelSerializer):
+
+    class Meta:
+        model = EcoCarping
+        fields = ['id', 'user', 'image', 'title', 'text', 'created_at']
+
+
 class AutoCampPostSerializer(TaggitSerializer, ModelSerializer):
     tags = TagListSerializerField()
 

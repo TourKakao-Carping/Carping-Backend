@@ -1,12 +1,13 @@
 import datetime
+from haversine import haversine
 
 from django.db.models import Count
 from rest_framework.generics import GenericAPIView
 
 from posts.models import EcoCarping, Post
-from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSerializer
+from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer
 
-from bases.utils import check_data_key, check_str_digit
+from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict
 from bases.response import APIResponse
 
 
@@ -55,8 +56,6 @@ class GetAutoCampPostForWeekend(GenericAPIView):
 
 
 class EcoCarpingSort(GenericAPIView):
-    serializer_class = EcoCarpingSerializer
-
     def list(self, request, *args, **kwargs):
         data = self.request.data
         sort = data.get('sort')
@@ -69,51 +68,37 @@ class EcoCarpingSort(GenericAPIView):
                 qs = EcoCarping.objects.all().order_by('-created_at')[:count]
             queryset = self.filter_queryset(qs)
             response = APIResponse(False, "")
-
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-
-            serializer = self.get_serializer(queryset, many=True).data
-            response.success = True
-
+            paginate(self, queryset)
+            serializer = EcoCarpingSortSerializer(custom_list(queryset), many=True).data
             today_count = EcoCarping.objects.filter(
                 created_at__contains=datetime.date.today()).count()
             serializer.insert(0, {"today_count": today_count})
+            response.success = True
             return response.response(data=serializer, status=200)
 
         if sort == 'distance':
-            latitude = float(data.get('latitude', None))
-            longitude = float(data.get('longitude', None))
-            print(latitude, longitude)
-            queryset = self.filter_queryset(EcoCarping.objects.all())
+            user_loc = (float(data.get('latitude', None)), float(data.get('longitude', None)))
+            queryset = EcoCarping.objects.all()
             response = APIResponse(False, "")
-
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-
-            serializer = self.get_serializer(queryset, many=True)
+            paginate(self, queryset)
+            list = []
+            for i in queryset:
+                comp_loc = (float(i.latitude), float(i.longitude))
+                distance = haversine(user_loc, comp_loc)
+                i = custom_dict(i)
+                i['distance'] = distance
+                list.append(i)
+            list.sort(key=(lambda x: x['distance']))
+            serializer = EcoCarpingSortSerializer(list, many=True)
             response.success = True
-            return response.response(data=sorted(serializer.data,
-                                                 key=lambda d:
-                                                 pow(d['latitude'] - latitude, 2) +
-                                                 pow(d['longitude'] - longitude, 2)),
-                                     status=200)
+            return response.response(data=serializer.data, status=200)
 
         if sort == 'popular':
             qs = EcoCarping.objects.annotate(like_count=Count('like')).order_by('-like_count')
             queryset = self.filter_queryset(qs)
             response = APIResponse(False, "")
-
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-
-            serializer = self.get_serializer(queryset, many=True)
+            paginate(self, queryset)
+            serializer = EcoCarpingSortSerializer(custom_list(queryset), many=True)
             response.success = True
             return response.response(data=serializer.data, status=200)
 
