@@ -59,3 +59,9 @@ class AutoCampMainSerializer(ModelSerializer):
     class Meta:
         model = AutoCamp
         fields = ['id', 'image']
+
+
+class MainPageThemeSerializer(ModelSerializer):
+    class Meta:
+        model = CampSite
+        fields = ['id', 'image', 'type', 'address', 'name', 'phone', ]

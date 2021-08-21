@@ -1,4 +1,5 @@
 from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import ListModelMixin
 from rest_framework.status import HTTP_200_OK
 
 from bases.response import APIResponse
@@ -7,7 +8,7 @@ from camps.models import AutoCamp, CampSite
 from rest_framework.views import APIView
 from django.http import JsonResponse
 
-from camps.serializers import AutoCampSerializer, AutoCampMainSerializer
+from camps.serializers import AutoCampSerializer, AutoCampMainSerializer, MainPageThemeSerializer
 
 
 class GetPopularSearchList(APIView):
@@ -58,7 +59,7 @@ class AutoCampPartial(GenericAPIView):
         return response.response(status=HTTP_200_OK, data=AutoCampMainSerializer(qs, many=True).data)
 
 
-class GetMainPageThemeTravel(GenericAPIView):
+class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
     """
     Data :
     theme : 테마
@@ -66,13 +67,33 @@ class GetMainPageThemeTravel(GenericAPIView):
     select : 여행시기, 레포츠, 자연, 체험프로그램
     """
 
+    serializer_class = MainPageThemeSerializer
+
     def get_queryset(self):
         data = self.request.data
-        data.get('theme')
+        theme = data.get('theme')
+        sort = data.get('sort')
+        select = data.get('select')
 
-        return super().get_queryset()
+        if theme == "bazier":
+            return CampSite.objects.theme_brazier(sort)
+        elif theme == "animal":
+            return CampSite.objects.theme_animal(sort)
+        elif theme == "season":
+            if select == None:
+                select = "봄"
+            return CampSite.objects.theme_season(select, sort)
+        elif theme == "program":
+            return CampSite.objects.theme_program(sort)
+        elif theme == "event":
+            return CampSite.objects.theme_event(sort)
+        else:
+            return CampSite.objects.all()
+
+    def get_serializer_class(self):
+        return super().get_serializer_class()
 
     # 인기순, 거리순, 최신순
     # 0, 1, 2
-    def post(self, request):
-        CampSite.objects.all().order_by('views')
+    # def post(self, request):
+        # self.list/

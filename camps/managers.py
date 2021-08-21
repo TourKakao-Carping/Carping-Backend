@@ -18,6 +18,12 @@ class CampSiteManager(models.Manager):
     def theme_season(self, select, sort):
         return self.get_queryset().theme_season(select, sort)
 
+    def theme_program(self, sort):
+        return self.get_queryset().theme_program(sort)
+
+    def theme_event(self, sort):
+        return self.get_queryset().theme_event(sort)
+
 
 class AutoCampManager(models.Manager):
     def get_queryset(self):
