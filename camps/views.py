@@ -70,7 +70,7 @@ class AutoCampBookMark(APIView):
         operation_description=_("차박지를 스크랩합니다."),
         request_body=AutoCampBookMarkSerializer,
         responses={200: openapi.Response(_("OK"), MessageSerializer)},
-        tags=[_("posts"), ]
+        tags=[_("camps"), ]
     )
     def post(self, request):
         user = request.user
@@ -88,7 +88,7 @@ class AutoCampBookMark(APIView):
         operation_description=_("차박지 스크랩을 취소합니다."),
         request_body=AutoCampBookMarkSerializer,
         responses={200: openapi.Response(_("OK"), MessageSerializer)},
-        tags=[_("posts"), ]
+        tags=[_("camps"), ]
     )
     def delete(self, request):
         user = request.user
