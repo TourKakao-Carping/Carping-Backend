@@ -1,6 +1,6 @@
 from django.db.models import Avg
 from rest_framework import serializers
-from taggit.serializers import TagListSerializerField
+from taggit.serializers import TagListSerializerField, TaggitSerializer
 
 from bases.serializers import ModelSerializer
 from camps.models import CampSite, AutoCamp
@@ -10,7 +10,7 @@ from comments.serializers import ReviewSerializer
 
 # class GetPopularSearchSerializer(serializers.Serializer):
 
-class AutoCampSerializer(ModelSerializer):
+class AutoCampSerializer(TaggitSerializer, ModelSerializer):
     review = ReviewSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
     star1_avg = serializers.SerializerMethodField()

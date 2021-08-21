@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from taggit.serializers import TagListSerializerField
+from taggit.serializers import TagListSerializerField, TaggitSerializer
 
 from bases.serializers import ModelSerializer
 from comments.serializers import CommentSerializer
@@ -7,7 +7,7 @@ from posts.models import EcoCarping, Post
 from camps.models import CampSite
 
 
-class AutoCampPostForWeekendSerializer(ModelSerializer):
+class AutoCampPostForWeekendSerializer(TaggitSerializer, ModelSerializer):
     tags = TagListSerializerField()
 
     class Meta:
@@ -15,7 +15,7 @@ class AutoCampPostForWeekendSerializer(ModelSerializer):
         fields = ['id', 'tags', 'title', 'thumbnail', 'views']
 
 
-class EcoCarpingSerializer(ModelSerializer):
+class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
     comment = CommentSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
     created_at = serializers.SerializerMethodField()
@@ -41,7 +41,7 @@ class EcoCarpingSerializer(ModelSerializer):
         return 0
 
 
-class AutoCampPostSerializer(ModelSerializer):
+class AutoCampPostSerializer(TaggitSerializer, ModelSerializer):
     tags = TagListSerializerField()
 
     class Meta:
