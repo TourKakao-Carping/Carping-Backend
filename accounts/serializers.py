@@ -19,6 +19,7 @@ class CustomTokenRefreshSerializer(serializers.Serializer):
 class EcoRankingSerializer(ModelSerializer):
     image = serializers.SerializerMethodField()
     level = serializers.SerializerMethodField()
+    badge = serializers.SerializerMethodField()
     eco_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -33,5 +34,14 @@ class EcoRankingSerializer(ModelSerializer):
             data.profile.update(level=EcoLevel.objects.get(id=1))
         return data.profile.get().level.level
 
+    def get_badge(self, data):
+        return EcoLevelSerializer(data.profile.get().level, read_only=True).data['image']
+
     def get_eco_count(self, data):
         return data.eco.all().count()
+
+
+class EcoLevelSerializer(ModelSerializer):
+    class Meta:
+        model = EcoLevel
+        fields = ['level', 'image']

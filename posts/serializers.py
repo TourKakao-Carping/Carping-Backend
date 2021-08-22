@@ -16,6 +16,8 @@ class AutoCampPostForWeekendSerializer(TaggitSerializer, ModelSerializer):
 
 
 class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
+    username = serializers.SerializerMethodField()
+    profile = serializers.SerializerMethodField()
     comment = CommentSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
     created_at = serializers.SerializerMethodField()
@@ -24,8 +26,14 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
 
     class Meta:
         model = EcoCarping
-        fields = ['id', 'user', 'latitude', 'longitude',
-                  'image', 'title', 'text', 'trash', 'tags', 'created_at', 'comment', 'like_count', 'check_like']
+        fields = ['id', 'user', 'username', 'profile', 'latitude', 'longitude', 'image',
+                  'title', 'text', 'trash', 'tags', 'created_at', 'comment', 'like_count', 'check_like']
+
+    def get_username(self, data):
+        return data.user.username
+
+    def get_profile(self, data):
+        return data.user.profile.get().image
 
     def get_created_at(self, data):
         return data.created_at.strftime("%Y-%m-%d %H:%M")
