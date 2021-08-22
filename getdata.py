@@ -54,14 +54,14 @@ json_column = ['facltNm', 'mapX', 'mapY', 'animalCmgCl', 'clturEvent', 'exprnPro
 count = 0
 
 for i in item:
-    induty = i.get('brazierCl')
+    induty = i.get('themaEnvrnCl')
     if induty is not None:
         count += 1
     # if induty == "공동취사장":
 
-    # count += 1
+    # count += 1xz
     # print(induty)
 print(count)
 #위도 : x
 #경도 : y
-# 이름, 주소, 위도, 경도, 동물출입여부, 화로여부, 웹사이트 주소,
+# 이름, 주소, 위도, 경도, asㅁㄴxaxAxA, 화로여부, 웹사이트 주소,

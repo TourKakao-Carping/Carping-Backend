@@ -1,4 +1,6 @@
+from bases.utils import check_distantce
 from django.db import models
+from django.db.models.expressions import F, Value
 
 
 class CampSiteQuerySet(models.QuerySet):
@@ -13,10 +15,8 @@ class CampSiteQuerySet(models.QuerySet):
             return qs.order_by('-created_at')
         elif sort == "popular":
             return qs.order_by('views')
-        else:
-            return qs
-
     # 반려
+
     def theme_animal(self, sort):
         qs = self.all().filter(animal__contains="가능")
         if sort == "recent":

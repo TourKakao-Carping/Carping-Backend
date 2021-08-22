@@ -73,7 +73,8 @@ class EcoCarpingSort(GenericAPIView):
             queryset = self.filter_queryset(qs)
             response = APIResponse(False, "")
             paginate(self, queryset)
-            serializer = EcoCarpingSortSerializer(custom_list(queryset), many=True).data
+            serializer = EcoCarpingSortSerializer(
+                custom_list(queryset), many=True).data
             today_count = EcoCarping.objects.filter(
                 created_at__contains=datetime.date.today()).count()
             serializer.insert(0, {"today_count": today_count})
@@ -81,7 +82,8 @@ class EcoCarpingSort(GenericAPIView):
             return response.response(data=serializer, status=200)
 
         if sort == 'distance':
-            user_loc = (float(data.get('latitude', None)), float(data.get('longitude', None)))
+            user_loc = (float(data.get('latitude', None)),
+                        float(data.get('longitude', None)))
             queryset = EcoCarping.objects.all()
             response = APIResponse(False, "")
             paginate(self, queryset)
@@ -98,11 +100,13 @@ class EcoCarpingSort(GenericAPIView):
             return response.response(data=serializer.data, status=200)
 
         if sort == 'popular':
-            qs = EcoCarping.objects.annotate(like_count=Count('like')).order_by('-like_count')
+            qs = EcoCarping.objects.annotate(
+                like_count=Count('like')).order_by('-like_count')
             queryset = self.filter_queryset(qs)
             response = APIResponse(False, "")
             paginate(self, queryset)
-            serializer = EcoCarpingSortSerializer(custom_list(queryset), many=True)
+            serializer = EcoCarpingSortSerializer(
+                custom_list(queryset), many=True)
             response.success = True
             return response.response(data=serializer.data, status=200)
 
