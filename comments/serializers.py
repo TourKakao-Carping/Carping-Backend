@@ -63,3 +63,7 @@ class CommentSerializer(ModelSerializer):
 
     def get_created_at(self, data):
         return data.created_at.strftime("%Y-%m-%d %H:%M")
+
+
+class ReviewLikeSerializer(serializers.Serializer):
+    review_to_like = serializers.IntegerField(write_only=True)
