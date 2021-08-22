@@ -42,10 +42,14 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
 
 
 class EcoCarpingSortSerializer(TaggitSerializer, ModelSerializer):
+    username = serializers.SerializerMethodField()
 
     class Meta:
         model = EcoCarping
-        fields = ['id', 'user', 'image', 'title', 'text', 'created_at']
+        fields = ['id', 'user', 'username', 'image', 'title', 'text', 'created_at']
+
+    def get_username(self, data):
+        return data['username']
 
 
 class AutoCampPostSerializer(TaggitSerializer, ModelSerializer):

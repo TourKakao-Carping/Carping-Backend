@@ -23,6 +23,7 @@ def custom_list(queryset):
         i = {
             'id': i.id,
             'user': i.user,
+            'username': i.user.username,
             'image': i.image,
             'title': i.title,
             'text': i.text,
@@ -36,6 +37,7 @@ def custom_dict(i):
     return {
             'id': i.id,
             'user': i.user,
+            'username': i.user.username,
             'image': i.image,
             'title': i.title,
             'text': i.text,

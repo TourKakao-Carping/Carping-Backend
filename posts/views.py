@@ -1,7 +1,11 @@
 import datetime
+
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from haversine import haversine
 
 from django.db.models import Count
+from django.utils.translation import ugettext_lazy as _
 from rest_framework.generics import GenericAPIView
 
 from posts.models import EcoCarping, Post
@@ -102,5 +106,11 @@ class EcoCarpingSort(GenericAPIView):
             response.success = True
             return response.response(data=serializer.data, status=200)
 
+    @swagger_auto_schema(
+        operation_id=_("Sort EcoCarping(recent/distance/popular)"),
+        operation_description=_("에코리뷰를 정렬합니다."),
+        request_body=EcoCarpingSortSerializer,
+        tags=[_("posts"), ]
+    )
     def post(self, request, *args, **kwargs):
         return self.list(request)

@@ -3,6 +3,7 @@ import json
 import requests
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from rest_framework import status
@@ -204,31 +205,28 @@ class EcoRankingView(APIView):
     allowed_method = ["GET"]
 
     def get(self, request):
-        eco = User.objects.all().order_by('-eco')
+        eco = User.objects.annotate(num_ecos=Count('eco')).order_by('-num_ecos')[:7]
         today = datetime.date.today() + relativedelta(days=1)
         pre_month = today - relativedelta(months=1)
-        # current_user = User.objects.get(id=1)  # 테스트용 코드
-        current_user = request.user  # 실제 코드
-
-        if current_user.profile.get().level is None or current_user.eco.count() <= 3:
-            current_user.profile.update(level=EcoLevel.objects.get(id=1))
-        elif current_user.eco.count() <= 8:
-            current_user.profile.update(level=EcoLevel.objects.get(id=2))
-        elif current_user.eco.count() >= 9:
-            current_user.profile.update(level=EcoLevel.objects.get(id=3))
+        current_user = request.user
+        for i in eco:
+            if i.profile.get().level is None or i.eco.count() <= 3:
+                i.profile.update(level=EcoLevel.objects.get(id=1))
+            elif i.eco.count() <= 8:
+                i.profile.update(level=EcoLevel.objects.get(id=2))
+            elif i.eco.count() >= 9:
+                i.profile.update(level=EcoLevel.objects.get(id=3))
 
         more_info = {}
 
         eco_percentage = current_user.eco.count() * 10
         monthly_eco_count = EcoCarping.objects.filter(user_id=current_user.id,
                                                       created_at__range=[pre_month, today]).count()
-
         more_info['eco_percentage'] = eco_percentage
         more_info['monthly_eco_count'] = monthly_eco_count
 
         response = APIResponse(False, "")
         response.success = True
-
         return response.response(status=HTTP_200_OK, data=[EcoRankingSerializer(current_user).data,
                                                            more_info,
                                                            EcoRankingSerializer(eco, many=True).data])
