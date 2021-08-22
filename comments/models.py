@@ -22,6 +22,9 @@ class Review(Base):
     total_star = models.FloatField(null=False, default=0.0)
     like = models.ManyToManyField(User, related_name="review_like", blank=True)
 
+    class Meta:
+        ordering = ['-id']
+
 
 class Comment(Base):
     user = models.ForeignKey(User, on_delete=CASCADE, related_name="comment", null=False)

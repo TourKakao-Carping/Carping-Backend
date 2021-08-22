@@ -1,7 +1,9 @@
+from rest_framework import status
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin
 from rest_framework.viewsets import GenericViewSet
 
 from bases.response import APIResponse
+from camps.models import AutoCamp
 from comments.models import Review
 from comments.serializers import ReviewSerializer
 
@@ -23,6 +25,11 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
 
     def create(self, request, *args, **kwargs):
         response = APIResponse(False, '')
-        ret = super(ReviewViewSet, self).create(request)
+        autocamp = request.data.get('autocamp')
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        latest = Review.objects.latest('id').id
+        AutoCamp.objects.get(id=autocamp).review.add(Review.objects.get(id=latest))
         response.success = True
-        return response.response(data=[ret.data], status=200)
+        return response.response(data=[serializer.data], status=status.HTTP_201_CREATED)
