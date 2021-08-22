@@ -13,6 +13,7 @@ class APIResponse():
         return {
             'success': self.success,
             'code': self.code,
+            'data': ""
         }
 
     def response(self, data, status):
