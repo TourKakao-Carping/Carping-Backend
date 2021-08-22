@@ -8,11 +8,13 @@ class CampSiteQuerySet(models.QuerySet):
 
     # 불멍
     def theme_brazier(self, sort):
-        qs = self.all().filter(brazier="가능")
+        qs = self.all().exclude(brazier=None).exclude(brazier='불가')
         if sort == "recent":
             return qs.order_by('-created_at')
         elif sort == "popular":
             return qs.order_by('views')
+        else:
+            return qs
 
     # 반려
     def theme_animal(self, sort):
@@ -21,6 +23,8 @@ class CampSiteQuerySet(models.QuerySet):
             return qs.order_by('-created_at')
         if sort == "popular":
             return qs.order_by('views')
+        else:
+            return qs
 
     # 여행시기
     def theme_season(self, select, sort):

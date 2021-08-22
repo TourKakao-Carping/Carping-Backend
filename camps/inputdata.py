@@ -54,7 +54,6 @@ class InputDataAPIView(APIView):
 
     def change_time_format(self, time):
         time = time.strip()
-        time.strf
         return time
 
     def post(self, request):

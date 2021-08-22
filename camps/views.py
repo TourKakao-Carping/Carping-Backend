@@ -76,7 +76,8 @@ class AutoCampBookMark(APIView):
         user = request.user
         serializer = AutoCampBookMarkSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            autocamp_to_bookmark = AutoCamp.objects.get(id=serializer.validated_data["autocamp_to_bookmark"])
+            autocamp_to_bookmark = AutoCamp.objects.get(
+                id=serializer.validated_data["autocamp_to_bookmark"])
             user.autocamp_bookmark.add(autocamp_to_bookmark)
             data = MessageSerializer({"message": _("차박지를 스크랩했습니다.")}).data
             response = APIResponse(False, "")
@@ -116,8 +117,10 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         theme = data.get('theme')
         sort = data.get('sort')
         select = data.get('select')
+        if sort == None:
+            sort = "recent"
 
-        if theme == "bazier":
+        if theme == "brazier":
             return CampSite.objects.theme_brazier(sort)
         elif theme == "animal":
             return CampSite.objects.theme_animal(sort)
@@ -130,10 +133,13 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         elif theme == "event":
             return CampSite.objects.theme_event(sort)
         else:
-            return CampSite.objects.all()
+            return CampSite.objects.filter(id=1)
 
     def get_serializer_class(self):
         return super().get_serializer_class()
+
+    def post(self, request):
+        return self.list(request)
 
     # 인기순, 거리순, 최신순
     # 0, 1, 2

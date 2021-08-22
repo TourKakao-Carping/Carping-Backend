@@ -68,4 +68,4 @@ class AutoCampBookMarkSerializer(serializers.Serializer):
 class MainPageThemeSerializer(ModelSerializer):
     class Meta:
         model = CampSite
-        fields = ['id', 'image', 'type', 'address', 'name', 'phone', ]
+        fields = ['id', 'image', 'type', 'address', 'name', 'phone', 'brazier']
