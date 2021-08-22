@@ -13,6 +13,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('camps/', include('camps.urls')),
     path('posts/', include('posts.urls')),
+    path('comments/', include('comments.urls')),
 ]
 
 # Swagger
