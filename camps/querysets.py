@@ -20,7 +20,7 @@ class CampSiteQuerySet(models.QuerySet):
 
     # 반려
     def theme_animal(self, sort):
-        qs = self.all().filter(animal__contains="가능")
+        qs = self.all().filter(animal__contains="가능", type__contains="자동차야영장")
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
@@ -34,7 +34,8 @@ class CampSiteQuerySet(models.QuerySet):
         if select == None:
             qs = self.all()
         else:
-            qs = self.all().filter(season__contains=f"{select}")
+            qs = self.all().filter(
+                season__contains=f"{select}", type__contains="자동차야영장")
 
         if sort == "recent":
             return qs.order_by('-created_at')
@@ -45,7 +46,7 @@ class CampSiteQuerySet(models.QuerySet):
 
     # 체험
     def theme_program(self, sort):
-        qs = self.all().filter(prgram__isnull=False)
+        qs = self.all().filter(prgram__isnull=False, type__contains="자동차야영장")
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
@@ -53,7 +54,7 @@ class CampSiteQuerySet(models.QuerySet):
 
     # 문화행사
     def theme_event(self, sort):
-        qs = self.all().filter(event__isnull=False)
+        qs = self.all().filter(event__isnull=False, type__contains="자동차야영장")
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
@@ -71,7 +72,8 @@ class CampSiteQuerySet(models.QuerySet):
         if select == None:
             qs = self.all()
         else:
-            qs = self.all().filter(themenv__contains=f"{select}")
+            qs = self.all().filter(
+                themenv__contains=f"{select}", type__contains="자동차야영장")
 
         if sort == "recent":
             return qs.order_by('-created_at')
@@ -79,6 +81,22 @@ class CampSiteQuerySet(models.QuerySet):
             return qs.order_by('views')
         else:
             return qs
+
+    # 기타야영장
+    def theme_other_type(self, select, sort):
+        """
+        '일반야영장', '글램핑', '카라반'
+        """
+
+        if select == None:
+            qs = self.all()
+        else:
+            qs = self.all().filter(type__contains=f"{select}")
+
+        if sort == "recent":
+            return qs.order_by('-created_at')
+        if sort == "popular":
+            return qs.order_by('views')
 
 
 class AutoCampQuerySet(models.QuerySet):

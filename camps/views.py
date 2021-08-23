@@ -141,6 +141,8 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
             qs = CampSite.objects.theme_event(sort)
         elif theme == "leports" or theme == "nature":
             qs = CampSite.objects.theme_leports_nature(select, sort)
+        if theme == "others":
+            qs = CampSite.objects.theme_oterh_type(select, sort)
         else:
             qs = CampSite.objects.all()
 
