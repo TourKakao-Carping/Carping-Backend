@@ -17,8 +17,8 @@ class CampSiteQuerySet(models.QuerySet):
             return qs.order_by('views')
         else:
             return qs
-    # 반려
 
+    # 반려
     def theme_animal(self, sort):
         qs = self.all().filter(animal__contains="가능")
         if sort == "recent":
@@ -30,12 +30,18 @@ class CampSiteQuerySet(models.QuerySet):
 
     # 여행시기
     def theme_season(self, select, sort):
-        # select : 봄, 여름 , 가을, 겨울
-        qs = self.all().filter(season__contains=f"{select}")
+        # select : 봄, 여름 , 가을,
+        if select == None:
+            qs = self.all()
+        else:
+            qs = self.all().filter(season__contains=f"{select}")
+
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
             return qs.order_by('views')
+        else:
+            return qs
 
     # 체험
     def theme_program(self, sort):
@@ -52,6 +58,27 @@ class CampSiteQuerySet(models.QuerySet):
             return qs.order_by('-created_at')
         if sort == "popular":
             return qs.order_by('views')
+        else:
+            return qs
+
+    # 레포츠
+    def theme_leports_nature(self, select, sort):
+        """
+        '낚시', '가을단풍명소', '걷기길', '여름물놀이', '봄꽃여행', '일몰명소', 
+        '겨울눈꽃명소', '수상레저', '액티비티', '스키', '일출명소', '항공레저'
+        """
+
+        if select == None:
+            qs = self.all()
+        else:
+            qs = self.all().filter(themenv__contains=f"{select}")
+
+        if sort == "recent":
+            return qs.order_by('-created_at')
+        if sort == "popular":
+            return qs.order_by('views')
+        else:
+            return qs
 
 
 class AutoCampQuerySet(models.QuerySet):

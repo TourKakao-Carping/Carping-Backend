@@ -1,4 +1,4 @@
-from bases.utils import check_distantce, custom_theme_dict
+from bases.utils import check_data_key, check_distantce, custom_theme_dict
 import collections
 
 from drf_yasg import openapi
@@ -134,13 +134,13 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         elif theme == "animal":
             qs = CampSite.objects.theme_animal(sort)
         elif theme == "season":
-            if select == None:
-                select = "봄"
             qs = CampSite.objects.theme_season(select, sort)
         elif theme == "program":
             qs = CampSite.objects.theme_program(sort)
         elif theme == "event":
             qs = CampSite.objects.theme_event(sort)
+        elif theme == "leports" or theme == "nature":
+            qs = CampSite.objects.theme_leports_nature(select, sort)
         else:
             qs = CampSite.objects.all()
 
@@ -155,8 +155,13 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         user_lat = data.get('lat')
         user_lon = data.get('lon')
 
+        if not check_data_key(user_lat) or not check_data_key(user_lon):
+            response.code = "no input lat or lon"
+            return response.response(data="", status=400)
         qs = self.filter_queryset(self.get_queryset())
+
         list = []
+
         for i in qs:
             if i.lat == None or i.lon == None:
                 continue
@@ -167,6 +172,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
 
             i['distance'] = distance
             list.append(i)
+
         if sort == "distance":
             list.sort(key=(lambda x: x['distance']))
 

@@ -24,6 +24,9 @@ class CampSiteManager(models.Manager):
     def theme_event(self, sort):
         return self.get_queryset().theme_event(sort)
 
+    def theme_leports_nature(self, select, sort):
+        return self.get_queryset().theme_leports_nature(select, sort)
+
 
 class AutoCampManager(models.Manager):
     def get_queryset(self):
