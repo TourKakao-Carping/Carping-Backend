@@ -156,27 +156,23 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         user_lon = data.get('lon')
 
         qs = self.filter_queryset(self.get_queryset())
+        list = []
+        for i in qs:
+            if i.lat == None or i.lon == None:
+                continue
+
+            distance = check_distantce(
+                user_lat, user_lon, float(i.lat), float(i.lon))
+            i = custom_theme_dict(i)
+
+            i['distance'] = distance
+            list.append(i)
         if sort == "distance":
-            list = []
-            for i in qs:
-                if i.lat == None or i.lon == None:
-                    continue
-
-                distance = check_distantce(
-                    user_lat, user_lon, float(i.lat), float(i.lon))
-                i = custom_theme_dict(i)
-
-                i['distance'] = distance
-                list.append(i)
             list.sort(key=(lambda x: x['distance']))
 
-            serializer = MainPageThemeSerializer(list, many=True)
-            response.success = True
-            return response.response(data=serializer.data, status=200)
-        else:
-            serializer = MainPageThemeSerializer(qs, many=True)
-            response.success = True
-            return response.response(data=serializer.data, status=200)
+        serializer = MainPageThemeSerializer(list, many=True)
+        response.success = True
+        return response.response(data=serializer.data, status=200)
 
     def post(self, request):
         return self.list(request)

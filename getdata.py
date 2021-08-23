@@ -53,14 +53,20 @@ json_column = ['facltNm', 'mapX', 'mapY', 'animalCmgCl', 'clturEvent', 'exprnPro
 
 count = 0
 
+item_arr = []
 for i in item:
-    induty = i.get('themaEnvrnCl')
-    if induty is not None:
+    key = i.get('themaEnvrnCl')
+    if key is not None:
+        i_arr = key.split(',')
+        for j in i_arr:
+            if not j in item_arr:
+                item_arr.append(j)
         count += 1
     # if induty == "공동취사장":
 
     # count += 1xz
     # print(induty)
+print(item_arr)
 print(count)
 #위도 : x
 #경도 : y

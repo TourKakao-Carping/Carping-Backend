@@ -15,6 +15,8 @@ class CampSiteQuerySet(models.QuerySet):
             return qs.order_by('-created_at')
         elif sort == "popular":
             return qs.order_by('views')
+        else:
+            return qs
     # 반려
 
     def theme_animal(self, sort):
