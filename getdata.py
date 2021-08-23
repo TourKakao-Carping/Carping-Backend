@@ -6,7 +6,6 @@ from django.conf import settings
 
 
 # API_KEY = getattr("secrets.json", "CAMP_API_KEY")
-API_KEY = "iN2MyW0y826slyTaUpwpzEHzUJDo%2B3Ax9mGKTUu%2FNozBfu1w8FgP7yDxvz6ubbKpkiVt0d1d8YNLNaUhBapFeA%3D%3D"
 
 
 def get_data():
