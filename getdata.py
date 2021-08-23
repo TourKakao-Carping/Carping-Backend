@@ -1,9 +1,11 @@
+import secrets
 import requests
 from urllib.parse import urlencode, quote_plus
 from django.conf import settings
 # 전체 num : 2649
 
-API_KEY = getattr(settings, "CAMP_API_KEY")
+
+# API_KEY = getattr("secrets.json", "CAMP_API_KEY")
 
 
 def get_data():
@@ -50,11 +52,22 @@ json_column = ['facltNm', 'mapX', 'mapY', 'animalCmgCl', 'clturEvent', 'exprnPro
 
 count = 0
 
+item_arr = []
 for i in item:
-    induty = i.get('induty')
-    if '자동차야영장' in induty:
-        count += 1
+    key = i.get('induty')
+    if key is not None:
+        i_arr = key.split(',')
+        for j in i_arr:
+            if not j in item_arr:
+                item_arr.append(j)
+        if '자동차야영장' in i_arr:
+            count += 1
+    # if induty == "공동취사장":
+
+    # count += 1xz
+    # print(induty)
+print(item_arr)
 print(count)
 #위도 : x
 #경도 : y
-# 이름, 주소, 위도, 경도, 동물출입여부, 화로여부, 웹사이트 주소,
+# 이름, 주소, 위도, 경도, asㅁㄴxaxAxA, 화로여부, 웹사이트 주소,

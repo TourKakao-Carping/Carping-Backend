@@ -1,8 +1,13 @@
+from bases.utils import check_data_key, check_distantce, custom_theme_dict
+import collections
+
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from haversine.haversine import haversine
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework import viewsets
 
 from bases.response import APIResponse
 from bases.serializers import MessageSerializer
@@ -12,7 +17,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
-from camps.serializers import AutoCampSerializer, AutoCampMainSerializer, \
+from camps.serializers import AutoCampMainSerializer, \
     MainPageThemeSerializer, AutoCampBookMarkSerializer
 
 
@@ -76,7 +81,8 @@ class AutoCampBookMark(APIView):
         user = request.user
         serializer = AutoCampBookMarkSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            autocamp_to_bookmark = AutoCamp.objects.get(id=serializer.validated_data["autocamp_to_bookmark"])
+            autocamp_to_bookmark = AutoCamp.objects.get(
+                id=serializer.validated_data["autocamp_to_bookmark"])
             user.autocamp_bookmark.add(autocamp_to_bookmark)
             data = MessageSerializer({"message": _("차박지를 스크랩했습니다.")}).data
             response = APIResponse(False, "")
@@ -94,7 +100,8 @@ class AutoCampBookMark(APIView):
         user = request.user
         serializer = AutoCampBookMarkSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            user.autocamp_bookmark.through.objects.filter(user=user, autocamp=serializer.validated_data["autocamp_to_bookmark"]).delete()
+            user.autocamp_bookmark.through.objects.filter(
+                user=user, autocamp=serializer.validated_data["autocamp_to_bookmark"]).delete()
             data = MessageSerializer({"message": _("차박지 스크랩을 취소했습니다.")}).data
             response = APIResponse(False, "")
             response.success = True
@@ -111,31 +118,69 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
 
     serializer_class = MainPageThemeSerializer
 
+    ordering_fields = ['distance']
+
     def get_queryset(self):
         data = self.request.data
         theme = data.get('theme')
         sort = data.get('sort')
         select = data.get('select')
 
-        if theme == "bazier":
-            return CampSite.objects.theme_brazier(sort)
+        if sort == None:
+            sort = "recent"
+
+        if theme == "brazier":
+            qs = CampSite.objects.theme_brazier(sort)
         elif theme == "animal":
-            return CampSite.objects.theme_animal(sort)
+            qs = CampSite.objects.theme_animal(sort)
         elif theme == "season":
-            if select == None:
-                select = "봄"
-            return CampSite.objects.theme_season(select, sort)
+            qs = CampSite.objects.theme_season(select, sort)
         elif theme == "program":
-            return CampSite.objects.theme_program(sort)
+            qs = CampSite.objects.theme_program(sort)
         elif theme == "event":
-            return CampSite.objects.theme_event(sort)
+            qs = CampSite.objects.theme_event(sort)
+        elif theme == "leports" or theme == "nature":
+            qs = CampSite.objects.theme_leports_nature(select, sort)
+        if theme == "others":
+            qs = CampSite.objects.theme_oterh_type(select, sort)
         else:
-            return CampSite.objects.all()
+            qs = CampSite.objects.all()
 
-    def get_serializer_class(self):
-        return super().get_serializer_class()
+        return qs
 
-    # 인기순, 거리순, 최신순
-    # 0, 1, 2
-    # def post(self, request):
-        # self.list/
+    def list(self, request, *args, **kwargs):
+        response = APIResponse(False, '')
+        data = request.data
+
+        sort = data.get('sort')
+
+        user_lat = data.get('lat')
+        user_lon = data.get('lon')
+
+        if not check_data_key(user_lat) or not check_data_key(user_lon):
+            response.code = "no input lat or lon"
+            return response.response(data="", status=400)
+        qs = self.filter_queryset(self.get_queryset())
+
+        list = []
+
+        for i in qs:
+            if i.lat == None or i.lon == None:
+                continue
+
+            distance = check_distantce(
+                user_lat, user_lon, float(i.lat), float(i.lon))
+            i = custom_theme_dict(i)
+
+            i['distance'] = distance
+            list.append(i)
+
+        if sort == "distance":
+            list.sort(key=(lambda x: x['distance']))
+
+        serializer = MainPageThemeSerializer(list, many=True)
+        response.success = True
+        return response.response(data=serializer.data, status=200)
+
+    def post(self, request):
+        return self.list(request)

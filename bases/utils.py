@@ -1,3 +1,6 @@
+from haversine import haversine
+
+
 def check_data_key(key):
     if key == None:
         return False
@@ -35,14 +38,26 @@ def custom_list(queryset):
 
 def custom_dict(i):
     return {
-            'id': i.id,
-            'user': i.user,
-            'username': i.user.username,
-            'image': i.image,
-            'title': i.title,
-            'text': i.text,
-            'created_at': i.created_at.strftime("%Y-%m-%d %H:%M"),
-        }
+        'id': i.id,
+        'user': i.user,
+        'username': i.user.username,
+        'image': i.image,
+        'title': i.title,
+        'text': i.text,
+        'created_at': i.created_at.strftime("%Y-%m-%d %H:%M"),
+    }
+
+
+def custom_theme_dict(i):
+    return {
+        'id': i.id,
+        'image': i.image,
+        'type': i.type,
+        'address': i.address,
+        'name': i.name,
+        'phone': i.phone,
+        'type': i.type
+    }
 
 
 def paginate(self, queryset):
@@ -50,3 +65,13 @@ def paginate(self, queryset):
     if page is not None:
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+def check_distantce(user_lat, user_lon, camp_lat, camp_lon):
+
+    user_loc = (user_lat, user_lon)
+    camp_loc = (int(camp_lat), int(camp_lon))
+
+    distance = haversine(user_loc, camp_loc, unit='km')
+
+    return round(distance, 2)

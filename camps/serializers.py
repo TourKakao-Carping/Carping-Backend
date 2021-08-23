@@ -1,5 +1,8 @@
+from bases.utils import check_distantce
+
 from django.db.models import Avg
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from taggit.serializers import TagListSerializerField, TaggitSerializer
 
 from bases.serializers import ModelSerializer
@@ -66,6 +69,15 @@ class AutoCampBookMarkSerializer(serializers.Serializer):
 
 
 class MainPageThemeSerializer(ModelSerializer):
+    distance = serializers.SerializerMethodField()
+    # distance =
+
     class Meta:
         model = CampSite
-        fields = ['id', 'image', 'type', 'address', 'name', 'phone', ]
+        fields = ['id', 'image', 'type', 'address',
+                  'name', 'phone', 'brazier', 'distance']
+
+    def get_distance(self, data):
+        distance = data.get('distance')
+        distance_km = f"{distance}km"
+        return distance_km

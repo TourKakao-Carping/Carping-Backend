@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
 from django.conf import settings
-
+from django.db import transaction
 # 전체 num : 2649
 
 # 26개
@@ -16,13 +16,14 @@ column = ['name', 'lat', 'lon' 'animal', 'event', 'program', 'website', 'phone',
           'off_day_end', 'faculty', 'permission_date', 'reservation', 'toilet', 'shower', 'type', 'sub_facility', 'season', 'image', 'area', 'themeenv', 'created_at', 'updated_at']
 
 # 27개
-json_column = ['facltNm', 'mapX', 'mapY', 'animalCmgCl', 'clturEvent', 'exprnProgrm', 'homepage', 'tel', 'addr1',
+json_column = ['facltNm', 'mapY', 'mapX', 'animalCmgCl', 'clturEvent', 'exprnProgrm', 'homepage', 'tel', 'addr1',
                'brazierCl', 'operDeCl', 'hvofBgnde', 'hvofEnddle', 'facltDivNm', 'prmisnDe', 'resveCl', 'toiletCo', 'swrmCo', 'induty', 'sbrsCl', 'sbrsEtc', 'operPdCl', 'firstImageUrl', 'doNm', 'themaEnvrnCl', 'createdtime', 'modifiedtime']
 
 
 class InputDataAPIView(APIView):
     permission_classes = [AllowAny, ]
 
+    @transaction.atomic
     def get_data(self):
         API_KEY = getattr(settings, "CAMP_API_KEY")
         url = "http://api.visitkorea.or.kr/openapi/service/rest/GoCamping/basedList"
@@ -54,7 +55,6 @@ class InputDataAPIView(APIView):
 
     def change_time_format(self, time):
         time = time.strip()
-        time.strf
         return time
 
     def post(self, request):
