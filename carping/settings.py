@@ -180,8 +180,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'images/')
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
-        'basic': {
+        'Basic': {
             'type': 'basic'
+        },
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
         }
-    },
+    }
 }
+
+APPEND_SLASH = False
