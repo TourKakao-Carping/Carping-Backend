@@ -190,5 +190,3 @@ SWAGGER_SETTINGS = {
         }
     }
 }
-
-APPEND_SLASH = False
