@@ -1,13 +1,10 @@
-from bases.utils import check_data_key, check_distantce, custom_theme_dict
-import collections
+from bases.utils import check_data_key, custom_theme_dict, check_distance
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from haversine.haversine import haversine
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
-from rest_framework import viewsets
+from rest_framework.status import HTTP_200_OK
 
 from bases.response import APIResponse
 from bases.serializers import MessageSerializer
@@ -168,7 +165,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
             if i.lat == None or i.lon == None:
                 continue
 
-            distance = check_distantce(
+            distance = check_distance(
                 user_lat, user_lon, float(i.lat), float(i.lon))
             i = custom_theme_dict(i)
 
