@@ -67,3 +67,7 @@ class CommentSerializer(ModelSerializer):
 
 class ReviewLikeSerializer(serializers.Serializer):
     review_to_like = serializers.IntegerField(write_only=True)
+
+
+class CommentLikeSerializer(serializers.Serializer):
+    comment_to_like = serializers.IntegerField(write_only=True)
