@@ -1,4 +1,4 @@
-from bases.utils import check_distantce
+from bases.utils import check_distance
 from django.db import models
 from django.db.models.expressions import F, Value
 

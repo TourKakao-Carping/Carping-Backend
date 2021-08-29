@@ -67,7 +67,7 @@ def paginate(self, queryset):
         return self.get_paginated_response(serializer.data)
 
 
-def check_distantce(user_lat, user_lon, camp_lat, camp_lon):
+def check_distance(user_lat, user_lon, camp_lat, camp_lon):
 
     user_loc = (user_lat, user_lon)
     camp_loc = (int(camp_lat), int(camp_lon))

@@ -86,6 +86,26 @@ class InputDataAPIView(APIView):
         return JsonResponse({"input_items": i})
 
 
+class InputTagAPIView(APIView):
+    permission_classes = [AllowAny, ]
+
+    def post(self, request):
+        for i in CampSite.objects.all():
+            if i.event:
+                tags = i.event.split(',')
+                for tag in tags:
+                    i.tags.add(tag)
+            if i.program:
+                tags = i.program.split(',')
+                for tag in tags:
+                    i.tags.add(tag)
+            if i.themenv:
+                tags = i.themenv.split(',')
+                for tag in tags:
+                    i.tags.add(tag)
+        return JsonResponse({"success": True})
+
+
 class GetPopularSearchList(APIView):
 
     def check_popular_views(self, qs1, qs2):
