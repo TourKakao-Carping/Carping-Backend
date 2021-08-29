@@ -70,12 +70,11 @@ class AutoCampBookMarkSerializer(serializers.Serializer):
 
 class MainPageThemeSerializer(ModelSerializer):
     distance = serializers.SerializerMethodField()
-    # distance =
 
     class Meta:
         model = CampSite
         fields = ['id', 'image', 'type', 'address',
-                  'name', 'phone', 'brazier', 'distance']
+                  'name', 'phone', 'distance', ]
 
     def get_distance(self, data):
         distance = data.get('distance')

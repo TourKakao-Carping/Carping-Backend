@@ -2,6 +2,8 @@ from bases.utils import check_distantce
 from django.db import models
 from django.db.models.expressions import F, Value
 
+from django.utils.translation import ugettext as _
+
 
 class CampSiteQuerySet(models.QuerySet):
 
@@ -10,7 +12,8 @@ class CampSiteQuerySet(models.QuerySet):
 
     # 불멍
     def theme_brazier(self, sort):
-        qs = self.all().exclude(brazier=None).exclude(brazier='불가')
+        qs = self.all().exclude(brazier=None).exclude(
+            brazier=_('불가')).filter(type__contains=_("자동차야영장"))
         if sort == "recent":
             return qs.order_by('-created_at')
         elif sort == "popular":
@@ -20,7 +23,7 @@ class CampSiteQuerySet(models.QuerySet):
 
     # 반려
     def theme_animal(self, sort):
-        qs = self.all().filter(animal__contains="가능", type__contains="자동차야영장")
+        qs = self.all().filter(animal=_("가능"), type__contains=_("자동차야영장"))
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
@@ -35,7 +38,7 @@ class CampSiteQuerySet(models.QuerySet):
             qs = self.all()
         else:
             qs = self.all().filter(
-                season__contains=f"{select}", type__contains="자동차야영장")
+                season__contains=f"{select}", type=_("일반야영장"))
 
         if sort == "recent":
             return qs.order_by('-created_at')
@@ -46,7 +49,7 @@ class CampSiteQuerySet(models.QuerySet):
 
     # 체험
     def theme_program(self, sort):
-        qs = self.all().filter(prgram__isnull=False, type__contains="자동차야영장")
+        qs = self.all().filter(prgram__isnull=False, type__contains=_("자동차야영장"))
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
@@ -54,7 +57,7 @@ class CampSiteQuerySet(models.QuerySet):
 
     # 문화행사
     def theme_event(self, sort):
-        qs = self.all().filter(event__isnull=False, type__contains="자동차야영장")
+        qs = self.all().filter(event__isnull=False, type__contains=_("자동차야영장"))
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
@@ -63,17 +66,38 @@ class CampSiteQuerySet(models.QuerySet):
             return qs
 
     # 레포츠
-    def theme_leports_nature(self, select, sort):
+    def theme_leports(self, select, sort):
         """
-        '낚시', '가을단풍명소', '걷기길', '여름물놀이', '봄꽃여행', '일몰명소', 
-        '겨울눈꽃명소', '수상레저', '액티비티', '스키', '일출명소', '항공레저'
+        '수상레저', '액티비티', '스키', '항공레저', '낚시'
         """
+        leports = [_("수상레저"), _("액티비티"), _("스키"), _("항공레저"), _("낚시")]
 
-        if select == None:
-            qs = self.all()
-        else:
+        if select in leports:
             qs = self.all().filter(
-                themenv__contains=f"{select}", type__contains="자동차야영장")
+                themenv__contains=f"{select}", type__contains=_("자동차야영장"))
+        else:
+            qs = self.all().filter(themenv__in=leports, type__contains=_("자동차야영장"))
+
+        if sort == "recent":
+            return qs.order_by('-created_at')
+        if sort == "popular":
+            return qs.order_by('views')
+        else:
+            return qs
+
+    # 레포츠
+    def theme_nature(self, select, sort):
+        """
+        '가을단풍명소', '걷기길', '여름물놀이', '봄꽃여행', '일몰명소', '일출명소', '겨울눈꽃명소'
+        """
+        nature = [_("가을단풍명소"), _("걷기길"), _("봄꽃여행"),
+                  _("일몰명소"), _("일출명소"), _("겨울눈꽃명소")]
+
+        if select in nature:
+            qs = self.all().filter(
+                themenv__contains=f"{select}", type__contains=_("자동차야영장"))
+        else:
+            qs = self.all().filter(themenv__in=nature, type__contains=_("자동차야영장"))
 
         if sort == "recent":
             return qs.order_by('-created_at')
@@ -87,9 +111,9 @@ class CampSiteQuerySet(models.QuerySet):
         """
         '일반야영장', '글램핑', '카라반'
         """
-
+        other_type = [_("일반야영장"), _("글램핑"), _("카라반")]
         if select == None:
-            qs = self.all()
+            qs = self.all().filter(type__in=other_type)
         else:
             qs = self.all().filter(type__contains=f"{select}")
 
@@ -97,6 +121,8 @@ class CampSiteQuerySet(models.QuerySet):
             return qs.order_by('-created_at')
         if sort == "popular":
             return qs.order_by('views')
+        else:
+            return qs
 
 
 class AutoCampQuerySet(models.QuerySet):

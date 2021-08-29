@@ -118,7 +118,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
 
     serializer_class = MainPageThemeSerializer
 
-    ordering_fields = ['distance']
+    # ordering_fields = ['distance']
 
     def get_queryset(self):
         data = self.request.data
@@ -128,7 +128,6 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
 
         if sort == None:
             sort = "recent"
-
         if theme == "brazier":
             qs = CampSite.objects.theme_brazier(sort)
         elif theme == "animal":
@@ -139,10 +138,12 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
             qs = CampSite.objects.theme_program(sort)
         elif theme == "event":
             qs = CampSite.objects.theme_event(sort)
-        elif theme == "leports" or theme == "nature":
-            qs = CampSite.objects.theme_leports_nature(select, sort)
-        if theme == "others":
-            qs = CampSite.objects.theme_oterh_type(select, sort)
+        elif theme == "leports":
+            qs = CampSite.objects.theme_leports(select, sort)
+        elif theme == "nature":
+            qs = CampSite.objects.theme_nature(select, sort)
+        elif theme == "others":
+            qs = CampSite.objects.theme_other_type(select, sort)
         else:
             qs = CampSite.objects.all()
 
@@ -160,6 +161,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         if not check_data_key(user_lat) or not check_data_key(user_lon):
             response.code = "no input lat or lon"
             return response.response(data="", status=400)
+
         qs = self.filter_queryset(self.get_queryset())
 
         list = []
