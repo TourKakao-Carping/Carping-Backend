@@ -54,14 +54,15 @@ count = 0
 
 item_arr = []
 for i in item:
-    key = i.get('induty')
+    key = i.get('clturEvent')
     if key is not None:
         i_arr = key.split(',')
         for j in i_arr:
             if not j in item_arr:
                 item_arr.append(j)
-        if '자동차야영장' in i_arr:
-            count += 1
+                count += 1
+        # if '자동차야영장' in i_arr:
+        #     count += 1
     # if induty == "공동취사장":
 
     # count += 1xz

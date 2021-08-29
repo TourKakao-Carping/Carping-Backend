@@ -56,7 +56,7 @@ def custom_theme_dict(i):
         'address': i.address,
         'name': i.name,
         'phone': i.phone,
-        'type': i.type
+        'type': i.type,
     }
 
 
