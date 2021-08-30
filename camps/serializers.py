@@ -28,7 +28,7 @@ class AutoCampSerializer(TaggitSerializer, ModelSerializer):
 
     class Meta:
         model = AutoCamp
-        fields = ['id', 'user', 'latitude', 'longitude', 'image',
+        fields = ['id', 'user', 'latitude', 'longitude', 'image1', 'image2', 'image3', 'image4',
                   'title', 'text', 'views', 'tags', 'review', 'star1_avg',
                   'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg',
                   'my_review_count', 'review_count', 'check_bookmark']
@@ -83,7 +83,7 @@ class AutoCampMainSerializer(ModelSerializer):
 
     class Meta:
         model = AutoCamp
-        fields = ['id', 'image']
+        fields = ['id', 'image1']
 
 
 class AutoCampBookMarkSerializer(serializers.Serializer):

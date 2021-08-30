@@ -46,7 +46,13 @@ class EcoCarping(Base):
                              related_name="eco", null=True)
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
-    image = models.ImageField(
+    image1 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+    image2 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+    image3 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+    image4 = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
@@ -68,7 +74,13 @@ class Share(Base):
                              related_name="share", null=True)
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
-    image = models.ImageField(
+    image1 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+    image2 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+    image3 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+    image4 = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
     title = models.CharField(max_length=100, null=False)
     text = models.TextField()
