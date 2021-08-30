@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin
 from rest_framework.viewsets import GenericViewSet
 
+from bases.utils import check_str_digit
 from posts.serializers import AutoCampPostSerializer, EcoCarpingSerializer
 from posts.models import EcoCarping, Post
 from bases.response import APIResponse
@@ -25,7 +26,17 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
 
     def create(self, request, *args, **kwargs):
         response = APIResponse(False, '')
-        ret = super(EcoCarpingViewSet, self).create(request)
+        lat = request.data.get('latitude')
+        lon = request.data.get('longitude')
+        if check_str_digit(lat) and check_str_digit(lon):
+            float(lat)
+            float(lon)
+        try:
+            ret = super(EcoCarpingViewSet, self).create(request)
+        except Exception as e:
+            response.code = "NOT_FOUND"
+            return response.response(data=[str(e)], status=200)
+
         response.success = True
         return response.response(data=[ret.data], status=200)
 
