@@ -26,8 +26,9 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
 
     class Meta:
         model = EcoCarping
-        fields = ['id', 'user', 'username', 'profile', 'latitude', 'longitude', 'image1', 'image2', 'image3', 'image4',
-                  'title', 'text', 'trash', 'tags', 'created_at', 'comment', 'like_count', 'check_like']
+        fields = ['id', 'user', 'username', 'profile', 'latitude', 'longitude', 'place',
+                  'image1', 'image2', 'image3', 'image4', 'title', 'text', 'trash',
+                  'tags', 'created_at', 'comment', 'like_count', 'check_like']
 
     def get_username(self, data):
         return data.user.username

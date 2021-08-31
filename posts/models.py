@@ -46,6 +46,7 @@ class EcoCarping(Base):
                              related_name="eco", null=True)
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
+    place = models.CharField(max_length=100, default="장소")
     image1 = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
     image2 = models.ImageField(
