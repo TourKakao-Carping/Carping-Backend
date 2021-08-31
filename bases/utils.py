@@ -9,6 +9,9 @@ def check_data_key(key):
 
 
 def check_str_digit(numstr):
+    if not check_data_key(numstr):
+        return False
+
     if type(numstr) == str:
         if numstr.isdigit():
             return True

@@ -1,4 +1,4 @@
-from bases.utils import check_data_key, custom_theme_dict, check_distance
+from bases.utils import check_data_key, check_str_digit, custom_theme_dict, check_distance
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -156,7 +156,11 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         user_lon = data.get('lon')
 
         if not check_data_key(user_lat) or not check_data_key(user_lon):
-            response.code = "no input lat or lon"
+            response.code = "NO_INPUT_LAT_OR_LON"
+            return response.response(data="", status=400)
+
+        if not check_str_digit(user_lat) or not check_str_digit(user_lon):
+            response.code = "INVALID_INPUT"
             return response.response(data="", status=400)
 
         qs = self.filter_queryset(self.get_queryset())
@@ -168,7 +172,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
                 continue
 
             distance = check_distance(
-                user_lat, user_lon, float(i.lat), float(i.lon))
+                float(user_lat), float(user_lon), float(i.lat), float(i.lon))
             i = custom_theme_dict(i)
 
             i['distance'] = distance
