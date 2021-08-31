@@ -7,9 +7,12 @@ from haversine import haversine
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.generics import GenericAPIView
+from rest_framework.status import HTTP_200_OK
+from rest_framework.views import APIView
 
+from bases.serializers import MessageSerializer
 from posts.models import EcoCarping, Post
-from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer
+from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict
 from bases.response import APIResponse
@@ -118,3 +121,40 @@ class EcoCarpingSort(GenericAPIView):
     )
     def post(self, request, *args, **kwargs):
         return self.list(request)
+
+
+class PostLike(APIView):
+    @swagger_auto_schema(
+        operation_id=_("Add Like Comment"),
+        operation_description=_("포스트에 좋아요를 답니다."),
+        request_body=PostLikeSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("posts"), ]
+    )
+    def post(self, request):
+        user = request.user
+        serializer = PostLikeSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            post_to_like = EcoCarping.objects.get(id=serializer.validated_data["post_to_like"])
+            user.eco_like.add(post_to_like)
+            data = MessageSerializer({"message": _("포스트 좋아요 완료")}).data
+            response = APIResponse(False, "")
+            response.success = True
+            return response.response(status=HTTP_200_OK, data=[data])
+
+    @swagger_auto_schema(
+        operation_id=_("Delete Like Comment"),
+        operation_description=_("포스트에 단 좋아요를 취소합니다."),
+        request_body=PostLikeSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("posts"), ]
+    )
+    def delete(self, request):
+        user = request.user
+        serializer = PostLikeSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user.eco_like.through.objects.filter(user=user, ecocarping=serializer.validated_data["post_to_like"]).delete()
+            data = MessageSerializer({"message": _("포스트 좋아요 취소")}).data
+            response = APIResponse(False, "")
+            response.success = True
+            return response.response(status=HTTP_200_OK, data=[data])

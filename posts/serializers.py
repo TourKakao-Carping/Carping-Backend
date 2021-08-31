@@ -111,3 +111,7 @@ class AutoCampPostSerializer(TaggitSerializer, ModelSerializer):
 
         re_ret["count"] = count
         return re_ret
+
+
+class PostLikeSerializer(serializers.Serializer):
+    post_to_like = serializers.IntegerField(write_only=True)

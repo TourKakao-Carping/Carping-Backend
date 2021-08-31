@@ -9,6 +9,7 @@ urlpatterns = [
          GetAutoCampPostForWeekend.as_view(), name="weekend-post"),
     path('eco-carping/sort',
          EcoCarpingSort.as_view(), name="ecocarping-sort"),
+    path('eco-carping/like', PostLike.as_view(), name='eco-carping-like')
 ]
 
 router = routers.DefaultRouter()
