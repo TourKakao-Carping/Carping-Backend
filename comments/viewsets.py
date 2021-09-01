@@ -3,6 +3,7 @@ from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyM
 from rest_framework.viewsets import GenericViewSet
 
 from bases.response import APIResponse
+from bases.utils import check_str_digit
 from camps.models import AutoCamp
 from comments.models import Review, Comment
 from comments.serializers import ReviewSerializer, CommentSerializer
@@ -34,6 +35,26 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
         AutoCamp.objects.get(id=autocamp).review.add(Review.objects.get(id=latest))
         response.success = True
         return response.response(data=[serializer.data], status=status.HTTP_201_CREATED)
+
+    def partial_update(self, request, *args, **kwargs):
+        response = APIResponse(False, '')
+        star1 = request.data.get('star1')
+        star2 = request.data.get('star2')
+        star3 = request.data.get('star3')
+        star4 = request.data.get('star4')
+        if check_str_digit(star1) and check_str_digit(star2) and check_str_digit(star3) and check_str_digit(star4):
+            float(star1)
+            float(star2)
+            float(star3)
+            float(star4)
+        try:
+            ret = super(ReviewViewSet, self).partial_update(request)
+        except Exception as e:
+            response.code = "NOT_FOUND"
+            return response.response(data=[str(e)], status=200)
+
+        response.success = True
+        return response.response(data=[ret.data], status=200)
 
 
 class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin, GenericViewSet):
@@ -67,3 +88,14 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
             Share.objects.get(id=share).comment.add(Comment.objects.get(id=latest))
         response.success = True
         return response.response(data=[serializer.data], status=status.HTTP_201_CREATED)
+
+    def partial_update(self, request, *args, **kwargs):
+        response = APIResponse(False, '')
+        try:
+            ret = super(CommentViewSet, self).partial_update(request)
+        except Exception as e:
+            response.code = "NOT_FOUND"
+            return response.response(data=[str(e)], status=200)
+
+        response.success = True
+        return response.response(data=[ret.data], status=200)

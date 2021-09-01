@@ -40,6 +40,22 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
         response.success = True
         return response.response(data=[ret.data], status=200)
 
+    def partial_update(self, request, *args, **kwargs):
+        response = APIResponse(False, '')
+        lat = request.data.get('latitude')
+        lon = request.data.get('longitude')
+        if check_str_digit(lat) and check_str_digit(lon):
+            float(lat)
+            float(lon)
+        try:
+            ret = super(EcoCarpingViewSet, self).partial_update(request)
+        except Exception as e:
+            response.code = "NOT_FOUND"
+            return response.response(data=[str(e)], status=200)
+
+        response.success = True
+        return response.response(data=[ret.data], status=200)
+
 
 class AutoCampPostForWeekendViewSet(viewsets.ModelViewSet):
     """
