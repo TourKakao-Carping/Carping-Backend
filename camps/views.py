@@ -155,10 +155,6 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         user_lat = data.get('lat')
         user_lon = data.get('lon')
 
-        if not check_data_key(user_lat) or not check_data_key(user_lon):
-            response.code = "NO_INPUT_LAT_OR_LON"
-            return response.response(data="", status=400)
-
         if not check_str_digit(user_lat) or not check_str_digit(user_lon):
             response.code = "INVALID_INPUT"
             return response.response(data="", status=400)

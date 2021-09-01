@@ -15,9 +15,12 @@ def check_str_digit(numstr):
     if type(numstr) == str:
         if numstr.isdigit():
             return True
-        else:
+        try:
+            float(numstr)
+            return True
+        except ValueError:
             return False
-    elif type(numstr) == int:
+    elif type(numstr) == int or type(numstr) == float:
         return True
     else:
         return False
