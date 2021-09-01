@@ -3,12 +3,7 @@ from django.http import JsonResponse
 
 class APIResponse():
     success = False
-    code = 0
-    error_message = ""
-
-    def __init__(self, success, code):
-        self.succes = success
-        self.code = code
+    code = 400
 
     def format(self):
         return {
@@ -18,11 +13,15 @@ class APIResponse():
             'error_message': ""
         }
 
-    def response(self, data, error_message, status):
+    def response(self, *args, **kwargs):
         form = self.format()
+
+        data = kwargs.get("data")
+        error_message = kwargs.get("error_message")
+
         if data:
             form['data'] = data
         if error_message:
             form['error_message'] = error_message
 
-        return JsonResponse(form, status=status)
+        return JsonResponse(form)

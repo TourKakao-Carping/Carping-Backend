@@ -205,7 +205,8 @@ class EcoRankingView(APIView):
     allowed_method = ["GET"]
 
     def get(self, request):
-        eco = User.objects.annotate(num_ecos=Count('eco')).order_by('-num_ecos')[:7]
+        eco = User.objects.annotate(
+            num_ecos=Count('eco')).order_by('-num_ecos')[:7]
         today = datetime.date.today() + relativedelta(days=1)
         pre_month = today - relativedelta(months=1)
         current_user = request.user
@@ -225,8 +226,8 @@ class EcoRankingView(APIView):
         more_info['eco_percentage'] = eco_percentage
         more_info['monthly_eco_count'] = monthly_eco_count
 
-        response = APIResponse(False, "")
+        response = APIResponse()
         response.success = True
-        return response.response(status=HTTP_200_OK, data=[EcoRankingSerializer(current_user).data,
-                                                           more_info,
-                                                           EcoRankingSerializer(eco, many=True).data])
+        return response.response(data=[EcoRankingSerializer(current_user).data,
+                                       more_info,
+                                       EcoRankingSerializer(eco, many=True).data])

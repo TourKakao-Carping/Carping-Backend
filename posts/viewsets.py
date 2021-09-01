@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin
+from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from rest_framework.viewsets import GenericViewSet
 
 from bases.utils import check_str_digit
@@ -15,17 +16,19 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
     queryset = EcoCarping.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         try:
             ret = super(EcoCarpingViewSet, self).retrieve(request)
             response.success = True
-            return response.response(data=[ret.data], status=200)
+            response.code = HTTP_200_OK
+            return response.response(data=[ret.data])
         except Exception as e:
-            response.code = "NOT_FOUND"
-            return response.response(data=str(e), status=404)
+            response.success = False
+            response.code = HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
 
     def create(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         lat = request.data.get('latitude')
         lon = request.data.get('longitude')
         if check_str_digit(lat) and check_str_digit(lon):
@@ -34,14 +37,15 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
         try:
             ret = super(EcoCarpingViewSet, self).create(request)
         except Exception as e:
-            response.code = "NOT_FOUND"
-            return response.response(data=[str(e)], status=200)
+            response.code = HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
 
         response.success = True
-        return response.response(data=[ret.data], status=200)
+        response.code = HTTP_200_OK
+        return response.response(data=[ret.data])
 
     def partial_update(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         lat = request.data.get('latitude')
         lon = request.data.get('longitude')
         if check_str_digit(lat) and check_str_digit(lon):
@@ -50,11 +54,12 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
         try:
             ret = super(EcoCarpingViewSet, self).partial_update(request)
         except Exception as e:
-            response.code = "NOT_FOUND"
-            return response.response(data=[str(e)], status=200)
+            response.code = HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
 
         response.success = True
-        return response.response(data=[ret.data], status=200)
+        response.code = HTTP_200_OK
+        return response.response(data=[ret.data])
 
 
 class AutoCampPostForWeekendViewSet(viewsets.ModelViewSet):
@@ -70,12 +75,13 @@ class AutoCampPostForWeekendViewSet(viewsets.ModelViewSet):
         raise MethodNotAllowed("GET")
 
     def retrieve(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         try:
             ret = super(AutoCampPostForWeekendViewSet, self).retrieve(request)
 
             response.success = True
-            return response.response(data=[ret.data], status=200)
+            response.code = HTTP_200_OK
+            return response.response(data=[ret.data])
         except Exception as e:
-            response.code = "NOT_FOUND"
-            return response.response(data=str(e), status=404)
+            response.code = HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))

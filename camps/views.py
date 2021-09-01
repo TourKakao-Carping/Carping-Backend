@@ -61,9 +61,9 @@ class AutoCampPartial(GenericAPIView):
         elif count > 0:
             qs = AutoCamp.objects.all().order_by('-created_at')[:count]
 
-        response = APIResponse(False, "")
+        response = APIResponse()
         response.success = True
-        return response.response(status=HTTP_200_OK, data=AutoCampMainSerializer(qs, many=True).data)
+        return response.response(data=AutoCampMainSerializer(qs, many=True).data)
 
 
 class AutoCampBookMark(APIView):
@@ -82,9 +82,9 @@ class AutoCampBookMark(APIView):
                 id=serializer.validated_data["autocamp_to_bookmark"])
             user.autocamp_bookmark.add(autocamp_to_bookmark)
             data = MessageSerializer({"message": _("차박지를 스크랩했습니다.")}).data
-            response = APIResponse(False, "")
+            response = APIResponse()
             response.success = True
-            return response.response(status=HTTP_200_OK, data=[data])
+            return response.response(data=[data])
 
     @swagger_auto_schema(
         operation_id=_("Delete Scrap AutoCamp"),
@@ -100,9 +100,9 @@ class AutoCampBookMark(APIView):
             user.autocamp_bookmark.through.objects.filter(
                 user=user, autocamp=serializer.validated_data["autocamp_to_bookmark"]).delete()
             data = MessageSerializer({"message": _("차박지 스크랩을 취소했습니다.")}).data
-            response = APIResponse(False, "")
+            response = APIResponse()
             response.success = True
-            return response.response(status=HTTP_200_OK, data=[data])
+            return response.response(data=[data])
 
 
 class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
@@ -147,7 +147,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         return qs
 
     def list(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         data = request.data
 
         sort = data.get('sort')
@@ -156,8 +156,8 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         user_lon = data.get('lon')
 
         if not check_str_digit(user_lat) or not check_str_digit(user_lon):
-            response.code = "INVALID_INPUT"
-            return response.response(data="", status=400)
+            response.code = 400
+            return response.response()
 
         qs = self.filter_queryset(self.get_queryset())
 
@@ -177,9 +177,13 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         if sort == "distance":
             list.sort(key=(lambda x: x['distance']))
 
-        serializer = MainPageThemeSerializer(list, many=True)
-        response.success = True
-        return response.response(data=serializer.data, status=200)
+        serializer = MainPageThemeSerializer(data=list, many=True)
+        if serializer.is_valid():
+            response.code = 200
+            response.success = True
+            return response.response(data=serializer.data)
+        else:
+            return response.response(data=serializer.errors)
 
     def post(self, request):
         return self.list(request)
