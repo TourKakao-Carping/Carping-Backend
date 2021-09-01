@@ -76,7 +76,7 @@ def paginate(self, queryset):
 def check_distance(user_lat, user_lon, camp_lat, camp_lon):
 
     user_loc = (user_lat, user_lon)
-    camp_loc = (int(camp_lat), int(camp_lon))
+    camp_loc = (float(camp_lat), float(camp_lon))
 
     distance = haversine(user_loc, camp_loc, unit='km')
 
