@@ -25,12 +25,14 @@ class ReviewLike(APIView):
         user = request.user
         serializer = ReviewLikeSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            review_to_like = Review.objects.get(id=serializer.validated_data["review_to_like"])
+            review_to_like = Review.objects.get(
+                id=serializer.validated_data["review_to_like"])
             user.review_like.add(review_to_like)
             data = MessageSerializer({"message": _("리뷰 좋아요 완료")}).data
-            response = APIResponse(False, "")
+            response = APIResponse()
             response.success = True
-            return response.response(status=HTTP_200_OK, data=[data])
+            response.code = HTTP_200_OK
+            return response.response(data=[data])
 
     @swagger_auto_schema(
         operation_id=_("Delete Like Review"),
@@ -43,11 +45,13 @@ class ReviewLike(APIView):
         user = request.user
         serializer = ReviewLikeSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            user.review_like.through.objects.filter(user=user, review=serializer.validated_data["review_to_like"]).delete()
+            user.review_like.through.objects.filter(
+                user=user, review=serializer.validated_data["review_to_like"]).delete()
             data = MessageSerializer({"message": _("리뷰 좋아요 취소")}).data
-            response = APIResponse(False, "")
+            response = APIResponse()
             response.success = True
-            return response.response(status=HTTP_200_OK, data=[data])
+            response.code = HTTP_200_OK
+            return response.response(data=[data])
 
 
 class CommentLike(APIView):
@@ -62,12 +66,14 @@ class CommentLike(APIView):
         user = request.user
         serializer = CommentLikeSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            comment_to_like = Comment.objects.get(id=serializer.validated_data["comment_to_like"])
+            comment_to_like = Comment.objects.get(
+                id=serializer.validated_data["comment_to_like"])
             user.comment_like.add(comment_to_like)
             data = MessageSerializer({"message": _("댓글 좋아요 완료")}).data
-            response = APIResponse(False, "")
+            response = APIResponse()
             response.success = True
-            return response.response(status=HTTP_200_OK, data=[data])
+            response.code = HTTP_200_OK
+            return response.response(data=[data])
 
     @swagger_auto_schema(
         operation_id=_("Delete Like Comment"),
@@ -80,8 +86,10 @@ class CommentLike(APIView):
         user = request.user
         serializer = CommentLikeSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            user.comment_like.through.objects.filter(user=user, comment=serializer.validated_data["comment_to_like"]).delete()
+            user.comment_like.through.objects.filter(
+                user=user, comment=serializer.validated_data["comment_to_like"]).delete()
             data = MessageSerializer({"message": _("댓글 좋아요 취소")}).data
-            response = APIResponse(False, "")
+            response = APIResponse()
             response.success = True
-            return response.response(status=HTTP_200_OK, data=[data])
+            response.code = HTTP_200_OK
+            return response.response(data=[data])

@@ -15,29 +15,32 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
     queryset = Review.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         try:
             ret = super(ReviewViewSet, self).retrieve(request)
 
             response.success = True
-            return response.response(data=[ret.data], status=200)
+            response.code = status.HTTP_200_OK
+            return response.response(data=[ret.data])
         except Exception as e:
-            response.code = "NOT_FOUND"
+            response.code = status.HTTP_404_NOT_FOUND
             return response.response(data=str(e), status=404)
 
     def create(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         autocamp = request.data.get('autocamp')
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         latest = Review.objects.latest('id').id
-        AutoCamp.objects.get(id=autocamp).review.add(Review.objects.get(id=latest))
+        AutoCamp.objects.get(id=autocamp).review.add(
+            Review.objects.get(id=latest))
         response.success = True
-        return response.response(data=[serializer.data], status=status.HTTP_201_CREATED)
+        response.code = status.HTTP_201_CREATED
+        return response.response(data=[serializer.data])
 
     def partial_update(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         star1 = request.data.get('star1')
         star2 = request.data.get('star2')
         star3 = request.data.get('star3')
@@ -50,8 +53,8 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
         try:
             ret = super(ReviewViewSet, self).partial_update(request)
         except Exception as e:
-            response.code = "NOT_FOUND"
-            return response.response(data=[str(e)], status=200)
+            response.code = status.HTTP_400_BAD_REQUEST
+            return response.response(error_message=[str(e)])
 
         response.success = True
         return response.response(data=[ret.data], status=200)
@@ -62,40 +65,46 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
     queryset = Comment.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         try:
             ret = super(CommentViewSet, self).retrieve(request)
 
             response.success = True
-            return response.response(data=[ret.data], status=200)
+            response.status = status.HTTP_200_OK
+            return response.response(data=[ret.data])
         except Exception as e:
-            response.code = "NOT_FOUND"
-            return response.response(data=str(e), status=404)
+            response.code = status.HTTP_400_BAD_REQUEST
+            return response.response(error_message=str(e))
 
     def create(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         eco = request.data.get('eco')
         share = request.data.get('share')
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if eco and share:
-            return APIResponse(False, "INVALID_REQUEST").response('', status=400)
+            response.code = status.HTTP_400_BAD_REQUEST
+            return response.response(error_message=_("Invalid Request"))
         self.perform_create(serializer)
         latest = Comment.objects.latest('id').id
         if eco:
-            EcoCarping.objects.get(id=eco).comment.add(Comment.objects.get(id=latest))
+            EcoCarping.objects.get(id=eco).comment.add(
+                Comment.objects.get(id=latest))
         if share:
-            Share.objects.get(id=share).comment.add(Comment.objects.get(id=latest))
+            Share.objects.get(id=share).comment.add(
+                Comment.objects.get(id=latest))
         response.success = True
-        return response.response(data=[serializer.data], status=status.HTTP_201_CREATED)
+        response.code = status.HTTP_201_CREATED
+        return response.response(data=[serializer.data])
 
     def partial_update(self, request, *args, **kwargs):
-        response = APIResponse(False, '')
+        response = APIResponse()
         try:
             ret = super(CommentViewSet, self).partial_update(request)
         except Exception as e:
-            response.code = "NOT_FOUND"
-            return response.response(data=[str(e)], status=200)
+            response.code = status.HTTP_404_NOT_FOUND
+            return response.response(error_message=[str(e)])
 
         response.success = True
-        return response.response(data=[ret.data], status=200)
+        response.code = status.HTTP_200_OK
+        return response.response(data=[ret.data])

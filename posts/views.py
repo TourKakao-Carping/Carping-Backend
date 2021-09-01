@@ -40,7 +40,7 @@ class GetAutoCampPostForWeekend(GenericAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        response = APIResponse(False, "")
+        response = APIResponse()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -50,20 +50,25 @@ class GetAutoCampPostForWeekend(GenericAPIView):
         serializer = self.get_serializer(queryset, many=True)
 
         response.success = True
-        return response.response(data=serializer.data, status=200)
+        response.code = HTTP_200_OK
+        return response.response(data=[serializer.data])
 
     def post(self, request):
-        data = request.data
+        response = APIResponse()
 
+        data = request.data
         count = data.get('count')
 
         if not check_data_key(count) or not check_str_digit(count):
-            return APIResponse(False, "INVALID_COUNT").response('', status=400)
+            return response.response(error_message='Invalid Count')
+
         return self.list(request)
 
 
 class EcoCarpingSort(GenericAPIView):
     def list(self, request, *args, **kwargs):
+        response = APIResponse()
+
         data = self.request.data
         sort = data.get('sort')
 
@@ -74,7 +79,6 @@ class EcoCarpingSort(GenericAPIView):
             elif count > 0:
                 qs = EcoCarping.objects.all().order_by('-created_at')[:count]
             queryset = self.filter_queryset(qs)
-            response = APIResponse(False, "")
             paginate(self, queryset)
             serializer = EcoCarpingSortSerializer(
                 custom_list(queryset), many=True).data
@@ -82,13 +86,13 @@ class EcoCarpingSort(GenericAPIView):
                 created_at__contains=datetime.date.today()).count()
             serializer.insert(0, {"today_count": today_count})
             response.success = True
-            return response.response(data=serializer, status=200)
+            response.code = HTTP_200_OK
+            return response.response(data=[serializer])
 
         if sort == 'distance':
             user_loc = (float(data.get('latitude', None)),
                         float(data.get('longitude', None)))
             queryset = EcoCarping.objects.all()
-            response = APIResponse(False, "")
             paginate(self, queryset)
             list = []
             for i in queryset:
@@ -100,18 +104,19 @@ class EcoCarpingSort(GenericAPIView):
             list.sort(key=(lambda x: x['distance']))
             serializer = EcoCarpingSortSerializer(list, many=True)
             response.success = True
-            return response.response(data=serializer.data, status=200)
+            response.code = HTTP_200_OK
+            return response.response(data=[serializer.data])
 
         if sort == 'popular':
             qs = EcoCarping.objects.annotate(
                 like_count=Count('like')).order_by('-like_count')
             queryset = self.filter_queryset(qs)
-            response = APIResponse(False, "")
             paginate(self, queryset)
             serializer = EcoCarpingSortSerializer(
                 custom_list(queryset), many=True)
             response.success = True
-            return response.response(data=serializer.data, status=200)
+            response.code = HTTP_200_OK
+            return response.response(data=[serializer.data])
 
     @swagger_auto_schema(
         operation_id=_("Sort EcoCarping(recent/distance/popular)"),
@@ -135,12 +140,14 @@ class PostLike(APIView):
         user = request.user
         serializer = PostLikeSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            post_to_like = EcoCarping.objects.get(id=serializer.validated_data["post_to_like"])
+            post_to_like = EcoCarping.objects.get(
+                id=serializer.validated_data["post_to_like"])
             user.eco_like.add(post_to_like)
             data = MessageSerializer({"message": _("포스트 좋아요 완료")}).data
-            response = APIResponse(False, "")
+            response = APIResponse()
             response.success = True
-            return response.response(status=HTTP_200_OK, data=[data])
+            response.code = HTTP_200_OK
+            return response.response(data=[data])
 
     @swagger_auto_schema(
         operation_id=_("Delete Like Comment"),
@@ -153,8 +160,10 @@ class PostLike(APIView):
         user = request.user
         serializer = PostLikeSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            user.eco_like.through.objects.filter(user=user, ecocarping=serializer.validated_data["post_to_like"]).delete()
+            user.eco_like.through.objects.filter(
+                user=user, ecocarping=serializer.validated_data["post_to_like"]).delete()
             data = MessageSerializer({"message": _("포스트 좋아요 취소")}).data
-            response = APIResponse(False, "")
+            response = APIResponse()
             response.success = True
-            return response.response(status=HTTP_200_OK, data=[data])
+            response.code = HTTP_200_OK
+            return response.response(data=[data])
