@@ -7,7 +7,7 @@ class APIResponse():
     error_message = ""
 
     def __init__(self, success, code):
-        self.succes = success
+        self.success = success
         self.code = code
 
     def format(self):
