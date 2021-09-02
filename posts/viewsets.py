@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, exceptions, status
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from rest_framework.viewsets import GenericViewSet
@@ -37,6 +37,9 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
         try:
             ret = super(EcoCarpingViewSet, self).create(request)
         except Exception as e:
+            if not self.get_serializer(data=request.data).is_valid():
+                response.code = status.HTTP_400_BAD_REQUEST
+                return response.response(error_message=str(e))
             response.code = HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
 

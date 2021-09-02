@@ -1,3 +1,5 @@
+from rest_framework import status
+
 from bases.utils import check_data_key, check_str_digit, custom_theme_dict, check_distance
 
 from drf_yasg import openapi
@@ -56,11 +58,10 @@ class AutoCampPartial(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
-        count = self.request.data.get('count', None)
-        if not count:
-            return response.response(error_message="must have 'count' field in request body")
+        if not 'count' in self.request.data:
+            return response.response(error_message="'count' field is required")
+        count = int(self.request.data.get('count', None))
 
-        int(count)
         if count == 0:
             qs = AutoCamp.objects.all().order_by('-created_at')
         elif count > 0:
@@ -85,18 +86,21 @@ class AutoCampBookMark(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         serializer = AutoCampBookMarkSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            autocamp_to_bookmark = AutoCamp.objects.get(
-                id=serializer.validated_data["autocamp_to_bookmark"])
+        if serializer.is_valid():
+            try:
+                autocamp_to_bookmark = AutoCamp.objects.get(
+                    id=serializer.validated_data["autocamp_to_bookmark"])
 
-            if not autocamp_to_bookmark:
-                return response.response(error_message="존재하지 않는 차박지 id 입니다.")
-
-            user.autocamp_bookmark.add(autocamp_to_bookmark)
-            data = MessageSerializer({"message": _("차박지를 스크랩했습니다.")}).data
-            response.success = True
-            response.code = 200
-            return response.response(data=[data])
+                user.autocamp_bookmark.add(autocamp_to_bookmark)
+                data = MessageSerializer({"message": _("차박지를 스크랩했습니다.")}).data
+                response.success = True
+                response.code = 200
+                return response.response(data=[data])
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
+        else:
+            return response.response(error_message="'autocamp_to_bookmark' field is required.")
 
     @swagger_auto_schema(
         operation_id=_("Delete Scrap AutoCamp"),
@@ -109,13 +113,19 @@ class AutoCampBookMark(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         serializer = AutoCampBookMarkSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            user.autocamp_bookmark.through.objects.filter(
-                user=user, autocamp=serializer.validated_data["autocamp_to_bookmark"]).delete()
-            data = MessageSerializer({"message": _("차박지 스크랩을 취소했습니다.")}).data
-            response.success = True
-            response.code = 200
-            return response.response(data=[data])
+        if serializer.is_valid():
+            try:
+                user.autocamp_bookmark.through.objects.filter(
+                    user=user, autocamp=serializer.validated_data["autocamp_to_bookmark"]).delete()
+                data = MessageSerializer({"message": _("차박지 스크랩을 취소했습니다.")}).data
+                response.success = True
+                response.code = 200
+                return response.response(data=[data])
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
+        else:
+            return response.response(error_message="'autocamp_to_bookmark' field is required.")
 
 
 class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):

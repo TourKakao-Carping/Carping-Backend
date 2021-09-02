@@ -211,6 +211,7 @@ class EcoRankingView(APIView):
         today = datetime.date.today() + relativedelta(days=1)
         pre_month = today - relativedelta(months=1)
         current_user = request.user
+
         for i in eco:
             if i.profile.get().level is None or i.eco.count() <= 3:
                 i.profile.update(level=EcoLevel.objects.get(id=1))

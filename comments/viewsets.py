@@ -31,14 +31,16 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
         response = APIResponse(success=False, code=400)
         autocamp = request.data.get('autocamp')
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        latest = Review.objects.latest('id').id
-        AutoCamp.objects.get(id=autocamp).review.add(
-            Review.objects.get(id=latest))
-        response.success = True
-        response.code = status.HTTP_200_OK
-        return response.response(data=[serializer.data])
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            latest = Review.objects.latest('id').id
+            AutoCamp.objects.get(id=autocamp).review.add(
+                Review.objects.get(id=latest))
+            response.success = True
+            response.code = status.HTTP_200_OK
+            return response.response(data=[serializer.data])
+        else:
+            return response.response(error_message="necessary field(s) missing. check request once more.")
 
     def partial_update(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
@@ -70,12 +72,11 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
         response = APIResponse(success=False, code=400)
         try:
             ret = super(CommentViewSet, self).retrieve(request)
-
             response.success = True
             response.status = status.HTTP_200_OK
             return response.response(data=[ret.data])
         except Exception as e:
-            response.code = status.HTTP_400_BAD_REQUEST
+            response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
 
     def create(self, request, *args, **kwargs):
@@ -83,21 +84,23 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
         eco = request.data.get('eco')
         share = request.data.get('share')
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        if eco and share:
-            response.code = status.HTTP_400_BAD_REQUEST
-            return response.response(error_message=_("Invalid Request"))
-        self.perform_create(serializer)
-        latest = Comment.objects.latest('id').id
-        if eco:
-            EcoCarping.objects.get(id=eco).comment.add(
-                Comment.objects.get(id=latest))
-        if share:
-            Share.objects.get(id=share).comment.add(
-                Comment.objects.get(id=latest))
-        response.success = True
-        response.code = status.HTTP_200_OK
-        return response.response(data=[serializer.data])
+        if serializer.is_valid():
+            if eco and share:
+                response.code = status.HTTP_400_BAD_REQUEST
+                return response.response(error_message=_("Invalid Request: cannot send eco & share together."))
+            self.perform_create(serializer)
+            latest = Comment.objects.latest('id').id
+            if eco:
+                EcoCarping.objects.get(id=eco).comment.add(
+                    Comment.objects.get(id=latest))
+            if share:
+                Share.objects.get(id=share).comment.add(
+                    Comment.objects.get(id=latest))
+            response.success = True
+            response.code = status.HTTP_200_OK
+            return response.response(data=[serializer.data])
+        else:
+            return response.response(error_message="necessary field(s) missing")
 
     def partial_update(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
@@ -105,7 +108,7 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
             ret = super(CommentViewSet, self).partial_update(request)
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
-            return response.response(error_message=[str(e)])
+            return response.response(error_message=str(e))
 
         response.success = True
         response.code = status.HTTP_200_OK

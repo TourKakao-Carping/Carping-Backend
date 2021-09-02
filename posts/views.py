@@ -73,27 +73,36 @@ class EcoCarpingSort(GenericAPIView):
         sort = data.get('sort')
 
         if sort == 'recent':
-            count = int(data.get('count'))
+            if not 'count' in self.request.data:
+                return response.response(error_message="'count' field is required")
+            count = int(self.request.data.get('count', None))
+
             if count == 0:
                 qs = EcoCarping.objects.all().order_by('-created_at')
             elif count > 0:
                 qs = EcoCarping.objects.all().order_by('-created_at')[:count]
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
+
             serializer = EcoCarpingSortSerializer(
                 custom_list(queryset), many=True).data
             today_count = EcoCarping.objects.filter(
                 created_at__contains=datetime.date.today()).count()
             serializer.insert(0, {"today_count": today_count})
+
             response.success = True
             response.code = HTTP_200_OK
             return response.response(data=serializer)
 
         if sort == 'distance':
+            if not 'latitude' in self.request.data or not 'longitude' in self.request.data:
+                return response.response(error_message="'latitude', 'longitude' fields are required")
+
             user_loc = (float(data.get('latitude', None)),
                         float(data.get('longitude', None)))
             queryset = EcoCarping.objects.all()
             paginate(self, queryset)
+
             list = []
             for i in queryset:
                 comp_loc = (float(i.latitude), float(i.longitude))
@@ -103,6 +112,7 @@ class EcoCarpingSort(GenericAPIView):
                 list.append(i)
             list.sort(key=(lambda x: x['distance']))
             serializer = EcoCarpingSortSerializer(list, many=True)
+
             response.success = True
             response.code = HTTP_200_OK
             return response.response(data=serializer.data)
@@ -114,9 +124,13 @@ class EcoCarpingSort(GenericAPIView):
             paginate(self, queryset)
             serializer = EcoCarpingSortSerializer(
                 custom_list(queryset), many=True)
+
             response.success = True
             response.code = HTTP_200_OK
             return response.response(data=serializer.data)
+
+        else:
+            return response.response(error_message="INVALID_SORT - choices are <recent, distance, popular>")
 
     @swagger_auto_schema(
         operation_id=_("Sort EcoCarping(recent/distance/popular)"),
@@ -140,7 +154,10 @@ class PostLike(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         serializer = PostLikeSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
+            if not serializer.validated_data["post_to_like"]:
+                return response.response(error_message="존재하지 않는 포스트 id 입니다.")
+
             post_to_like = EcoCarping.objects.get(
                 id=serializer.validated_data["post_to_like"])
             user.eco_like.add(post_to_like)
@@ -148,6 +165,8 @@ class PostLike(APIView):
             response.success = True
             response.code = HTTP_200_OK
             return response.response(data=[data])
+        else:
+            return response.response(error_message="'post_to_like' field is required.")
 
     @swagger_auto_schema(
         operation_id=_("Delete Like Comment"),
@@ -160,10 +179,15 @@ class PostLike(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         serializer = PostLikeSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
+            if not serializer.validated_data["post_to_like"]:
+                return response.response(error_message="존재하지 않는 포스트 id 입니다.")
+
             user.eco_like.through.objects.filter(
                 user=user, ecocarping=serializer.validated_data["post_to_like"]).delete()
             data = MessageSerializer({"message": _("포스트 좋아요 취소")}).data
             response.success = True
             response.code = HTTP_200_OK
             return response.response(data=[data])
+        else:
+            return response.response(error_message="'post_to_like' field is required.")
