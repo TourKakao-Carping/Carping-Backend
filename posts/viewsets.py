@@ -16,7 +16,7 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
     queryset = EcoCarping.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         try:
             ret = super(EcoCarpingViewSet, self).retrieve(request)
             response.success = True
@@ -28,7 +28,7 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
             return response.response(error_message=str(e))
 
     def create(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         lat = request.data.get('latitude')
         lon = request.data.get('longitude')
         if check_str_digit(lat) and check_str_digit(lon):
@@ -45,7 +45,7 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
         return response.response(data=[ret.data])
 
     def partial_update(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         lat = request.data.get('latitude')
         lon = request.data.get('longitude')
         if check_str_digit(lat) and check_str_digit(lon):
@@ -75,7 +75,7 @@ class AutoCampPostForWeekendViewSet(viewsets.ModelViewSet):
         raise MethodNotAllowed("GET")
 
     def retrieve(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         try:
             ret = super(AutoCampPostForWeekendViewSet, self).retrieve(request)
 

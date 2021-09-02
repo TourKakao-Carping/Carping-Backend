@@ -55,14 +55,21 @@ class AutoCampPartial(GenericAPIView):
     serializer_class = AutoCampMainSerializer
 
     def post(self, request, *args, **kwargs):
-        count = int(self.request.data.get('count', None))
+        response = APIResponse(success=False, code=400)
+        count = self.request.data.get('count', None)
+        if not count:
+            return response.response(error_message="must have 'count' field in request body")
+
+        int(count)
         if count == 0:
             qs = AutoCamp.objects.all().order_by('-created_at')
         elif count > 0:
             qs = AutoCamp.objects.all().order_by('-created_at')[:count]
+        else:
+            return response.response(error_message="INVALID_COUNT")
 
-        response = APIResponse()
         response.success = True
+        response.code = 200
         return response.response(data=AutoCampMainSerializer(qs, many=True).data)
 
 
@@ -75,15 +82,20 @@ class AutoCampBookMark(APIView):
         tags=[_("camps"), ]
     )
     def post(self, request):
+        response = APIResponse(success=False, code=400)
         user = request.user
         serializer = AutoCampBookMarkSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             autocamp_to_bookmark = AutoCamp.objects.get(
                 id=serializer.validated_data["autocamp_to_bookmark"])
+
+            if not autocamp_to_bookmark:
+                return response.response(error_message="존재하지 않는 차박지 id 입니다.")
+
             user.autocamp_bookmark.add(autocamp_to_bookmark)
             data = MessageSerializer({"message": _("차박지를 스크랩했습니다.")}).data
-            response = APIResponse()
             response.success = True
+            response.code = 200
             return response.response(data=[data])
 
     @swagger_auto_schema(
@@ -94,14 +106,15 @@ class AutoCampBookMark(APIView):
         tags=[_("camps"), ]
     )
     def delete(self, request):
+        response = APIResponse(success=False, code=400)
         user = request.user
         serializer = AutoCampBookMarkSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user.autocamp_bookmark.through.objects.filter(
                 user=user, autocamp=serializer.validated_data["autocamp_to_bookmark"]).delete()
             data = MessageSerializer({"message": _("차박지 스크랩을 취소했습니다.")}).data
-            response = APIResponse()
             response.success = True
+            response.code = 200
             return response.response(data=[data])
 
 
@@ -147,7 +160,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         return qs
 
     def list(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         data = request.data
 
         sort = data.get('sort')

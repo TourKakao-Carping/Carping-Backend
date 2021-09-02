@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin
 from rest_framework.viewsets import GenericViewSet
 
+from django.utils.translation import ugettext_lazy as _
 from bases.response import APIResponse
 from bases.utils import check_str_digit
 from camps.models import AutoCamp
@@ -15,7 +16,7 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
     queryset = Review.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         try:
             ret = super(ReviewViewSet, self).retrieve(request)
 
@@ -27,7 +28,7 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
             return response.response(data=str(e), status=404)
 
     def create(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         autocamp = request.data.get('autocamp')
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -36,11 +37,11 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
         AutoCamp.objects.get(id=autocamp).review.add(
             Review.objects.get(id=latest))
         response.success = True
-        response.code = status.HTTP_201_CREATED
+        response.code = status.HTTP_200_OK
         return response.response(data=[serializer.data])
 
     def partial_update(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         star1 = request.data.get('star1')
         star2 = request.data.get('star2')
         star3 = request.data.get('star3')
@@ -57,6 +58,7 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
             return response.response(error_message=[str(e)])
 
         response.success = True
+        response.code = 200
         return response.response(data=[ret.data], status=200)
 
 
@@ -65,7 +67,7 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
     queryset = Comment.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         try:
             ret = super(CommentViewSet, self).retrieve(request)
 
@@ -77,7 +79,7 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
             return response.response(error_message=str(e))
 
     def create(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         eco = request.data.get('eco')
         share = request.data.get('share')
         serializer = self.get_serializer(data=request.data)
@@ -94,11 +96,11 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
             Share.objects.get(id=share).comment.add(
                 Comment.objects.get(id=latest))
         response.success = True
-        response.code = status.HTTP_201_CREATED
+        response.code = status.HTTP_200_OK
         return response.response(data=[serializer.data])
 
     def partial_update(self, request, *args, **kwargs):
-        response = APIResponse()
+        response = APIResponse(success=False, code=400)
         try:
             ret = super(CommentViewSet, self).partial_update(request)
         except Exception as e:
