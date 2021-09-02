@@ -12,10 +12,13 @@ urlpatterns = [
     path('auto-camp/partial', AutoCampPartial.as_view(), name='auto-camp-main'),
     path('auto-camp/bookmark', AutoCampBookMark.as_view(),
          name='auto-camp-bookmark'),
+    path('theme/bookmark', CampSiteBookMark.as_view(),
+         name='campsite-bookmark'),
     path('theme', GetMainPageThemeTravel.as_view(), name='mainpage-theme')
 ]
 
 router = routers.DefaultRouter()
 router.register('auto-camp', AutoCampViewSet)
+router.register('theme', CampSiteViewSet)
 
 urlpatterns += router.urls

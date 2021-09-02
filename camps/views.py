@@ -1,11 +1,12 @@
 from rest_framework import status
+from rest_framework.viewsets import GenericViewSet
 
 from bases.utils import check_data_key, check_str_digit, custom_theme_dict, check_distance
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import ListModelMixin
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.status import HTTP_200_OK
 
 from bases.response import APIResponse
@@ -17,7 +18,7 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
 from camps.serializers import AutoCampMainSerializer, \
-    MainPageThemeSerializer, AutoCampBookMarkSerializer
+    MainPageThemeSerializer, AutoCampBookMarkSerializer, CampSiteBookMarkSerializer, CampSiteSerializer
 
 
 class GetPopularSearchList(APIView):
@@ -214,3 +215,73 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
 
     def post(self, request):
         return self.list(request)
+
+
+class CampSiteViewSet(RetrieveModelMixin, GenericViewSet):
+    serializer_class = CampSiteSerializer
+    queryset = CampSite.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+        try:
+            ret = super(CampSiteViewSet, self).retrieve(request)
+            response.success = True
+            response.code = 200
+            return response.response(data=[ret.data])
+        except Exception as e:
+            response.code = status.HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
+
+
+class CampSiteBookMark(APIView):
+    @swagger_auto_schema(
+        operation_id=_("Add Scrap CampSite"),
+        operation_description=_("캠핑장을 스크랩합니다."),
+        request_body=CampSiteBookMarkSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("camps"), ]
+    )
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        serializer = CampSiteBookMarkSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                campsite_to_bookmark = CampSite.objects.get(
+                    id=serializer.validated_data["campsite_to_bookmark"])
+
+                user.campsite_bookmark.add(campsite_to_bookmark)
+                data = MessageSerializer({"message": _("캠핑장을 스크랩했습니다.")}).data
+                response.success = True
+                response.code = 200
+                return response.response(data=[data])
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
+        else:
+            return response.response(error_message="'campsite_to_bookmark' field is required.")
+
+    @swagger_auto_schema(
+        operation_id=_("Delete Scrap CampSite"),
+        operation_description=_("캠핑장 스크랩을 취소합니다."),
+        request_body=CampSiteBookMarkSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("camps"), ]
+    )
+    def delete(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        serializer = CampSiteBookMarkSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                user.campsite_bookmark.through.objects.filter(
+                    user=user, campsite=serializer.validated_data["campsite_to_bookmark"]).delete()
+                data = MessageSerializer({"message": _("캠핑장 스크랩을 취소했습니다.")}).data
+                response.success = True
+                response.code = 200
+                return response.response(data=[data])
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
+        else:
+            return response.response(error_message="'campsite_to_bookmark' field is required.")

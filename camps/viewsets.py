@@ -4,8 +4,8 @@ from rest_framework import status, exceptions
 
 from bases.response import APIResponse
 from bases.utils import check_str_digit
-from camps.models import AutoCamp
-from camps.serializers import AutoCampSerializer
+from camps.models import AutoCamp, CampSite
+from camps.serializers import AutoCampSerializer, CampSiteSerializer
 
 
 class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin, GenericViewSet):
