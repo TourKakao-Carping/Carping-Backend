@@ -180,7 +180,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
 
         if not check_str_digit(user_lat) or not check_str_digit(user_lon):
             response.code = 400
-            return response.response()
+            return response.response(error_message="check lat, lon")
 
         qs = self.filter_queryset(self.get_queryset())
 
@@ -200,13 +200,17 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         if sort == "distance":
             list.sort(key=(lambda x: x['distance']))
 
-        serializer = MainPageThemeSerializer(data=list, many=True)
-        if serializer.is_valid():
-            response.code = 200
-            response.success = True
-            return response.response(data=serializer.data)
-        else:
-            return response.response(data=serializer.errors)
+        response.code = 200
+        response.success = True
+        return response.response(data=list)
+
+        # serializer = MainPageThemeSerializer(data=list, many=True)
+        # if serializer.is_valid():
+        #     response.code = 200
+        #     response.success = True
+        #     return response.response(data=serializer.data)
+        # else:
+        #     return response.response(data=serializer.errors)
 
     def post(self, request):
         return self.list(request)

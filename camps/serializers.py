@@ -90,15 +90,20 @@ class AutoCampBookMarkSerializer(serializers.Serializer):
     autocamp_to_bookmark = serializers.IntegerField(write_only=True)
 
 
-class MainPageThemeSerializer(ModelSerializer):
-    distance = serializers.SerializerMethodField()
-
-    class Meta:
-        model = CampSite
-        fields = ['id', 'image', 'type', 'address',
-                  'name', 'phone', 'distance', ]
-
-    def get_distance(self, data):
-        distance = data.get('distance')
-        distance_km = f"{distance}km"
-        return distance_km
+class MainPageThemeSerializer(serializers.Serializer):
+    theme = serializers.CharField()
+    sort = serializers.CharField()
+    select = serializers.CharField()
+    lat = serializers.FloatField()
+    lon = serializers.FloatField()
+    # distance = serializers.SerializerMethodField()
+    #
+    # class Meta:
+    #     model = CampSite
+    #     fields = ['id', 'image', 'type', 'address',
+    #               'name', 'phone', 'distance', ]
+    #
+    # def get_distance(self, data):
+    #     distance = data.get('distance')
+    #     distance_km = f"{distance}km"
+    #     return distance_km
