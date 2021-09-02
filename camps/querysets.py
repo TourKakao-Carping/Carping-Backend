@@ -49,7 +49,7 @@ class CampSiteQuerySet(models.QuerySet):
 
     # 체험
     def theme_program(self, sort):
-        qs = self.all().filter(prgram__isnull=False, type__contains=_("자동차야영장"))
+        qs = self.all().filter(program__isnull=False, type__contains=_("자동차야영장"))
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
