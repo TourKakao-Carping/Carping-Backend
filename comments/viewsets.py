@@ -102,10 +102,10 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
         else:
             return response.response(error_message="necessary field(s) missing")
 
-    def partial_update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
         try:
-            ret = super(CommentViewSet, self).partial_update(request)
+            ret = super(CommentViewSet, self).update(request)
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))

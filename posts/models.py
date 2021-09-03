@@ -67,7 +67,7 @@ class EcoCarping(Base):
         ('3L', '3L'),
         ('3L 이하', '3L 이하'),
     )
-    trash = models.CharField(max_length=10, choices=TRASH_CHOICES)
+    trash = models.CharField(max_length=10, choices=TRASH_CHOICES, null=True, blank=True)
 
     def like_count(self):
         return self.like.values().count()
