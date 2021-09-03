@@ -54,18 +54,6 @@ def custom_dict(i):
     }
 
 
-def custom_theme_dict(i):
-    return {
-        'id': i.id,
-        'image': i.image,
-        'type': i.type,
-        'address': i.address,
-        'name': i.name,
-        'phone': i.phone,
-        'type': i.type,
-    }
-
-
 def paginate(self, queryset):
     page = self.paginate_queryset(queryset)
     if page is not None:
