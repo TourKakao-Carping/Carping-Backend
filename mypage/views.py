@@ -46,7 +46,7 @@ class MyPageView(GenericAPIView):
                 return response.response(data=MyAutoCampSerializer(queryset, many=True).data)
 
         # if sort == 'post':
-        #     # 발행 / 구매 / 좋아요
+        #     # 발행 / 구매 / 스크랩
         #
         # if sort == 'share':
         #     # 마이 / 좋아요

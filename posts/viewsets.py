@@ -46,7 +46,7 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
         response.code = HTTP_200_OK
         return response.response(data=[ret.data])
 
-    def partial_update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
         lat = request.data.get('latitude')
         lon = request.data.get('longitude')
@@ -54,7 +54,7 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
             float(lat)
             float(lon)
         try:
-            ret = super(EcoCarpingViewSet, self).partial_update(request)
+            ret = super(EcoCarpingViewSet, self).update(request)
         except Exception as e:
             response.code = HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
