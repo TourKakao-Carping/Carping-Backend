@@ -1,7 +1,8 @@
+from django.db.models.expressions import Case, Exists, Value, When
 from rest_framework import status
 from rest_framework.viewsets import GenericViewSet
 
-from bases.utils import check_data_key, check_str_digit, custom_theme_dict, check_distance
+from bases.utils import check_str_digit
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -19,6 +20,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from camps.serializers import AutoCampMainSerializer, \
     MainPageThemeSerializer, AutoCampBookMarkSerializer, CampSiteBookMarkSerializer, CampSiteSerializer
+
+from django.db.models import F, Count, Q
 
 
 class GetPopularSearchList(APIView):
@@ -118,7 +121,8 @@ class AutoCampBookMark(APIView):
             try:
                 user.autocamp_bookmark.through.objects.filter(
                     user=user, autocamp=serializer.validated_data["autocamp_to_bookmark"]).delete()
-                data = MessageSerializer({"message": _("차박지 스크랩을 취소했습니다.")}).data
+                data = MessageSerializer(
+                    {"message": _("차박지 스크랩을 취소했습니다.")}).data
                 response.success = True
                 response.code = 200
                 return response.response(data=[data])
@@ -173,6 +177,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
     def list(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
         data = request.data
+        user = request.user
 
         sort = data.get('sort')
 
@@ -183,35 +188,30 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
             response.code = 400
             return response.response(error_message="check lat, lon")
 
-        qs = self.filter_queryset(self.get_queryset())
+        qs = self.filter_queryset(
+            self.get_queryset()).prefetch_related('bookmark')
 
-        list = []
+        is_bookmarked = qs.filter(bookmark=user.pk)
 
-        for i in qs:
-            if i.lat == None or i.lon == None:
-                continue
+        if is_bookmarked.exists():
+            bookmarked_list = is_bookmarked.values_list("id", flat=True)
 
-            distance = check_distance(
-                float(user_lat), float(user_lon), float(i.lat), float(i.lon))
-            i = custom_theme_dict(i)
+        qs = qs.annotate(bookmark_count=Count("bookmark"),
+                         is_bookmarked=Case(
+            When(
+                id__in=bookmarked_list,
+                then=True
+            ), default=False
+        )
+        )
 
-            i['distance'] = distance
-            list.append(i)
+        serializer = self.get_serializer(qs, many=True)
 
         if sort == "distance":
-            list.sort(key=(lambda x: x['distance']))
-
+            sorted_data = sorted(serializer.data, key=lambda x: x['distance'])
         response.code = 200
         response.success = True
-        return response.response(data=list)
-
-        # serializer = MainPageThemeSerializer(data=list, many=True)
-        # if serializer.is_valid():
-        #     response.code = 200
-        #     response.success = True
-        #     return response.response(data=serializer.data)
-        # else:
-        #     return response.response(data=serializer.errors)
+        return response.response(data=sorted_data)
 
     def post(self, request):
         return self.list(request)
@@ -276,7 +276,8 @@ class CampSiteBookMark(APIView):
             try:
                 user.campsite_bookmark.through.objects.filter(
                     user=user, campsite=serializer.validated_data["campsite_to_bookmark"]).delete()
-                data = MessageSerializer({"message": _("캠핑장 스크랩을 취소했습니다.")}).data
+                data = MessageSerializer(
+                    {"message": _("캠핑장 스크랩을 취소했습니다.")}).data
                 response.success = True
                 response.code = 200
                 return response.response(data=[data])
