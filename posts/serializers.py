@@ -21,7 +21,6 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
     comment = CommentSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
     created_at = serializers.SerializerMethodField()
-    like_count = serializers.SerializerMethodField()
     check_like = serializers.SerializerMethodField()
 
     class Meta:
@@ -39,12 +38,9 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
     def get_created_at(self, data):
         return data.created_at.strftime("%Y-%m-%d %H:%M")
 
-    def get_like_count(self, data):
-        return data.like.count()
-
     def get_check_like(self, data):
-        if data.like.count() == 0:
-            return 0
+        # if data.like.count() == 0:
+        #     return 0
         if self.context['request'].user.eco_like.filter(id=data.id):
             return 1
         return 0
@@ -58,7 +54,9 @@ class EcoCarpingSortSerializer(TaggitSerializer, ModelSerializer):
         fields = ['id', 'user', 'username', 'image1', 'title', 'text', 'created_at']
 
     def get_username(self, data):
-        return data['username']
+        if type(data) == dict:
+            return data['username']
+        return data.user.username
 
 
 class AutoCampPostSerializer(TaggitSerializer, ModelSerializer):

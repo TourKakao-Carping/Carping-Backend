@@ -1,4 +1,4 @@
-from rest_framework import viewsets, exceptions, status
+from rest_framework import viewsets, status
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from rest_framework.viewsets import GenericViewSet
@@ -10,7 +10,6 @@ from bases.response import APIResponse
 from rest_framework.exceptions import MethodNotAllowed
 
 
-# 4. 실시간 에코리뷰 api - 최근 3개 (사진, 제목, 내용, 시간, 리뷰날짜, pk, 오늘에코리뷰 인증 수 )
 class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin, GenericViewSet):
     serializer_class = EcoCarpingSerializer
     queryset = EcoCarping.objects.all()

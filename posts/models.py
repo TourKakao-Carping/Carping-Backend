@@ -69,6 +69,9 @@ class EcoCarping(Base):
     )
     trash = models.CharField(max_length=10, choices=TRASH_CHOICES)
 
+    def like_count(self):
+        return self.like.values().count()
+
 
 class Share(Base):
     user = models.ForeignKey(User, on_delete=CASCADE,
@@ -88,3 +91,6 @@ class Share(Base):
     tags = TaggableManager(blank=True)
     like = models.ManyToManyField(
         User, related_name="share_like", blank=True)
+
+    def like_count(self):
+        return self.like.values().count()

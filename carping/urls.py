@@ -14,6 +14,7 @@ urlpatterns = [
     path('camps/', include('camps.urls')),
     path('posts/', include('posts.urls')),
     path('comments/', include('comments.urls')),
+    path('mypage/', include('mypage.urls')),
 ]
 
 # Swagger

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Avg
 from django.db.models.deletion import CASCADE
 from taggit.managers import TaggableManager
 
@@ -70,3 +71,31 @@ class AutoCamp(Base):
         User, related_name="autocamp_bookmark", blank=True)
 
     objects = AutoCampManager()
+
+    def review_count(self):
+        return self.review.values().count()
+
+    def star1_avg(self):
+        if self.review_count() == 0:
+            return 0
+        return round(self.review.aggregate(Avg('star1'))['star1__avg'], 1)
+
+    def star2_avg(self):
+        if self.review_count() == 0:
+            return 0
+        return round(self.review.aggregate(Avg('star2'))['star2__avg'], 1)
+
+    def star3_avg(self):
+        if self.review_count() == 0:
+            return 0
+        return round(self.review.aggregate(Avg('star3'))['star3__avg'], 1)
+
+    def star4_avg(self):
+        if self.review_count() == 0:
+            return 0
+        return round(self.review.aggregate(Avg('star4'))['star4__avg'], 1)
+
+    def total_star_avg(self):
+        if self.review_count() == 0:
+            return 0
+        return round(self.review.aggregate(Avg('total_star'))['total_star__avg'], 1)

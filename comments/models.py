@@ -25,6 +25,9 @@ class Review(Base):
     class Meta:
         ordering = ['-id']
 
+    def like_count(self):
+        return self.like.values().count()
+
 
 class Comment(Base):
     user = models.ForeignKey(User, on_delete=CASCADE, related_name="comment", null=False)
