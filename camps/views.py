@@ -143,8 +143,6 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
 
     serializer_class = MainPageThemeSerializer
 
-    # ordering_fields = ['distance']
-
     def get_queryset(self):
         data = self.request.data
         theme = data.get('theme')
@@ -176,6 +174,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
 
     def list(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
+
         data = request.data
         user = request.user
 
@@ -210,11 +209,13 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         serializer = self.get_serializer(qs, many=True)
 
         if sort == "distance":
-            sorted_data = sorted(serializer.data, key=lambda x: x['distance'])
+            data = sorted(serializer.data, key=lambda x: x['distance'])
+        else:
+            data = serializer.data
 
         response.code = 200
         response.success = True
-        return response.response(data=sorted_data)
+        return response.response(data=data)
 
     def post(self, request):
         return self.list(request)
