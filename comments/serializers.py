@@ -9,12 +9,12 @@ class ReviewSerializer(ModelSerializer):
     username = serializers.SerializerMethodField()
     profile = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
-    check_like = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
         fields = ['id', 'user', 'username', 'profile', 'text', 'image', 'star1', 'star2',
-                  'star3', 'star4', 'total_star', 'created_at', 'like_count', 'check_like']
+                  'star3', 'star4', 'total_star', 'created_at', 'like_count', 'is_liked']
 
     def get_username(self, data):
         return data.user.username
@@ -25,12 +25,12 @@ class ReviewSerializer(ModelSerializer):
     def get_created_at(self, data):
         return data.created_at.strftime("%Y. %m. %d")
 
-    def get_check_like(self, data):
+    def get_is_liked(self, data):
         # if data.like_count == 0:
         #     return 0
         if data.like.filter(id=self.context['request'].user.id):
-            return 1
-        return 0
+            return True
+        return False
 
 
 class CommentSerializer(ModelSerializer):

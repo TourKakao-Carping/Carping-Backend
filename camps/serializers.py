@@ -17,14 +17,14 @@ class AutoCampSerializer(TaggitSerializer, ModelSerializer):
     tags = TagListSerializerField()
     my_star_avg = serializers.SerializerMethodField()
     my_review_count = serializers.SerializerMethodField()
-    check_bookmark = serializers.SerializerMethodField()
+    is_bookmarked = serializers.SerializerMethodField()
 
     class Meta:
         model = AutoCamp
         fields = ['id', 'user', 'latitude', 'longitude', 'image1', 'image2', 'image3', 'image4',
                   'title', 'text', 'views', 'tags', 'review', 'star1_avg',
                   'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg',
-                  'my_review_count', 'review_count', 'check_bookmark']
+                  'my_review_count', 'review_count', 'is_bookmarked']
 
     def get_my_star_avg(self, data):
         if not Review.objects.filter(user=self.context['request'].user, autocamp=data):
@@ -36,12 +36,12 @@ class AutoCampSerializer(TaggitSerializer, ModelSerializer):
     def get_my_review_count(self, data):
         return data.review.filter(user=self.context['request'].user).count()
 
-    def get_check_bookmark(self, data):
+    def get_is_bookmarked(self, data):
         # if data.bookmark.count() == 0:
         #     return 0
         if self.context['request'].user.autocamp_bookmark.filter(id=data.id):
-            return 1
-        return 0
+            return True
+        return False
 
 
 class AutoCampMainSerializer(ModelSerializer):

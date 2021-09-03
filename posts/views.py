@@ -14,7 +14,7 @@ from bases.serializers import MessageSerializer
 from posts.models import EcoCarping, Post
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer
 
-from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict
+from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict, check_distance
 from bases.response import APIResponse
 
 
@@ -98,24 +98,22 @@ class EcoCarpingSort(GenericAPIView):
             if not 'latitude' in self.request.data or not 'longitude' in self.request.data:
                 return response.response(error_message="'latitude', 'longitude' fields are required")
 
-            user_loc = (float(data.get('latitude', None)),
-                        float(data.get('longitude', None)))
             queryset = EcoCarping.objects.all()
             paginate(self, queryset)
 
             list = []
             for i in queryset:
-                comp_loc = (float(i.latitude), float(i.longitude))
-                distance = haversine(user_loc, comp_loc)
+                distance = check_distance(float(data.get('latitude', None)),
+                                          float(data.get('longitude', None)),
+                                          float(i.latitude), float(i.longitude))
                 i = custom_dict(i)
                 i['distance'] = distance
                 list.append(i)
             list.sort(key=(lambda x: x['distance']))
-            serializer = EcoCarpingSortSerializer(list, many=True)
 
             response.success = True
             response.code = HTTP_200_OK
-            return response.response(data=serializer.data)
+            return response.response(data=EcoCarpingSortSerializer(list, many=True).data)
 
         if sort == 'popular':
             qs = EcoCarping.objects.annotate(
