@@ -193,6 +193,8 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
 
         is_bookmarked = qs.filter(bookmark=user.pk)
 
+        bookmarked_list = []
+
         if is_bookmarked.exists():
             bookmarked_list = is_bookmarked.values_list("id", flat=True)
 
@@ -209,6 +211,7 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
 
         if sort == "distance":
             sorted_data = sorted(serializer.data, key=lambda x: x['distance'])
+
         response.code = 200
         response.success = True
         return response.response(data=sorted_data)
