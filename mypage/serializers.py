@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from accounts.models import User
 from bases.serializers import ModelSerializer
 from camps.models import AutoCamp, CampSite
 
@@ -26,3 +27,22 @@ class MyPageSerializer(serializers.Serializer):
     sort = serializers.CharField()
     scrap = serializers.BooleanField()
     like = serializers.BooleanField()
+
+
+class MyInfoSerializer(ModelSerializer):
+    nickname = serializers.SerializerMethodField()
+    bio = serializers.SerializerMethodField()
+    interest = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'nickname', 'username', 'bio', 'interest', 'email']
+
+    def get_nickname(self, data):
+        return data.profile.get().nickname
+
+    def get_bio(self, data):
+        return data.profile.get().bio
+
+    def get_interest(self, data):
+        return data.profile.get().interest

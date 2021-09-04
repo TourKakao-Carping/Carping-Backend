@@ -87,6 +87,7 @@ class Profile(Base):
     gender                  성별
     """
 
+    nickname = models.CharField(max_length=255, null=True, blank=True)
     phone = models.CharField(max_length=50, null=True,
                              blank=True, validators=[validate_phone])
     image = models.URLField(null=True)
@@ -94,15 +95,15 @@ class Profile(Base):
     level = models.ForeignKey('EcoLevel', on_delete=CASCADE, related_name="user", default=1)
     bio = models.TextField(null=True, blank=True)
     INTEREST_CHOICES = (
-        ('차크닉', '차크닉'),
-        ('혼차박', '혼차박'),
-        ('퇴근박', '퇴근박'),
-        ('불멍', '불멍'),
-        ('바베큐', '바베큐'),
-        ('오지캠핑', '오지캠핑'),
-        ('레저', '레저'),
-        ('낚시', '낚시'),
-        ('클린 차박', '클린 차박'),
+        ('차크닉', '🚗차크닉'),
+        ('혼차박', '⛺혼차박'),
+        ('퇴근박', '🌆퇴근박'),
+        ('불멍', '🔥불멍'),
+        ('바베큐', '🍖바베큐'),
+        ('오지캠핑', '🏕오지캠핑'),
+        ('레저', '🏄레저'),
+        ('낚시', '🎣낚시'),
+        ('클린 차박', '🌱클린 차박'),
     )
     interest = MultiSelectField(choices=INTEREST_CHOICES, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=CASCADE,

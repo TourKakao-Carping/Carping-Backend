@@ -2,12 +2,15 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import GenericAPIView
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.mixins import UpdateModelMixin
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.views import APIView
 
+from accounts.models import User
 from bases.response import APIResponse
 from bases.utils import paginate
 from camps.models import AutoCamp, CampSite
-from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer
+from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, MyInfoSerializer
 from posts.models import EcoCarping
 from posts.serializers import EcoCarpingSortSerializer
 
@@ -79,3 +82,42 @@ class MyPageView(GenericAPIView):
     )
     def post(self, request, *args, **kwargs):
         return self.list(request)
+
+
+class MyInfoView(APIView):
+
+    def get(self, request):
+        response = APIResponse(success=False, code=400)
+        my_info = User.objects.get(id=request.user.id)
+        serializer = MyInfoSerializer(my_info)
+        response.code = 200
+        response.success = True
+        return response.response(data=serializer.data)
+
+    @swagger_auto_schema(
+        operation_id=_("Change Personal Info"),
+        operation_description=_("개인정보를 수정합니다."),
+        request_body=MyInfoSerializer,
+        tags=[_("mypage"), ]
+    )
+    def put(self, request):
+        response = APIResponse(success=False, code=400)
+        my_info = User.objects.get(id=request.user.id)
+
+        nickname = self.request.data.get('nickname', None)
+        username = self.request.data.get('username', None)
+        bio = self.request.data.get('bio', None)
+        interest = self.request.data.get('interest', None)
+        email = self.request.data.get('email', None)
+
+        serializer = MyInfoSerializer(my_info, data=request.data)
+        if serializer.is_valid():
+            my_info.username = username
+            my_info.email = email
+            my_info.profile.update(nickname=nickname, bio=bio, interest=interest)
+
+            response.code = 200
+            response.success = True
+            return response.response(data=serializer.data)
+
+        return response.response(error_message=str(serializer.errors))

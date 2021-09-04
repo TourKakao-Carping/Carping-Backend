@@ -42,8 +42,8 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
         # if data.like.count() == 0:
         #     return 0
         if self.context['request'].user.eco_like.filter(id=data.id):
-            return 1
-        return 0
+            return True
+        return False
 
 
 class EcoCarpingSortSerializer(TaggitSerializer, ModelSerializer):
