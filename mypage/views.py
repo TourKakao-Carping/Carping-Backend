@@ -100,6 +100,7 @@ class MyInfoView(APIView):
         request_body=MyInfoSerializer,
         tags=[_("mypage"), ]
     )
+    # 개인정보 수정 작업 중
     def put(self, request):
         response = APIResponse(success=False, code=400)
         my_info = User.objects.get(id=request.user.id)
