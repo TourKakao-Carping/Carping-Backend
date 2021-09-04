@@ -1,16 +1,15 @@
-from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import GenericAPIView
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.mixins import UpdateModelMixin
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
-from accounts.models import User
+from accounts.models import User, Profile
 from bases.response import APIResponse
 from bases.utils import paginate
 from camps.models import AutoCamp, CampSite
-from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, MyInfoSerializer
+from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, MyInfoSerializer, \
+    MyProfileSerializer
 from posts.models import EcoCarping
 from posts.serializers import EcoCarpingSortSerializer
 
@@ -82,6 +81,45 @@ class MyPageView(GenericAPIView):
     )
     def post(self, request, *args, **kwargs):
         return self.list(request)
+
+
+class MyProfileView(APIView):
+
+    def get(self, request):
+        response = APIResponse(success=False, code=400)
+        my_info = Profile.objects.get(user=request.user.id)
+        serializer = MyProfileSerializer(my_info)
+        response.code = 200
+        response.success = True
+        return response.response(data=serializer.data)
+
+    @swagger_auto_schema(
+        operation_id=_("Change My Profile"),
+        operation_description=_("프로필을 편집합니다."),
+        request_body=MyProfileSerializer,
+        tags=[_("mypage"), ]
+    )
+    # 프로필 수정 작업 중
+    def patch(self, request):
+        response = APIResponse(success=False, code=400)
+        my_profile = Profile.objects.get(user=request.user.id)
+
+        image = self.request.data.get('image', None)
+        phone = self.request.data.get('phone', None)
+        # alarm = self.request.data.get('alarm', None)
+
+        serializer = MyProfileSerializer(my_profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            if image:
+                my_profile.image = image
+            if phone:
+                my_profile.phone = phone
+
+            response.code = 200
+            response.success = True
+            return response.response(data=serializer.data)
+
+        return response.response(error_message=str(serializer.errors))
 
 
 class MyInfoView(APIView):

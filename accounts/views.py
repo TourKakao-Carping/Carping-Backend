@@ -223,6 +223,9 @@ class EcoRankingView(APIView):
         more_info = {}
 
         eco_percentage = current_user.eco.count() * 10
+        if current_user.eco.count() > 10:
+            eco_percentage = 100  # 100% 초과 불가능
+
         monthly_eco_count = EcoCarping.objects.filter(user_id=current_user.id,
                                                       created_at__range=[pre_month, today]).count()
         more_info['eco_percentage'] = eco_percentage
