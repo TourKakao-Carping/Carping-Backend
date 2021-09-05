@@ -62,6 +62,7 @@ class AutoCampPartial(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
+
         if not 'count' in self.request.data:
             return response.response(error_message="'count' field is required")
         count = int(self.request.data.get('count', None))
@@ -90,6 +91,7 @@ class AutoCampBookMark(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         serializer = AutoCampBookMarkSerializer(data=request.data)
+
         if serializer.is_valid():
             try:
                 autocamp_to_bookmark = AutoCamp.objects.get(
@@ -97,6 +99,7 @@ class AutoCampBookMark(APIView):
 
                 user.autocamp_bookmark.add(autocamp_to_bookmark)
                 data = MessageSerializer({"message": _("차박지를 스크랩했습니다.")}).data
+
                 response.success = True
                 response.code = 200
                 return response.response(data=[data])
@@ -117,15 +120,18 @@ class AutoCampBookMark(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         serializer = AutoCampBookMarkSerializer(data=request.data)
+
         if serializer.is_valid():
             try:
                 user.autocamp_bookmark.through.objects.filter(
                     user=user, autocamp=serializer.validated_data["autocamp_to_bookmark"]).delete()
                 data = MessageSerializer(
                     {"message": _("차박지 스크랩을 취소했습니다.")}).data
+
                 response.success = True
                 response.code = 200
                 return response.response(data=[data])
+
             except Exception as e:
                 response.code = status.HTTP_404_NOT_FOUND
                 return response.response(error_message=str(e))
@@ -249,21 +255,24 @@ class CampSiteBookMark(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         serializer = CampSiteBookMarkSerializer(data=request.data)
+
         if serializer.is_valid():
             try:
                 campsite_to_bookmark = CampSite.objects.get(
                     id=serializer.validated_data["campsite_to_bookmark"])
-
                 user.campsite_bookmark.add(campsite_to_bookmark)
                 data = MessageSerializer({"message": _("캠핑장을 스크랩했습니다.")}).data
+
                 response.success = True
                 response.code = 200
                 return response.response(data=[data])
+
             except Exception as e:
                 response.code = status.HTTP_404_NOT_FOUND
                 return response.response(error_message=str(e))
         else:
-            return response.response(error_message="'campsite_to_bookmark' field is required.")
+            return response.response(error_message=
+                                     "'campsite_to_bookmark' field is required.")
 
     @swagger_auto_schema(
         operation_id=_("Delete Scrap CampSite"),
@@ -276,12 +285,15 @@ class CampSiteBookMark(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         serializer = CampSiteBookMarkSerializer(data=request.data)
+
         if serializer.is_valid():
             try:
                 user.campsite_bookmark.through.objects.filter(
-                    user=user, campsite=serializer.validated_data["campsite_to_bookmark"]).delete()
+                    user=user, campsite=serializer.validated_data[
+                        "campsite_to_bookmark"]).delete()
                 data = MessageSerializer(
                     {"message": _("캠핑장 스크랩을 취소했습니다.")}).data
+
                 response.success = True
                 response.code = 200
                 return response.response(data=[data])
@@ -289,4 +301,5 @@ class CampSiteBookMark(APIView):
                 response.code = status.HTTP_404_NOT_FOUND
                 return response.response(error_message=str(e))
         else:
-            return response.response(error_message="'campsite_to_bookmark' field is required.")
+            return response.response(error_message=
+                                     "'campsite_to_bookmark' field is required.")

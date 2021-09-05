@@ -23,6 +23,7 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
             response.success = True
             response.code = status.HTTP_200_OK
             return response.response(data=[ret.data])
+
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(data=str(e), status=404)
@@ -36,6 +37,7 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
             latest = Review.objects.latest('id').id
             AutoCamp.objects.get(id=autocamp).review.add(
                 Review.objects.get(id=latest))
+
             response.success = True
             response.code = status.HTTP_200_OK
             return response.response(data=[serializer.data])
@@ -48,13 +50,14 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
         star2 = request.data.get('star2')
         star3 = request.data.get('star3')
         star4 = request.data.get('star4')
-        if check_str_digit(star1) and check_str_digit(star2) and check_str_digit(star3) and check_str_digit(star4):
-            float(star1)
-            float(star2)
-            float(star3)
-            float(star4)
         try:
+            if check_str_digit(star1) and check_str_digit(star2) and check_str_digit(star3) and check_str_digit(star4):
+                float(star1)
+                float(star2)
+                float(star3)
+                float(star4)
             ret = super(ReviewViewSet, self).partial_update(request)
+
             response.success = True
             response.code = status.HTTP_200_OK
             return response.response(data=[ret.data])
@@ -72,9 +75,11 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
         response = APIResponse(success=False, code=400)
         try:
             ret = super(CommentViewSet, self).retrieve(request)
+
             response.success = True
             response.status = status.HTTP_200_OK
             return response.response(data=[ret.data])
+
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
@@ -84,18 +89,22 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
         eco = request.data.get('eco')
         share = request.data.get('share')
         serializer = self.get_serializer(data=request.data)
+
         if serializer.is_valid():
             if eco and share:
                 response.code = status.HTTP_400_BAD_REQUEST
-                return response.response(error_message=_("Invalid Request: cannot send eco & share together."))
+                return response.response(error_message=_(
+                    "Invalid Request: cannot send eco & share together."))
             self.perform_create(serializer)
             latest = Comment.objects.latest('id').id
+
             if eco:
                 EcoCarping.objects.get(id=eco).comment.add(
                     Comment.objects.get(id=latest))
             if share:
                 Share.objects.get(id=share).comment.add(
                     Comment.objects.get(id=latest))
+
             response.success = True
             response.code = status.HTTP_200_OK
             return response.response(data=[serializer.data])
@@ -106,9 +115,11 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
         response = APIResponse(success=False, code=400)
         try:
             ret = super(CommentViewSet, self).update(request)
+
             response.success = True
             response.code = status.HTTP_200_OK
             return response.response(data=[ret.data])
+
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))

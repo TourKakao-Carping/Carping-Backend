@@ -16,9 +16,11 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         response = APIResponse(success=False, code=400)
         try:
             ret = super(AutoCampViewSet, self).retrieve(request)
+
             response.success = True
             response.code = 200
             return response.response(data=[ret.data])
+
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
@@ -27,11 +29,16 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         response = APIResponse(success=False, code=400)
         lat = request.data.get('latitude')
         lon = request.data.get('longitude')
-        if check_str_digit(lat) and check_str_digit(lon):
-            float(lat)
-            float(lon)
         try:
+            if check_str_digit(lat) and check_str_digit(lon):
+                float(lat)
+                float(lon)
             ret = super(AutoCampViewSet, self).create(request)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[ret.data])
+
         except Exception as e:
             if not self.get_serializer(data=request.data).is_valid():
                 response.code = status.HTTP_400_BAD_REQUEST
@@ -39,23 +46,20 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
 
-        response.success = True
-        response.code = 200
-        return response.response(data=[ret.data])
-
     def partial_update(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
         lat = request.data.get('latitude')
         lon = request.data.get('longitude')
-        if check_str_digit(lat) and check_str_digit(lon):
-            float(lat)
-            float(lon)
         try:
+            if check_str_digit(lat) and check_str_digit(lon):
+                float(lat)
+                float(lon)
             ret = super(AutoCampViewSet, self).partial_update(request)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[ret.data])
+
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
-
-        response.success = True
-        response.code = 200
-        return response.response(data=[ret.data])

@@ -6,6 +6,7 @@ from haversine import haversine
 
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
@@ -81,11 +82,12 @@ class EcoCarpingSort(GenericAPIView):
                 qs = EcoCarping.objects.all().order_by('-created_at')
             elif count > 0:
                 qs = EcoCarping.objects.all().order_by('-created_at')[:count]
+
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
-
             serializer = EcoCarpingSortSerializer(
                 custom_list(queryset), many=True).data
+
             today_count = EcoCarping.objects.filter(
                 created_at__contains=datetime.date.today()).count()
             serializer.insert(0, {"today_count": today_count})
@@ -152,17 +154,21 @@ class PostLike(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         serializer = PostLikeSerializer(data=request.data)
-        if serializer.is_valid():
-            if not serializer.validated_data["post_to_like"]:
-                return response.response(error_message="존재하지 않는 포스트 id 입니다.")
 
-            post_to_like = EcoCarping.objects.get(
-                id=serializer.validated_data["post_to_like"])
-            user.eco_like.add(post_to_like)
-            data = MessageSerializer({"message": _("포스트 좋아요 완료")}).data
-            response.success = True
-            response.code = HTTP_200_OK
-            return response.response(data=[data])
+        if serializer.is_valid():
+            try:
+                post_to_like = EcoCarping.objects.get(
+                    id=serializer.validated_data["post_to_like"])
+                user.eco_like.add(post_to_like)
+                data = MessageSerializer({"message": _("포스트 좋아요 완료")}).data
+
+                response.success = True
+                response.code = HTTP_200_OK
+                return response.response(data=[data])
+
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
         else:
             return response.response(error_message="'post_to_like' field is required.")
 
@@ -177,15 +183,19 @@ class PostLike(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         serializer = PostLikeSerializer(data=request.data)
-        if serializer.is_valid():
-            if not serializer.validated_data["post_to_like"]:
-                return response.response(error_message="존재하지 않는 포스트 id 입니다.")
 
-            user.eco_like.through.objects.filter(
-                user=user, ecocarping=serializer.validated_data["post_to_like"]).delete()
-            data = MessageSerializer({"message": _("포스트 좋아요 취소")}).data
-            response.success = True
-            response.code = HTTP_200_OK
-            return response.response(data=[data])
+        if serializer.is_valid():
+            try:
+                user.eco_like.through.objects.filter(
+                    user=user, ecocarping=serializer.validated_data["post_to_like"]).delete()
+                data = MessageSerializer({"message": _("포스트 좋아요 취소")}).data
+
+                response.success = True
+                response.code = HTTP_200_OK
+                return response.response(data=[data])
+
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
         else:
             return response.response(error_message="'post_to_like' field is required.")
