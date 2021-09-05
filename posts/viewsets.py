@@ -59,12 +59,25 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
         eco = self.get_object()
         lat = request.data.get('latitude')
         lon = request.data.get('longitude')
+        image1 = request.data.get('image1')
+        image2 = request.data.get('image2')
+        image3 = request.data.get('image3')
+        image4 = request.data.get('image4')
+
         try:
-            for i in range(1, 5):
-                setattr(mod, 'image{}'.format(i), request.data.get('image{}'.format(i), None))
-                img = 'image{}'.format(i)
-                if not img:
-                    eco.img.delete()
+            # for i in range(1, 5):
+            #     setattr(mod, 'image{}'.format(i), request.data.get('image{}'.format(i), None))
+            #     img = 'image{}'.format(i)
+            #     if img is None:
+            #         eco.img.delete()
+            if image1 is None:
+                eco.image1.delete()
+            if image2 is None:
+                eco.image2.delete()
+            if image3 is None:
+                eco.image3.delete()
+            if image4 is None:
+                eco.image4.delete()
 
             if check_str_digit(lat) and check_str_digit(lon):
                 float(lat)
