@@ -8,8 +8,8 @@ from accounts.models import User, Profile
 from bases.response import APIResponse
 from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
-from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, MyInfoSerializer, \
-    MyProfileSerializer, MyEcoSerializer
+from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, \
+    MyEcoSerializer, InfoSerializer
 from posts.models import EcoCarping
 
 
@@ -95,77 +95,76 @@ class MyPageView(GenericAPIView):
         return self.list(request)
 
 
-class MyProfileView(APIView):
-
-    def get(self, request):
-        response = APIResponse(success=False, code=400)
-        my_info = Profile.objects.get(user=request.user.id)
-        serializer = MyProfileSerializer(my_info)
-        response.code = 200
-        response.success = True
-        return response.response(data=serializer.data)
-
-    @swagger_auto_schema(
-        operation_id=_("Change My Profile"),
-        operation_description=_("프로필을 편집합니다."),
-        request_body=MyProfileSerializer,
-        tags=[_("mypage"), ]
-    )
-    # 프로필 수정 작업 중
-    def patch(self, request):
-        response = APIResponse(success=False, code=400)
-        my_profile = Profile.objects.get(user=request.user.id)
-
-        image = self.request.data.get('image', None)
-        phone = self.request.data.get('phone', None)
-        # alarm = self.request.data.get('alarm', None)
-
-        serializer = MyProfileSerializer(my_profile, data=request.data, partial=True)
-        if serializer.is_valid():
-            if image:
-                my_profile.image = image
-            if phone:
-                my_profile.phone = phone
-
-            response.code = 200
-            response.success = True
-            return response.response(data=serializer.data)
-
-        return response.response(error_message=str(serializer.errors))
+# class MyProfileView(APIView):
+#
+#     def get(self, request):
+#         response = APIResponse(success=False, code=400)
+#         my_info = Profile.objects.get(user=request.user.id)
+#         serializer = MyProfileSerializer(my_info)
+#         response.code = 200
+#         response.success = True
+#         return response.response(data=[serializer.data])
+#
+#     @swagger_auto_schema(
+#         operation_id=_("Change My Profile"),
+#         operation_description=_("프로필을 편집합니다."),
+#         request_body=MyProfileSerializer,
+#         tags=[_("mypage"), ]
+#     )
+#     # 프로필 수정 작업 중
+#     def patch(self, request):
+#         response = APIResponse(success=False, code=400)
+#         my_profile = Profile.objects.get(user=request.user.id)
+#
+#         image = self.request.data.get('image', None)
+#         phone = self.request.data.get('phone', None)
+#         # alarm = self.request.data.get('alarm', None)
+#
+#         serializer = MyProfileSerializer(my_profile, data=request.data, partial=True)
+#         if serializer.is_valid():
+#             if image:
+#                 my_profile.image = image
+#             if phone:
+#                 my_profile.phone = phone
+#
+#             response.code = 200
+#             response.success = True
+#             return response.response(data=serializer.data)
+#
+#         return response.response(error_message=str(serializer.errors))
 
 
 class MyInfoView(APIView):
 
     def get(self, request):
         response = APIResponse(success=False, code=400)
-        my_info = User.objects.get(id=request.user.id)
-        serializer = MyInfoSerializer(my_info)
+        my_info = Profile.objects.get(user=request.user.id)
+        serializer = InfoSerializer(my_info)
         response.code = 200
         response.success = True
         return response.response(data=serializer.data)
 
     @swagger_auto_schema(
         operation_id=_("Change Personal Info"),
-        operation_description=_("개인정보를 수정합니다."),
-        request_body=MyInfoSerializer,
+        operation_description=_("프로필 및 개인정보를 수정합니다."),
+        request_body=InfoSerializer,
         tags=[_("mypage"), ]
     )
-    # 개인정보 수정 작업 중
-    def put(self, request):
+    def patch(self, request):
         response = APIResponse(success=False, code=400)
-        my_info = User.objects.get(id=request.user.id)
+        my_profile = Profile.objects.get(user=request.user.id)
 
-        nickname = self.request.data.get('nickname', None)
         username = self.request.data.get('username', None)
-        bio = self.request.data.get('bio', None)
-        interest = self.request.data.get('interest', None)
         email = self.request.data.get('email', None)
 
-        serializer = MyInfoSerializer(my_info, data=request.data)
+        serializer = InfoSerializer(my_profile, data=request.data, partial=True)
         if serializer.is_valid():
-            my_info.username = username
-            my_info.email = email
-            my_info.profile.update(nickname=nickname, bio=bio, interest=interest)
+            if username:
+                my_profile.user.username = username
+            if email:
+                my_profile.user.email = email
+
+            serializer.save()
 
             response.code = 200
             response.success = True
