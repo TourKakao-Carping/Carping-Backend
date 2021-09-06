@@ -1,6 +1,7 @@
 from bases.utils import check_distance
 from django.db import models
-from django.db.models.expressions import F, Value
+from django.db.models.expressions import F, Value, Case, Exists, Value, When
+from django.db.models.aggregates import Count
 
 from django.utils.translation import ugettext as _
 
@@ -123,6 +124,27 @@ class CampSiteQuerySet(models.QuerySet):
             return qs.order_by('views')
         else:
             return qs
+
+    def bookmark_qs(self, user_pk):
+        qs = self.prefetch_related('bookmark')
+
+        is_bookmarked = qs.filter(bookmark=user_pk)
+
+        bookmarked_list = []
+
+        if is_bookmarked.exists():
+            bookmarked_list = is_bookmarked.values_list("id", flat=True)
+
+        qs = qs.annotate(bookmark_count=Count("bookmark"),
+                         is_bookmarked=Case(
+            When(
+                id__in=bookmarked_list,
+                then=True
+            ), default=False
+        )
+        )
+
+        return qs
 
 
 class AutoCampQuerySet(models.QuerySet):

@@ -82,26 +82,21 @@ class MainPageThemeSerializer(ModelSerializer):
 
 
 class CampSiteSerializer(ModelSerializer):
-    bookmark_count = serializers.SerializerMethodField()
-    check_bookmark = serializers.SerializerMethodField()
-    # distance = serializers.SerializerMethodField()
+    bookmark_count = serializers.IntegerField()
+    is_bookmarked = serializers.BooleanField()
+    distance = serializers.SerializerMethodField()
 
     class Meta:
         model = CampSite
         fields = ['id', 'image', 'type', 'address', 'name',
-                  'phone', 'bookmark_count', 'check_bookmark']
+                  'phone', 'distance', 'bookmark_count', 'is_bookmarked']
 
-    def get_bookmark_count(self, data):
-        return data.bookmark.count()
+    def get_distance(self, obj):
+        data = self.context['request'].data
 
-    def get_check_bookmark(self, data):
-        if data.bookmark.count() == 0:
-            return 0
-        if self.context['request'].user.campsite_bookmark.filter(id=data.id):
-            return 1
-        return 0
+        lat = data.get('lat')
+        lon = data.get('lon')
 
-    # def get_distance(self, data):
-    #     distance = data.get('distance')
-    #     distance_km = f"{distance}km"
-    #     return distance_km
+        distance = check_distance(float(lat), float(lon), obj.lat, obj.lon)
+
+        return distance
