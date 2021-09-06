@@ -13,11 +13,11 @@ from django.db import transaction
 
 # 26개
 column = ['name', 'lat', 'lon' 'animal', 'event', 'program', 'website', 'phone', 'address', 'brazier', 'oper_day', 'off_day_start',
-          'off_day_end', 'faculty', 'permission_date', 'reservation', 'toilet', 'shower', 'type', 'sub_facility', 'season', 'image', 'area', 'themeenv', 'rental_items', 'created_at', 'updated_at']
+          'off_day_end', 'faculty', 'permission_date', 'reservation', 'toilet', 'shower', 'type', 'sub_facility', 'season', 'image', 'area', 'themeenv', 'rental_item', 'main_general', 'main_autocamp', 'main_glamcamp', 'main_caravan', 'main_personal_caravan', 'created_at', 'updated_at']
 
-# 27개
+# 30개
 json_column = ['facltNm', 'mapY', 'mapX', 'animalCmgCl', 'clturEvent', 'exprnProgrm', 'homepage', 'tel', 'addr1',
-               'brazierCl', 'operDeCl', 'hvofBgnde', 'hvofEnddle', 'facltDivNm', 'prmisnDe', 'resveCl', 'toiletCo', 'swrmCo', 'induty', 'sbrsCl', 'sbrsEtc', 'operPdCl', 'firstImageUrl', 'doNm', 'themaEnvrnCl',  'eqpmnLendCl', 'createdtime', 'modifiedtime']
+               'brazierCl', 'operDeCl', 'hvofBgnde', 'hvofEnddle', 'facltDivNm', 'prmisnDe', 'resveCl', 'toiletCo', 'swrmCo', 'induty', 'sbrsCl', 'sbrsEtc', 'operPdCl', 'firstImageUrl', 'doNm', 'themaEnvrnCl',  'eqpmnLendCl', 'gnrlSiteCo', 'autoSiteCo', 'glampSiteCo', 'caravSiteCo', 'indvdlCaravSiteCo', 'createdtime', 'modifiedtime']
 
 
 class InputDataAPIView(APIView):
@@ -54,7 +54,6 @@ class InputDataAPIView(APIView):
 
     def change_time_format(self, time):
         time = time.strip()
-        # time.strf
         return time
 
     @transaction.atomic
@@ -72,8 +71,8 @@ class InputDataAPIView(APIView):
             sub_facility = self.check_sub_facility(
                 input_data[19], input_data[20])
 
-            created_at = self.change_time_format(input_data[26])
-            updated_at = self.change_time_format(input_data[27])
+            created_at = self.change_time_format(input_data[31])
+            updated_at = self.change_time_format(input_data[32])
 
             CampSite.objects.create(
                 name=input_data[0], lat=input_data[1], lon=input_data[2], animal=input_data[3],
@@ -83,8 +82,12 @@ class InputDataAPIView(APIView):
                 off_end=input_data[12], faculty=input_data[13], permission_date=input_data[14],
                 reservation=input_data[15], toilet=input_data[16], shower=input_data[17],
                 type=input_data[18], sub_facility=sub_facility, season=input_data[21],
-                image=input_data[22], area=input_data[23], themenv=input_data[24], rental_items=input_data[25], created_at=created_at, updated_at=updated_at)
+                image=input_data[22], area=input_data[23], themenv=input_data[24], rental_item=input_data[25],
+                main_general=input_data[26], main_autocamp=input_data[
+                    27], main_glamcamp=input_data[28], main_caravan=input_data[29],
+                main_personal_caravan=input_data[30], created_at=created_at, updated_at=updated_at)
             i += 1
+
         return JsonResponse({"input_items": i})
 
 

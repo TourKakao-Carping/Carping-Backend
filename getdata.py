@@ -52,22 +52,37 @@ json_column = ['facltNm', 'mapX', 'mapY', 'animalCmgCl', 'clturEvent', 'exprnPro
 
 count = 0
 
-item_arr = []
 for i in item:
-    key = i.get('clturEvent')
-    if key is not None:
-        i_arr = key.split(',')
-        for j in i_arr:
-            if not j in item_arr:
-                item_arr.append(j)
-                count += 1
-        # if '자동차야영장' in i_arr:
-        #     count += 1
-    # if induty == "공동취사장":
+    key = i.get("facltNm")
+    # print(key)
+    if key == "태안라온캠핑장 ":
+        print(i.get("induty"))
+        print(i.get("gnrlSiteCo"))
+        print(i.get("autoSiteCo"))
+        print(i.get("glampSiteCo"))
+        print(i.get("caravSiteCo"))
+        print(i.get("indvdlCaravSiteCo"))
 
-    # count += 1xz
-    # print(induty)
-print(item_arr)
+
+"""
+Categorize
+"""
+# item_arr = []
+# for i in item:
+#     key = i.get('induty')
+#     if key is not None:
+#         i_arr = key.split(',')
+#         for j in i_arr:
+#             if not j in item_arr:
+#                 item_arr.append(j)
+#                 count += 1
+# if '자동차야영장' in i_arr:
+# count += 1
+# if induty == "공동취사장":
+
+# count += 1xz
+# print(induty)
+# print(item_arr)
 print(count)
 #위도 : x
 #경도 : y
