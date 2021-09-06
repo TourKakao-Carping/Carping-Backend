@@ -5,6 +5,7 @@ from camps.views import *
 from camps.inputdata import InputDataAPIView, InputTagAPIView
 from camps.viewsets import AutoCampViewSet
 
+
 urlpatterns = [
     path('input-data', InputDataAPIView.as_view()),
     # path('input-tags', InputTagAPIView.as_view()),
@@ -14,11 +15,12 @@ urlpatterns = [
          name='auto-camp-bookmark'),
     path('theme/bookmark', CampSiteBookMark.as_view(),
          name='campsite-bookmark'),
-    path('theme', GetMainPageThemeTravel.as_view(), name='mainpage-theme')
+    path('theme', GetMainPageThemeTravel.as_view(), name='mainpage-theme'),
+    path('theme/detail/<int:pk>',
+         CampSiteDetailAPIView.as_view(), name='theme-detail')
 ]
 
 router = routers.DefaultRouter()
 router.register('auto-camp', AutoCampViewSet)
-router.register('theme', CampSiteViewSet)
 
 urlpatterns += router.urls

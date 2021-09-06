@@ -9,6 +9,8 @@ from camps.managers import AutoCampManager, CampSiteManager
 from accounts.models import User
 from bases.models import Base
 
+from django.utils.translation import ugettext_lazy as _
+
 
 class CampSite(models.Model):
     user = models.ForeignKey(User, on_delete=CASCADE,
@@ -40,6 +42,14 @@ class CampSite(models.Model):
     bookmark = models.ManyToManyField(
         User, related_name="campsite_bookmark", blank=True)
     themenv = models.CharField(max_length=255, null=True)
+    rental_item = models.CharField(max_length=255, null=True, blank=True)
+
+    main_general = models.IntegerField(default=0, null=True)
+    main_autocamp = models.IntegerField(default=0, null=True)
+    main_glamcamp = models.IntegerField(default=0, null=True)
+    main_caravan = models.IntegerField(default=0, null=True)
+    main_personal_caravan = models.IntegerField(default=0, null=True)
+
     tags = TaggableManager(blank=True)
     created_at = models.DateTimeField(null=True)
     updated_at = models.DateTimeField(null=True)
