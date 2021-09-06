@@ -1,5 +1,5 @@
 from django.db.models.expressions import Case, Exists, Value, When
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.viewsets import GenericViewSet
 
 from bases.utils import check_str_digit
@@ -194,25 +194,11 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
             return response.response(error_message="check lat, lon")
 
         qs = self.filter_queryset(
-            self.get_queryset()).prefetch_related('bookmark')
+            self.get_queryset())
 
-        is_bookmarked = qs.filter(bookmark=user.pk)
+        bookmark_qs = qs.bookmark_qs(user.pk)
 
-        bookmarked_list = []
-
-        if is_bookmarked.exists():
-            bookmarked_list = is_bookmarked.values_list("id", flat=True)
-
-        qs = qs.annotate(bookmark_count=Count("bookmark"),
-                         is_bookmarked=Case(
-            When(
-                id__in=bookmarked_list,
-                then=True
-            ), default=False
-        )
-        )
-
-        serializer = self.get_serializer(qs, many=True)
+        serializer = self.get_serializer(bookmark_qs, many=True)
 
         if sort == "distance":
             data = sorted(serializer.data, key=lambda x: x['distance'])
@@ -227,20 +213,38 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         return self.list(request)
 
 
-class CampSiteViewSet(RetrieveModelMixin, GenericViewSet):
+class CampSiteDetailAPIView(RetrieveModelMixin, GenericAPIView):
     serializer_class = CampSiteSerializer
-    queryset = CampSite.objects.all()
 
-    def retrieve(self, request, *args, **kwargs):
+    def get_queryset(self):
+        user = self.request.user
+        return CampSite.objects.all().bookmark_qs(user.pk)
+
+    def retrieve(self, request, pk):
+        data = request.data
+
         response = APIResponse(success=False, code=400)
+
+        user_lat = data.get('lat')
+        user_lon = data.get('lon')
+
+        if not check_str_digit(user_lat) or not check_str_digit(user_lon):
+            response.code = status.HTTP_400_BAD_REQUEST
+            return response.response(error_message=_("Invalid Lat or Lon"))
+
         try:
-            ret = super(CampSiteViewSet, self).retrieve(request)
+            ret = super(CampSiteDetailAPIView, self).retrieve(request)
+
             response.success = True
-            response.code = 200
+            response.code = status.HTTP_200_OK
             return response.response(data=[ret.data])
+
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
+
+    def post(self, request, pk):
+        return self.retrieve(request, pk)
 
 
 class CampSiteBookMark(APIView):
@@ -271,8 +275,7 @@ class CampSiteBookMark(APIView):
                 response.code = status.HTTP_404_NOT_FOUND
                 return response.response(error_message=str(e))
         else:
-            return response.response(error_message=
-                                     "'campsite_to_bookmark' field is required.")
+            return response.response(error_message="'campsite_to_bookmark' field is required.")
 
     @swagger_auto_schema(
         operation_id=_("Delete Scrap CampSite"),
@@ -301,5 +304,4 @@ class CampSiteBookMark(APIView):
                 response.code = status.HTTP_404_NOT_FOUND
                 return response.response(error_message=str(e))
         else:
-            return response.response(error_message=
-                                     "'campsite_to_bookmark' field is required.")
+            return response.response(error_message="'campsite_to_bookmark' field is required.")

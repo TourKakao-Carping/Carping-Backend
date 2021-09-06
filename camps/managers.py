@@ -1,5 +1,6 @@
-from camps.querysets import *
 from django.db import models
+
+from camps.querysets import *
 
 
 class CampSiteManager(models.Manager):
@@ -32,6 +33,9 @@ class CampSiteManager(models.Manager):
 
     def theme_other_type(self, select, sort):
         return self.get_queryset().theme_other_type(select, sort)
+
+    def bookmark_qs(self, user_pk):
+        return self.get_queryset().bookmark_qs(user_pk)
 
 
 class AutoCampManager(models.Manager):

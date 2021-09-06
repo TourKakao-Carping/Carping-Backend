@@ -40,6 +40,7 @@ class CampSite(models.Model):
     bookmark = models.ManyToManyField(
         User, related_name="campsite_bookmark", blank=True)
     themenv = models.CharField(max_length=255, null=True)
+    rental_items = models.CharField(max_length=255, null=True, blank=True)
     tags = TaggableManager(blank=True)
     created_at = models.DateTimeField(null=True)
     updated_at = models.DateTimeField(null=True)
