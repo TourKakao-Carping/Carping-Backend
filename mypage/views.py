@@ -6,39 +6,29 @@ from rest_framework.views import APIView
 
 from accounts.models import User, Profile
 from bases.response import APIResponse
-from bases.utils import paginate
+from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
 from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, MyInfoSerializer, \
-    MyProfileSerializer
+    MyProfileSerializer, MyEcoSerializer
 from posts.models import EcoCarping
-from posts.serializers import EcoCarpingSortSerializer
 
 
 # 작업 중
 class MyPageView(GenericAPIView):
+    serializer_class = ScrapCampSiteSerializer
+
     def list(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
 
-        data = self.request.data
-        user = self.request.user
+        data = request.data
+        user = request.user
         sort = data.get('sort')
 
         if sort == 'autocamp':
             # 등록 / 스크랩
-            if not 'scrap' in self.request.data:
-                return response.response(error_message="'scrap' field is required")
-            scrap = bool(self.request.data.get('scrap', None))
+            subsort = self.request.data.get('subsort', None)
 
-            # 스크랩에서는 차박지 캠핑장 같이 보여줘야 되나???
-            if scrap:
-                qs = CampSite.objects.filter(bookmark=user)
-                queryset = self.filter_queryset(qs)
-                paginate(self, queryset)
-
-                response.success = True
-                response.code = HTTP_200_OK
-                return response.response(data=ScrapCampSiteSerializer(queryset, many=True).data)
-            if not scrap:
+            if subsort == 'my':
                 qs = AutoCamp.objects.filter(user=user).order_by('-created_at')
                 queryset = self.filter_queryset(qs)
                 paginate(self, queryset)
@@ -46,6 +36,27 @@ class MyPageView(GenericAPIView):
                 response.success = True
                 response.code = HTTP_200_OK
                 return response.response(data=MyAutoCampSerializer(queryset, many=True).data)
+
+            elif subsort == 'scrap':
+                user_lat = data.get('lat')
+                user_lon = data.get('lon')
+
+                if not check_str_digit(user_lat) or not check_str_digit(user_lon):
+                    response.code = 400
+                    return response.response(error_message="check lat, lon")
+
+                qs1 = CampSite.objects.filter(bookmark=user)
+                qs2 = AutoCamp.objects.filter(bookmark=user)
+
+                serializer1 = self.get_serializer(qs1, many=True).data
+                serializer2 = MyAutoCampSerializer(qs2, many=True).data
+
+                response.success = True
+                response.code = HTTP_200_OK
+                return response.response(data=[{'campsite': serializer1}, {'autocamp': serializer2}])
+
+            else:
+                return response.response(error_message="INVALID_SUBSORT - choices are <my, scrap>")
 
         # if sort == 'post':
         #     # 발행 / 구매 / 스크랩
@@ -55,23 +66,24 @@ class MyPageView(GenericAPIView):
 
         if sort == 'eco':
             # 마이 / 좋아요
-            if not 'like' in self.request.data:
-                return response.response(error_message="'like' field is required")
-            like = bool(self.request.data.get('like', None))
+            subsort = self.request.data.get('subsort', None)
 
-            if like:
-                qs = EcoCarping.objects.filter(like=user).order_by('-created_at')
-            if not like:
+            if subsort == 'my':
                 qs = EcoCarping.objects.filter(user=user).order_by('-created_at')
+            elif subsort == 'like':
+                qs = EcoCarping.objects.filter(like=user).order_by('-created_at')
+            else:
+                return response.response(error_message="INVALID_SUBSORT - choices are <my, like>")
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
 
             response.success = True
             response.code = HTTP_200_OK
-            return response.response(data=EcoCarpingSortSerializer(queryset, many=True).data)
+            return response.response(data=MyEcoSerializer(queryset, many=True).data)
 
         else:
-            return response.response(error_message="INVALID_SORT - choices are <recent, distance, popular>")
+            return response.response(error_message=
+                                     "INVALID_SORT - choices are <autocamp, post, share, eco>")
 
     @swagger_auto_schema(
         operation_id=_("Sort MyPage lists(autocamp/post/share/eco)"),
