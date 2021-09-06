@@ -1,3 +1,4 @@
+from camps.constants import CAMP_TYPE
 from bases.utils import check_distance
 
 from django.db.models import Avg
@@ -86,14 +87,15 @@ class CampSiteSerializer(ModelSerializer):
     bookmark_count = serializers.IntegerField()
     is_bookmarked = serializers.BooleanField()
     distance = serializers.SerializerMethodField()
+    main_facility = serializers.SerializerMethodField()
 
     class Meta:
         model = CampSite
         fields = ['id', 'image', 'type', 'address', 'name',
                   'phone', 'distance', 'lat', 'lon', 'address',
-                  'oper_day', 'season', 'phone', 'faculty', 'permission_date',
-                  'sub_facility', 'rental_items', 'animal', 'brazier', 'tags',
-                  'bookmark_count', 'is_bookmarked']
+                  'website', 'reservation', 'oper_day', 'season', 'phone', 'faculty',
+                  'permission_date', 'main_facility', 'sub_facility', 'rental_item',
+                  'animal', 'brazier', 'tags', 'bookmark_count', 'is_bookmarked']
 
     def get_distance(self, obj):
         data = self.context['request'].data
@@ -104,3 +106,57 @@ class CampSiteSerializer(ModelSerializer):
         distance = check_distance(float(lat), float(lon), obj.lat, obj.lon)
 
         return distance
+
+    def get_main_facility(self, obj):
+        # type = obj.type
+        # type_arr = type.split(',')
+
+        # for i in type_arr:
+        #     if i == CAMP_TYPE[0]:
+        main_facility = ""
+        is_after = False
+        if obj.main_autocamp > 0:
+            main_facility += f"{CAMP_TYPE[0]}({obj.main_autocamp}개)"
+            is_after = True
+
+        if obj.main_general > 0:
+            if is_after:
+                main_facility += ", "
+
+            main_facility += f"{CAMP_TYPE[1]}({obj.main_general}개)"
+            is_after = True
+
+        if obj.main_glamcamp > 0:
+            if is_after:
+                main_facility += ", "
+
+            main_facility += f"{CAMP_TYPE[2]}({obj.main_glamcamp}개)"
+            is_after = True
+
+        if obj.main_caravan > 0:
+            if is_after:
+                main_facility += ", "
+
+            main_facility += f"{CAMP_TYPE[3]}({obj.main_caravan}개)"
+            is_after = True
+
+        if obj.main_personal_caravan > 0:
+            if is_after:
+                main_facility += ", "
+
+            main_facility += f"{CAMP_TYPE[4]}({obj.main_personal_caravan}개)"
+            is_after = True
+
+        if obj.toilet > 0:
+            if is_after:
+                main_facility += ", "
+
+            main_facility += f"{CAMP_TYPE[5]}({obj.toilet}개)"
+
+        if obj.shower > 0:
+            if is_after:
+                main_facility += ", "
+
+            main_facility += f"{CAMP_TYPE[6]}({obj.shower}개)"
+
+        return main_facility
