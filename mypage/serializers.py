@@ -3,30 +3,63 @@ from rest_framework import serializers
 from accounts.models import User, EcoLevel, Profile
 from accounts.serializers import EcoLevelSerializer
 from bases.serializers import ModelSerializer
+from bases.utils import check_distance
 from camps.models import AutoCamp, CampSite
+from camps.serializers import MainPageThemeSerializer
+from posts.models import EcoCarping
 
 
 class MyAutoCampSerializer(ModelSerializer):
     class Meta:
         model = AutoCamp
-        fields = ['id', 'latitude', 'longitude', 'image1', 'title', 'total_star_avg', 'review_count']
+        fields = ['id', 'image1', 'title', 'total_star_avg', 'review_count']
 
 
 class ScrapCampSiteSerializer(ModelSerializer):
+    distance = serializers.SerializerMethodField()
     bookmark_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CampSite
-        fields = ['id', 'lat', 'lon', 'image', 'name', 'bookmark_count']
+        ordering = ['distance']
+        fields = ['id', 'image', 'address',
+                  'name', 'distance', 'bookmark_count']
+
+    def get_distance(self, obj):
+        data = self.context['request'].data
+
+        lat = data.get('lat')
+        lon = data.get('lon')
+
+        distance = check_distance(float(lat), float(lon), obj.lat, obj.lon)
+        return distance
 
     def get_bookmark_count(self, data):
         return data.bookmark.count()
 
 
+class MyEcoSerializer(ModelSerializer):
+    username = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EcoCarping
+        fields = ['id', 'user', 'username', 'image1', 'title', 'text', 'created_at']
+
+    def get_username(self, data):
+        if type(data) == dict:
+            return data['username']
+        return data.user.username
+
+    def get_created_at(self, data):
+        return data.created_at.strftime("%Y-%m-%d %H:%M")
+
+
 class MyPageSerializer(serializers.Serializer):
     sort = serializers.CharField()
-    scrap = serializers.BooleanField()
-    like = serializers.BooleanField()
+    subsort = serializers.CharField()
+    # scrap = serializers.BooleanField()
+    # like = serializers.BooleanField()
 
 
 # 프로필 페이지 - 이미지, 휴대폰 번호, 레벨, 배지이미지, 알람설정 -- 알람설정여부는 모델 추가 필요
