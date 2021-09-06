@@ -7,7 +7,7 @@ from camps.viewsets import AutoCampViewSet
 
 
 urlpatterns = [
-    path('input-data', InputDataAPIView.as_view()),
+    # path('input-data', InputDataAPIView.as_view()),
     # path('input-tags', InputTagAPIView.as_view()),
     # path('popular-search', GetPopularSearchList.as_view())
     path('auto-camp/partial', AutoCampPartial.as_view(), name='auto-camp-main'),

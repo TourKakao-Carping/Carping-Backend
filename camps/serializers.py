@@ -82,6 +82,7 @@ class MainPageThemeSerializer(ModelSerializer):
 
 
 class CampSiteSerializer(ModelSerializer):
+    tags = TagListSerializerField()
     bookmark_count = serializers.IntegerField()
     is_bookmarked = serializers.BooleanField()
     distance = serializers.SerializerMethodField()
@@ -89,7 +90,10 @@ class CampSiteSerializer(ModelSerializer):
     class Meta:
         model = CampSite
         fields = ['id', 'image', 'type', 'address', 'name',
-                  'phone', 'distance', 'bookmark_count', 'is_bookmarked']
+                  'phone', 'distance', 'lat', 'lon', 'address',
+                  'oper_day', 'season', 'phone', 'faculty', 'permission_date',
+                  'sub_facility', 'rental_items', 'animal', 'brazier', 'tags',
+                  'bookmark_count', 'is_bookmarked']
 
     def get_distance(self, obj):
         data = self.context['request'].data

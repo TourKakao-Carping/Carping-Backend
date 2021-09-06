@@ -13,17 +13,16 @@ from django.db import transaction
 
 # 26개
 column = ['name', 'lat', 'lon' 'animal', 'event', 'program', 'website', 'phone', 'address', 'brazier', 'oper_day', 'off_day_start',
-          'off_day_end', 'faculty', 'permission_date', 'reservation', 'toilet', 'shower', 'type', 'sub_facility', 'season', 'image', 'area', 'themeenv', 'created_at', 'updated_at']
+          'off_day_end', 'faculty', 'permission_date', 'reservation', 'toilet', 'shower', 'type', 'sub_facility', 'season', 'image', 'area', 'themeenv', 'rental_items', 'created_at', 'updated_at']
 
 # 27개
 json_column = ['facltNm', 'mapY', 'mapX', 'animalCmgCl', 'clturEvent', 'exprnProgrm', 'homepage', 'tel', 'addr1',
-               'brazierCl', 'operDeCl', 'hvofBgnde', 'hvofEnddle', 'facltDivNm', 'prmisnDe', 'resveCl', 'toiletCo', 'swrmCo', 'induty', 'sbrsCl', 'sbrsEtc', 'operPdCl', 'firstImageUrl', 'doNm', 'themaEnvrnCl', 'createdtime', 'modifiedtime']
+               'brazierCl', 'operDeCl', 'hvofBgnde', 'hvofEnddle', 'facltDivNm', 'prmisnDe', 'resveCl', 'toiletCo', 'swrmCo', 'induty', 'sbrsCl', 'sbrsEtc', 'operPdCl', 'firstImageUrl', 'doNm', 'themaEnvrnCl',  'eqpmnLendCl', 'createdtime', 'modifiedtime']
 
 
 class InputDataAPIView(APIView):
     permission_classes = [AllowAny, ]
 
-    @transaction.atomic
     def get_data(self):
         API_KEY = getattr(settings, "CAMP_API_KEY")
         url = "http://api.visitkorea.or.kr/openapi/service/rest/GoCamping/basedList"
@@ -58,7 +57,10 @@ class InputDataAPIView(APIView):
         # time.strf
         return time
 
+    @transaction.atomic
     def post(self, request):
+        CampSite.objects.all().delete()
+
         items = self.get_data()
         i = 0
         for item in items:
@@ -70,8 +72,8 @@ class InputDataAPIView(APIView):
             sub_facility = self.check_sub_facility(
                 input_data[19], input_data[20])
 
-            created_at = self.change_time_format(input_data[25])
-            updated_at = self.change_time_format(input_data[26])
+            created_at = self.change_time_format(input_data[26])
+            updated_at = self.change_time_format(input_data[27])
 
             CampSite.objects.create(
                 name=input_data[0], lat=input_data[1], lon=input_data[2], animal=input_data[3],
@@ -81,7 +83,7 @@ class InputDataAPIView(APIView):
                 off_end=input_data[12], faculty=input_data[13], permission_date=input_data[14],
                 reservation=input_data[15], toilet=input_data[16], shower=input_data[17],
                 type=input_data[18], sub_facility=sub_facility, season=input_data[21],
-                image=input_data[22], area=input_data[23], themenv=input_data[24], created_at=created_at, updated_at=updated_at)
+                image=input_data[22], area=input_data[23], themenv=input_data[24], rental_items=input_data[25], created_at=created_at, updated_at=updated_at)
             i += 1
         return JsonResponse({"input_items": i})
 
