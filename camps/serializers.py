@@ -44,6 +44,12 @@ class AutoCampSerializer(TaggitSerializer, ModelSerializer):
             return True
         return False
 
+    def validate(self, attrs):
+        return super().validate(attrs)
+
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
+
 
 class AutoCampMainSerializer(ModelSerializer):
 
