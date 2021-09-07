@@ -4,7 +4,6 @@ from django.http import JsonResponse
 class APIResponse():
     success = False
     code = 400
-    error_message = ""
 
     def __init__(self, success, code):
         self.success = success
