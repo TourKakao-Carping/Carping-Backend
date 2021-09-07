@@ -7,6 +7,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import BaseUserManager, AbstractUser
 
 from multiselectfield import MultiSelectField
+
+from bases.functions import upload_user_directory
 from bases.models import Base
 
 
@@ -90,7 +92,8 @@ class Profile(Base):
     nickname = models.CharField(max_length=255, null=True, blank=True)
     phone = models.CharField(max_length=50, null=True,
                              blank=True, validators=[validate_phone])
-    image = models.URLField(null=True)
+    image = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
     gender = models.IntegerField(default=0, null=True)
     level = models.ForeignKey('EcoLevel', on_delete=CASCADE, related_name="user", default=1)
     bio = models.TextField(null=True, blank=True)

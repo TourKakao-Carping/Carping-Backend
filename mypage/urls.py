@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework import routers
 
-from mypage.views import MyPageView,  ProfileUpdateViewSet
+from mypage.views import MyPageView, ProfileUpdateViewSet
 
 urlpatterns = [
     path('sort', MyPageView.as_view(), name="mypage-sort"),
