@@ -6,7 +6,7 @@ from rest_framework.mixins import UpdateModelMixin, RetrieveModelMixin
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from rest_framework.viewsets import GenericViewSet
 
-from accounts.models import Profile
+from accounts.models import Profile, User
 from bases.response import APIResponse
 from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
@@ -118,9 +118,8 @@ class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet)
     def partial_update(self, request, pk=None, *args, **kwargs):
         response = APIResponse(success=False, code=400)
         my_info = Profile.objects.get(id=request.user.id)
-        user = my_info.user
         interest = request.data.get('interest')
-        nickname = request.data.get('nickname')
+        username = request.data.get('username')
         bio = request.data.get('bio')
         image = request.data.get('image')
 
@@ -128,7 +127,8 @@ class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet)
             serializer = InfoSerializer(my_info, data=request.data, partial=True)
 
             if not image:
-                user.profile.update(nickname=nickname, bio=bio, interest=interest)
+                User.objects.filter(id=my_info.user.id).update(username=username)
+                my_info.user.profile.update(bio=bio, interest=interest)
                 ret = super(ProfileUpdateViewSet, self).retrieve(request)
 
                 response.code = 200

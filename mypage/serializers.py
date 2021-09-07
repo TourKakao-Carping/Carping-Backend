@@ -64,7 +64,7 @@ class InfoSerializer(ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'image', 'nickname', 'username', 'email', 'phone', 'level', 'badge', 'bio', 'interest']
+        fields = ['id', 'image', 'username', 'email', 'phone', 'level', 'badge', 'bio', 'interest']
 
     def get_username(self, data):
         return data.user.username

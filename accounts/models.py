@@ -88,8 +88,6 @@ class Profile(Base):
     image                   프로필 사진
     gender                  성별
     """
-
-    nickname = models.CharField(max_length=255, null=True, blank=True)
     phone = models.CharField(max_length=50, null=True,
                              blank=True, validators=[validate_phone])
     image = models.URLField(null=True, blank=True)
