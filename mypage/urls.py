@@ -1,9 +1,13 @@
 from django.urls import path
+from rest_framework import routers
 
-from mypage.views import MyPageView,  MyInfoView
+from mypage.views import MyPageView,  ProfileUpdateViewSet
 
 urlpatterns = [
     path('sort', MyPageView.as_view(), name="mypage-sort"),
-    # path('profile', MyProfileView.as_view(), name="myinfo"),
-    path('profile', MyInfoView.as_view(), name="myinfo"),
 ]
+
+router = routers.DefaultRouter()
+router.register('profile', ProfileUpdateViewSet)
+
+urlpatterns += router.urls
