@@ -1,10 +1,12 @@
+from django.db.models import Count
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import GenericAPIView
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.status import HTTP_200_OK
-from rest_framework.views import APIView
+from rest_framework.mixins import UpdateModelMixin, RetrieveModelMixin
+from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
+from rest_framework.viewsets import GenericViewSet
 
-from accounts.models import User, Profile
+from accounts.models import Profile
 from bases.response import APIResponse
 from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
@@ -45,7 +47,7 @@ class MyPageView(GenericAPIView):
                     response.code = 400
                     return response.response(error_message="check lat, lon")
 
-                qs1 = CampSite.objects.filter(bookmark=user)
+                qs1 = CampSite.objects.annotate(bookmark_count=Count("bookmark")).filter(bookmark=user)
                 qs2 = AutoCamp.objects.filter(bookmark=user)
 
                 serializer1 = self.get_serializer(qs1, many=True).data
@@ -95,79 +97,52 @@ class MyPageView(GenericAPIView):
         return self.list(request)
 
 
-# class MyProfileView(APIView):
-#
-#     def get(self, request):
-#         response = APIResponse(success=False, code=400)
-#         my_info = Profile.objects.get(user=request.user.id)
-#         serializer = MyProfileSerializer(my_info)
-#         response.code = 200
-#         response.success = True
-#         return response.response(data=[serializer.data])
-#
-#     @swagger_auto_schema(
-#         operation_id=_("Change My Profile"),
-#         operation_description=_("프로필을 편집합니다."),
-#         request_body=MyProfileSerializer,
-#         tags=[_("mypage"), ]
-#     )
-#     # 프로필 수정 작업 중
-#     def patch(self, request):
-#         response = APIResponse(success=False, code=400)
-#         my_profile = Profile.objects.get(user=request.user.id)
-#
-#         image = self.request.data.get('image', None)
-#         phone = self.request.data.get('phone', None)
-#         # alarm = self.request.data.get('alarm', None)
-#
-#         serializer = MyProfileSerializer(my_profile, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             if image:
-#                 my_profile.image = image
-#             if phone:
-#                 my_profile.phone = phone
-#
-#             response.code = 200
-#             response.success = True
-#             return response.response(data=serializer.data)
-#
-#         return response.response(error_message=str(serializer.errors))
+class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
+    serializer_class = InfoSerializer
+    queryset = Profile.objects.all()
 
-
-class MyInfoView(APIView):
-
-    def get(self, request):
+    def retrieve(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
-        my_info = Profile.objects.get(user=request.user.id)
-        serializer = InfoSerializer(my_info)
-        response.code = 200
-        response.success = True
-        return response.response(data=serializer.data)
+        try:
+            ret = super(ProfileUpdateViewSet, self).retrieve(request)
 
-    @swagger_auto_schema(
-        operation_id=_("Change Personal Info"),
-        operation_description=_("프로필 및 개인정보를 수정합니다."),
-        request_body=InfoSerializer,
-        tags=[_("mypage"), ]
-    )
-    def patch(self, request):
-        response = APIResponse(success=False, code=400)
-        my_profile = Profile.objects.get(user=request.user.id)
-
-        username = self.request.data.get('username', None)
-        email = self.request.data.get('email', None)
-
-        serializer = InfoSerializer(my_profile, data=request.data, partial=True)
-        if serializer.is_valid():
-            if username:
-                my_profile.user.username = username
-            if email:
-                my_profile.user.email = email
-
-            serializer.save()
-
-            response.code = 200
             response.success = True
-            return response.response(data=serializer.data)
+            response.code = HTTP_200_OK
+            return response.response(data=[ret.data])
 
-        return response.response(error_message=str(serializer.errors))
+        except Exception as e:
+            response.success = False
+            response.code = HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
+
+    def partial_update(self, request, pk=None, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+        my_info = Profile.objects.get(id=request.user.id)
+        user = my_info.user
+        interest = request.data.get('interest')
+        nickname = request.data.get('nickname')
+        bio = request.data.get('bio')
+        image = request.data.get('image')
+
+        try:
+            serializer = InfoSerializer(my_info, data=request.data, partial=True)
+
+            if not image:
+                user.profile.update(nickname=nickname, bio=bio, interest=interest)
+                ret = super(ProfileUpdateViewSet, self).retrieve(request)
+
+                response.code = 200
+                response.success = True
+                return response.response(data=[ret.data])
+
+            if serializer.is_valid():
+                ret = super(ProfileUpdateViewSet, self).partial_update(request)
+                print(ret.data)
+
+                response.code = 200
+                response.success = True
+                return response.response(data=[ret.data])
+
+        except Exception as e:
+            response.code = HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))

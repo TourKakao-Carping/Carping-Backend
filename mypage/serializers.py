@@ -1,11 +1,10 @@
 from rest_framework import serializers
 
-from accounts.models import User, EcoLevel, Profile
+from accounts.models import Profile
 from accounts.serializers import EcoLevelSerializer
 from bases.serializers import ModelSerializer
 from bases.utils import check_distance
 from camps.models import AutoCamp, CampSite
-from camps.serializers import MainPageThemeSerializer
 from posts.models import EcoCarping
 
 
@@ -17,7 +16,7 @@ class MyAutoCampSerializer(ModelSerializer):
 
 class ScrapCampSiteSerializer(ModelSerializer):
     distance = serializers.SerializerMethodField()
-    bookmark_count = serializers.SerializerMethodField()
+    bookmark_count = serializers.IntegerField()
 
     class Meta:
         model = CampSite
@@ -33,9 +32,6 @@ class ScrapCampSiteSerializer(ModelSerializer):
 
         distance = check_distance(float(lat), float(lon), obj.lat, obj.lon)
         return distance
-
-    def get_bookmark_count(self, data):
-        return data.bookmark.count()
 
 
 class MyEcoSerializer(ModelSerializer):
@@ -60,43 +56,6 @@ class MyPageSerializer(serializers.Serializer):
     subsort = serializers.CharField()
 
 
-# # 프로필 페이지 - 이미지, 휴대폰 번호, 레벨, 배지이미지, 한줄소개, 관심키워드, 마케팅 -- 마케팅, 알람설정은 따로 api?
-# class MyProfileSerializer(ModelSerializer):
-#     badge = serializers.SerializerMethodField()
-#
-#     class Meta:
-#         model = Profile
-#         fields = ['id', 'image', 'phone', 'level', 'badge', 'bio', 'interest']
-#
-#     def get_level(self, data):
-#         if data.level is None:
-#             data.level = 1
-#         return data.level.level
-#
-#     def get_badge(self, data):
-#         return EcoLevelSerializer(data.level, read_only=True).data['image']
-#
-#
-# # 개인정보 페이지 - 닉네임, 이름, 한줄소개, 관심키워드, 이메일
-# class MyInfoSerializer(ModelSerializer):
-#     nickname = serializers.SerializerMethodField()
-#     bio = serializers.SerializerMethodField()
-#     interest = serializers.SerializerMethodField()
-#
-#     class Meta:
-#         model = User
-#         fields = ['id', 'nickname', 'username', 'bio', 'interest', 'email']
-#
-#     def get_nickname(self, data):
-#         return data.profile.get().nickname
-#
-#     def get_bio(self, data):
-#         return data.profile.get().bio
-#
-#     def get_interest(self, data):
-#         return data.profile.get().interest
-
-
 class InfoSerializer(ModelSerializer):
     username = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
@@ -105,7 +64,7 @@ class InfoSerializer(ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'image', 'nickname', 'username', 'email', 'phone', 'level', 'badge', 'bio']
+        fields = ['id', 'image', 'nickname', 'username', 'email', 'phone', 'level', 'badge', 'bio', 'interest']
 
     def get_username(self, data):
         return data.user.username
