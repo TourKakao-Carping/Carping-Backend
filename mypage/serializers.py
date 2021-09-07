@@ -8,21 +8,14 @@ from camps.models import AutoCamp, CampSite
 from posts.models import EcoCarping
 
 
+# 거리, 스크랩 수 추가!!!
 class MyAutoCampSerializer(ModelSerializer):
-    class Meta:
-        model = AutoCamp
-        fields = ['id', 'image1', 'title', 'total_star_avg', 'review_count']
-
-
-class ScrapCampSiteSerializer(ModelSerializer):
     distance = serializers.SerializerMethodField()
     bookmark_count = serializers.IntegerField()
 
     class Meta:
-        model = CampSite
-        ordering = ['distance']
-        fields = ['id', 'image', 'address',
-                  'name', 'distance', 'bookmark_count']
+        model = AutoCamp
+        fields = ['id', 'image1', 'title', 'total_star_avg', 'review_count', 'distance', 'bookmark_count']
 
     def get_distance(self, obj):
         data = self.context['request'].data
@@ -30,8 +23,28 @@ class ScrapCampSiteSerializer(ModelSerializer):
         lat = data.get('lat')
         lon = data.get('lon')
 
-        distance = check_distance(float(lat), float(lon), obj.lat, obj.lon)
+        distance = check_distance(float(lat), float(lon), obj.latitude, obj.longitude)
         return distance
+
+
+class ScrapCampSiteSerializer(ModelSerializer):
+    # distance = serializers.SerializerMethodField()
+    bookmark_count = serializers.IntegerField()
+
+    class Meta:
+        model = CampSite
+        ordering = ['distance']
+        fields = ['id', 'image', 'address',
+                  'name', 'bookmark_count']
+
+    # def get_distance(self, obj):
+    #     data = self.context['request'].data
+    #
+    #     lat = data.get('lat')
+    #     lon = data.get('lon')
+    #
+    #     distance = check_distance(float(lat), float(lon), obj.lat, obj.lon)
+    #     return distance
 
 
 class MyEcoSerializer(ModelSerializer):

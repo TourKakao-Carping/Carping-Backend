@@ -17,7 +17,7 @@ from posts.models import EcoCarping
 
 # 작업 중
 class MyPageView(GenericAPIView):
-    serializer_class = ScrapCampSiteSerializer
+    serializer_class = MyAutoCampSerializer
 
     def list(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
@@ -25,33 +25,36 @@ class MyPageView(GenericAPIView):
         data = request.data
         user = request.user
         sort = data.get('sort')
+        user_lat = data.get('lat')
+        user_lon = data.get('lon')
 
         if sort == 'autocamp':
             # 등록 / 스크랩
             subsort = self.request.data.get('subsort', None)
 
             if subsort == 'my':
-                qs = AutoCamp.objects.filter(user=user).order_by('-created_at')
+                # qs = AutoCamp.objects.filter(user=user).order_by('-created_at')
+                qs = AutoCamp.objects.annotate(bookmark_count=Count("bookmark")).filter(
+                    user=user).order_by('-created_at')
                 queryset = self.filter_queryset(qs)
                 paginate(self, queryset)
 
+                serializer = self.get_serializer(qs, many=True)
+
                 response.success = True
                 response.code = HTTP_200_OK
-                return response.response(data=MyAutoCampSerializer(queryset, many=True).data)
+                return response.response(data=serializer.data)
 
             elif subsort == 'scrap':
-                user_lat = data.get('lat')
-                user_lon = data.get('lon')
-
                 if not check_str_digit(user_lat) or not check_str_digit(user_lon):
                     response.code = 400
                     return response.response(error_message="check lat, lon")
 
                 qs1 = CampSite.objects.annotate(bookmark_count=Count("bookmark")).filter(bookmark=user)
-                qs2 = AutoCamp.objects.filter(bookmark=user)
+                qs2 = AutoCamp.objects.annotate(bookmark_count=Count("bookmark")).filter(bookmark=user)
 
-                serializer1 = self.get_serializer(qs1, many=True).data
-                serializer2 = MyAutoCampSerializer(qs2, many=True).data
+                serializer1 = ScrapCampSiteSerializer(qs1, many=True).data
+                serializer2 = self.get_serializer(qs2, many=True).data
 
                 response.success = True
                 response.code = HTTP_200_OK
