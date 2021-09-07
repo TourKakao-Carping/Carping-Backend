@@ -15,9 +15,8 @@ from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCamp
 from posts.models import EcoCarping
 
 
-# 작업 중
 class MyPageView(GenericAPIView):
-    serializer_class = MyAutoCampSerializer
+    serializer_class = ScrapCampSiteSerializer
 
     def list(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
@@ -25,27 +24,27 @@ class MyPageView(GenericAPIView):
         data = request.data
         user = request.user
         sort = data.get('sort')
-        user_lat = data.get('lat')
-        user_lon = data.get('lon')
 
         if sort == 'autocamp':
             # 등록 / 스크랩
             subsort = self.request.data.get('subsort', None)
 
             if subsort == 'my':
-                # qs = AutoCamp.objects.filter(user=user).order_by('-created_at')
                 qs = AutoCamp.objects.annotate(bookmark_count=Count("bookmark")).filter(
                     user=user).order_by('-created_at')
                 queryset = self.filter_queryset(qs)
                 paginate(self, queryset)
 
-                serializer = self.get_serializer(qs, many=True)
+                serializer = MyAutoCampSerializer(qs, many=True)
 
                 response.success = True
                 response.code = HTTP_200_OK
                 return response.response(data=serializer.data)
 
             elif subsort == 'scrap':
+                user_lat = data.get('lat')
+                user_lon = data.get('lon')
+
                 if not check_str_digit(user_lat) or not check_str_digit(user_lon):
                     response.code = 400
                     return response.response(error_message="check lat, lon")
@@ -53,8 +52,8 @@ class MyPageView(GenericAPIView):
                 qs1 = CampSite.objects.annotate(bookmark_count=Count("bookmark")).filter(bookmark=user)
                 qs2 = AutoCamp.objects.annotate(bookmark_count=Count("bookmark")).filter(bookmark=user)
 
-                serializer1 = ScrapCampSiteSerializer(qs1, many=True).data
-                serializer2 = self.get_serializer(qs2, many=True).data
+                serializer1 = self.get_serializer(qs1, many=True).data
+                serializer2 = MyAutoCampSerializer(qs2, many=True).data
 
                 response.success = True
                 response.code = HTTP_200_OK
@@ -129,6 +128,7 @@ class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet)
         try:
             serializer = InfoSerializer(my_info, data=request.data, partial=True)
 
+            # 개인정보 수정 - 이름, 한줄소개, 관심키워드 변경 가능
             if not image:
                 User.objects.filter(id=my_info.user.id).update(username=username)
                 my_info.user.profile.update(bio=bio, interest=interest)
@@ -138,6 +138,7 @@ class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet)
                 response.success = True
                 return response.response(data=[ret.data])
 
+            # 프로필 사진 변경
             if serializer.is_valid():
                 ret = super(ProfileUpdateViewSet, self).partial_update(request)
                 print(ret.data)
