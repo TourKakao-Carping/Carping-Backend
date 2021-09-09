@@ -12,8 +12,9 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
 from bases.serializers import MessageSerializer
-from posts.models import EcoCarping, Post
-from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer
+from posts.models import EcoCarping, Post, Share
+from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
+    ShareCompleteSerializer, ShareSortSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict, check_distance
 from bases.response import APIResponse
@@ -142,9 +143,9 @@ class EcoCarpingSort(GenericAPIView):
         return self.list(request)
 
 
-class PostLike(APIView):
+class EcoLike(APIView):
     @swagger_auto_schema(
-        operation_id=_("Add Like Comment"),
+        operation_id=_("Add Like Eco"),
         operation_description=_("포스트에 좋아요를 답니다."),
         request_body=PostLikeSerializer,
         responses={200: openapi.Response(_("OK"), MessageSerializer)},
@@ -173,7 +174,7 @@ class PostLike(APIView):
             return response.response(error_message="'post_to_like' field is required.")
 
     @swagger_auto_schema(
-        operation_id=_("Delete Like Comment"),
+        operation_id=_("Delete Like Eco"),
         operation_description=_("포스트에 단 좋아요를 취소합니다."),
         request_body=PostLikeSerializer,
         responses={200: openapi.Response(_("OK"), MessageSerializer)},
@@ -199,3 +200,178 @@ class PostLike(APIView):
                 return response.response(error_message=str(e))
         else:
             return response.response(error_message="'post_to_like' field is required.")
+
+
+# 무료나눔
+class ShareSort(GenericAPIView):
+    serializer_class = ShareSortSerializer
+
+    def list(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+
+        data = self.request.data
+        sort = data.get('sort')
+
+        if not 'latitude' in self.request.data or not 'longitude' in self.request.data:
+            return response.response(error_message="'latitude', 'longitude' fields are required")
+
+        if sort == 'recent':
+            if not 'count' in self.request.data:
+                return response.response(error_message="'count' field is required")
+            count = int(self.request.data.get('count', None))
+
+            if count == 0:
+                qs = Share.objects.annotate(like_count=Count("like")).order_by('-created_at')
+            elif count > 0:
+                qs = Share.objects.annotate(like_count=Count("like")).order_by('-created_at')[:count]
+
+            queryset = self.filter_queryset(qs)
+            paginate(self, queryset)
+            serializer = [self.get_serializer(
+                queryset, many=True).data]
+
+            total_share = Share.objects.all().count()
+            serializer.insert(0, {"total_share": total_share})  # 안드와 요청 방식 상의
+
+            response.success = True
+            response.code = HTTP_200_OK
+            return response.response(data=serializer)
+
+        if sort == 'distance':
+            queryset = Share.objects.all()
+            paginate(self, queryset)
+
+            serializer = self.get_serializer(queryset, many=True)
+            data = sorted(serializer.data, key=lambda x: x['distance'])
+
+            response.success = True
+            response.code = HTTP_200_OK
+            return response.response(data=data)
+
+        else:
+            return response.response(error_message="INVALID_SORT - choices are <recent, distance>")
+
+    @swagger_auto_schema(
+        operation_id=_("Sort Share-Posts(recent/distance)"),
+        operation_description=_("무료나눔 포스트를 정렬합니다."),
+        request_body=EcoCarpingSortSerializer,
+        tags=[_("posts"), ]
+    )
+    def post(self, request, *args, **kwargs):
+        return self.list(request)
+
+
+class ShareLike(APIView):
+    @swagger_auto_schema(
+        operation_id=_("Add Like Share"),
+        operation_description=_("포스트에 좋아요를 답니다."),
+        request_body=PostLikeSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("posts"), ]
+    )
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        serializer = PostLikeSerializer(data=request.data)
+
+        if serializer.is_valid():
+            try:
+                post_to_like = Share.objects.get(
+                    id=serializer.validated_data["post_to_like"])
+                user.share_like.add(post_to_like)
+                data = MessageSerializer({"message": _("포스트 좋아요 완료")}).data
+
+                response.success = True
+                response.code = HTTP_200_OK
+                return response.response(data=[data])
+
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
+        else:
+            return response.response(error_message="'post_to_like' field is required.")
+
+    @swagger_auto_schema(
+        operation_id=_("Delete Like Share"),
+        operation_description=_("포스트에 단 좋아요를 취소합니다."),
+        request_body=PostLikeSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("posts"), ]
+    )
+    def delete(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        serializer = PostLikeSerializer(data=request.data)
+
+        if serializer.is_valid():
+            try:
+                user.share_like.through.objects.filter(
+                    user=user, share=serializer.validated_data["post_to_like"]).delete()
+                data = MessageSerializer({"message": _("포스트 좋아요 취소")}).data
+
+                response.success = True
+                response.code = HTTP_200_OK
+                return response.response(data=[data])
+
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
+        else:
+            return response.response(error_message="'post_to_like' field is required.")
+
+
+class ShareCompleteView(APIView):
+    @swagger_auto_schema(
+        operation_id=_("Share Complete"),
+        operation_description=_("거래 완료 상태로 변환"),
+        request_body=ShareCompleteSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("posts"), ]
+    )
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        serializer = ShareCompleteSerializer(data=request.data)
+
+        if serializer.is_valid():
+            try:
+                Share.objects.filter(
+                    id=serializer.validated_data["share_to_complete"]).update(is_shared=True)
+                data = MessageSerializer({"message": _("거래 완료")}).data
+
+                response.success = True
+                response.code = HTTP_200_OK
+                return response.response(data=[data])
+
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
+        else:
+            return response.response(error_message="'share_to_complete' field is required.")
+
+    @swagger_auto_schema(
+        operation_id=_("Cancel Share Complete"),
+        operation_description=_("거래 완료 취소"),
+        request_body=ShareCompleteSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("posts"), ]
+    )
+    def delete(self, request):
+        response = APIResponse(success=False, code=400)
+        serializer = ShareCompleteSerializer(data=request.data)
+
+        if serializer.is_valid():
+            try:
+                Share.objects.filter(
+                    id=serializer.validated_data["share_to_complete"]).update(is_shared=False)
+
+                data = MessageSerializer({"message": _("거래 완료 취소")}).data
+
+                response.success = True
+                response.code = HTTP_200_OK
+                return response.response(data=[data])
+
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
+        else:
+            return response.response(error_message="'share_to_complete' field is required.")

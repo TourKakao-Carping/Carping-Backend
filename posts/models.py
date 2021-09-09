@@ -1,3 +1,4 @@
+from django.core.validators import URLValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
 from taggit.managers import TaggableManager
@@ -10,7 +11,7 @@ from camps.models import CampSite
 
 class Post(Base):
     user = models.ForeignKey(User, on_delete=CASCADE,
-                             related_name="post", null=True)
+                             related_name="post")
     title = models.CharField(max_length=100, null=False)
     thumbnail = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
@@ -43,7 +44,7 @@ class Post(Base):
 
 class EcoCarping(Base):
     user = models.ForeignKey(User, on_delete=CASCADE,
-                             related_name="eco", null=True)
+                             related_name="eco")
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
     place = models.CharField(max_length=100, default="장소")
@@ -56,7 +57,7 @@ class EcoCarping(Base):
     image4 = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
     title = models.CharField(max_length=100, null=False)
-    text = models.TextField()
+    text = models.CharField(max_length=500)
     tags = TaggableManager(blank=True)
     like = models.ManyToManyField(
         User, related_name="eco_like", blank=True)
@@ -75,9 +76,8 @@ class EcoCarping(Base):
 
 class Share(Base):
     user = models.ForeignKey(User, on_delete=CASCADE,
-                             related_name="share", null=True)
-    latitude = models.FloatField(null=False)
-    longitude = models.FloatField(null=False)
+                             related_name="share")
+    region = models.ForeignKey('Region', on_delete=CASCADE, related_name="share")
     image1 = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
     image2 = models.ImageField(
@@ -87,10 +87,18 @@ class Share(Base):
     image4 = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
     title = models.CharField(max_length=100, null=False)
-    text = models.TextField()
+    text = models.CharField(max_length=500)
+    chat_addr = models.TextField(validators=[URLValidator()])
     tags = TaggableManager(blank=True)
+    is_shared = models.BooleanField(default=False)
     like = models.ManyToManyField(
         User, related_name="share_like", blank=True)
 
     def like_count(self):
         return self.like.values().count()
+
+
+class Region(Base):
+    name = models.CharField(max_length=50)
+    latitude = models.FloatField(null=False)
+    longitude = models.FloatField(null=False)

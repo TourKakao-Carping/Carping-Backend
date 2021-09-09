@@ -6,8 +6,8 @@ from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from rest_framework.viewsets import GenericViewSet
 
 from bases.utils import check_str_digit
-from posts.serializers import AutoCampPostSerializer, EcoCarpingSerializer
-from posts.models import EcoCarping, Post
+from posts.serializers import AutoCampPostSerializer, EcoCarpingSerializer, ShareSerializer
+from posts.models import EcoCarping, Post, Share
 from bases.response import APIResponse
 from rest_framework.exceptions import MethodNotAllowed
 
@@ -115,5 +115,41 @@ class AutoCampPostForWeekendViewSet(viewsets.ModelViewSet):
             response.code = HTTP_200_OK
             return response.response(data=[ret.data])
         except Exception as e:
+            response.code = HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
+
+
+class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin, GenericViewSet):
+    serializer_class = ShareSerializer
+    queryset = Share.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+        try:
+            ret = super(ShareViewSet, self).retrieve(request)
+
+            response.success = True
+            response.code = HTTP_200_OK
+            return response.response(data=[ret.data])
+
+        except Exception as e:
+            response.success = False
+            response.code = HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
+
+    def create(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+
+        try:
+            ret = super(ShareViewSet, self).create(request)
+
+            response.success = True
+            response.code = HTTP_200_OK
+            return response.response(data=[ret.data])
+
+        except Exception as e:
+            if not self.get_serializer(data=request.data).is_valid():
+                response.code = status.HTTP_400_BAD_REQUEST
+                return response.response(error_message=str(e))
             response.code = HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))

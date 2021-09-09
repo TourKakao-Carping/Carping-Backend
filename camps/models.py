@@ -74,7 +74,7 @@ class AutoCamp(Base):
     image4 = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
     title = models.CharField(max_length=100, null=False)
-    text = models.TextField()
+    text = models.CharField(max_length=100)
     views = models.IntegerField(default=0)
     tags = TaggableManager(blank=True)
     bookmark = models.ManyToManyField(

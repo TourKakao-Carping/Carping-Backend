@@ -2,8 +2,9 @@ from rest_framework import serializers
 from taggit.serializers import TagListSerializerField, TaggitSerializer
 
 from bases.serializers import ModelSerializer
+from bases.utils import check_distance
 from comments.serializers import CommentSerializer
-from posts.models import EcoCarping, Post
+from posts.models import EcoCarping, Post, Share
 from camps.models import CampSite
 
 
@@ -113,3 +114,61 @@ class AutoCampPostSerializer(TaggitSerializer, ModelSerializer):
 
 class PostLikeSerializer(serializers.Serializer):
     post_to_like = serializers.IntegerField(write_only=True)
+
+
+# 무료나눔
+class ShareSerializer(TaggitSerializer, ModelSerializer):
+    username = serializers.SerializerMethodField()
+    profile = serializers.SerializerMethodField()
+    region = serializers.SerializerMethodField()
+    comment = CommentSerializer(many=True, read_only=True)
+    tags = TagListSerializerField()
+    created_at = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Share
+        fields = ['id', 'user', 'username', 'profile', 'region',
+                  'image1', 'image2', 'image3', 'image4', 'title', 'text', 'tags',
+                  'chat_addr', 'created_at', 'comment', 'like_count', 'is_liked']
+
+    def get_username(self, data):
+        return data.user.username
+
+    def get_profile(self, data):
+        return data.user.profile.get().image
+
+    def get_region(self, data):
+        return data.region.name
+
+    def get_created_at(self, data):
+        return data.created_at.strftime("%Y-%m-%d %H:%M")
+
+    def get_is_liked(self, data):
+        if self.context['request'].user.eco_like.filter(id=data.id):
+            return True
+        return False
+
+
+class ShareSortSerializer(TaggitSerializer, ModelSerializer):
+    like_count = serializers.IntegerField()
+    distance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Share
+        fields = ['id', 'is_shared', 'image1', 'title',
+                  'text', 'created_at', 'like_count', 'distance']
+        # distance 반환은 하지만 안드에서 사용하지는 않을 것, 거리순 정렬용
+
+    def get_distance(self, obj):
+        data = self.context['request'].data
+
+        lat = data.get('latitude')
+        lon = data.get('longitude')
+
+        distance = check_distance(float(lat), float(lon), obj.region.latitude, obj.region.longitude)
+        return distance
+
+
+class ShareCompleteSerializer(serializers.Serializer):
+    share_to_complete = serializers.IntegerField(write_only=True)
