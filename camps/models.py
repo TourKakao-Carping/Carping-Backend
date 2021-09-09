@@ -3,7 +3,7 @@ from django.db.models import Avg
 from django.db.models.deletion import CASCADE
 from taggit.managers import TaggableManager
 
-from bases.functions import upload_user_directory
+from bases.functions import UploadTo, upload_user_directory
 from camps.managers import AutoCampManager, CampSiteManager
 
 from accounts.models import User
@@ -66,13 +66,13 @@ class AutoCamp(Base):
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
     image1 = models.ImageField(
-        upload_to=upload_user_directory, null=True, blank=True)
+        upload_to=UploadTo('image1'), null=True, blank=True)
     image2 = models.ImageField(
-        upload_to=upload_user_directory, null=True, blank=True)
+        upload_to=UploadTo('image2'), null=True, blank=True)
     image3 = models.ImageField(
-        upload_to=upload_user_directory, null=True, blank=True)
+        upload_to=UploadTo('image3'), null=True, blank=True)
     image4 = models.ImageField(
-        upload_to=upload_user_directory, null=True, blank=True)
+        upload_to=UploadTo('image4'), null=True, blank=True)
     title = models.CharField(max_length=100, null=False)
     text = models.CharField(max_length=100)
     views = models.IntegerField(default=0)
