@@ -1,3 +1,4 @@
+from bases.s3 import S3Client
 from camps.constants import CAMP_TYPE
 from bases.utils import check_distance
 
@@ -38,8 +39,6 @@ class AutoCampSerializer(TaggitSerializer, ModelSerializer):
         return data.review.filter(user=self.context['request'].user).count()
 
     def get_is_bookmarked(self, data):
-        # if data.bookmark.count() == 0:
-        #     return 0
         if self.context['request'].user.autocamp_bookmark.filter(id=data.id):
             return True
         return False
@@ -48,6 +47,24 @@ class AutoCampSerializer(TaggitSerializer, ModelSerializer):
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
+        fields = validated_data.keys()
+
+        s3 = S3Client()
+
+        for key in fields:
+            if key == "image1":
+                if not instance.image1 == "" and not instance.image1 == None:
+                    s3.delete_file(str(instance.image1))
+            elif key == "image2":
+                if not instance.image2 == "" and not instance.image2 == None:
+                    s3.delete_file(str(instance.image2))
+            elif key == "image3":
+                if not instance.image3 == "" and not instance.image3 == None:
+                    s3.delete_file(str(instance.image3))
+            else:
+                if not instance.image4 == "" and not instance.image4 == None:
+                    s3.delete_file(str(instance.image4))
+
         return super().update(instance, validated_data)
 
 
