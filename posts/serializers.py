@@ -34,7 +34,7 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
         return data.user.username
 
     def get_profile(self, data):
-        return data.user.profile.get().image
+        return data.user.profile.get().image.url
 
     def get_created_at(self, data):
         return data.created_at.strftime("%Y-%m-%d %H:%M")
@@ -136,7 +136,7 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
         return data.user.username
 
     def get_profile(self, data):
-        return data.user.profile.get().image
+        return data.user.profile.get().image.url
 
     def get_region(self, data):
         return data.region.name

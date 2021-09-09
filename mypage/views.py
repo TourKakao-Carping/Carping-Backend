@@ -8,6 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from accounts.models import Profile, User
 from bases.response import APIResponse
+from bases.s3 import S3Client
 from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
 from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, \
@@ -140,8 +141,12 @@ class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet)
 
             # 프로필 사진 변경
             if serializer.is_valid():
+                s3 = S3Client()
+                obj = self.get_object()
+                if obj.image:
+                    s3.delete_file(str(obj.image))
+                    obj.image = None
                 ret = super(ProfileUpdateViewSet, self).partial_update(request)
-                print(ret.data)
 
                 response.code = 200
                 response.success = True

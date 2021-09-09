@@ -110,14 +110,11 @@ class GoogleLoginView(SocialLoginView):
         user = self.user
         profile_qs = Profile.objects.filter(user=user)
         if profile_qs.exists():
-            profile = profile_qs.first()
-            profile_image = profile.image
+            profile = profile_qs
         else:
-            profile_image = self.user.socialaccount_set.values(
-                "extra_data")[0].get("extra_data")['picture']
-            Profile.objects.update_or_create(image=profile_image, user=user)
+            profile = Profile.objects.update_or_create(user=user)
         profile_data = {
-            'image': profile_image,
+            'image': profile[0].image.url,
         }
         response = super().get_response()
 
@@ -170,13 +167,12 @@ class KakaoLoginView(SocialLoginView):
                 0].get("extra_data")
             kakao_account = extra_data.get("kakao_account")
             profile = kakao_account.get('profile')
-            profile_image = profile.get('profile_image_url')
             gender = profile.get('gender')
             profile = Profile.objects.create(
-                image=profile_image, gender=gender, user=user)
+                gender=gender, user=user)
 
         profile_data = {
-            "image": profile.image
+            "image": profile.image.url
         }
 
         response = super().get_response()
