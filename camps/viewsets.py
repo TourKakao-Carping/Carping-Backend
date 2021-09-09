@@ -1,3 +1,5 @@
+import copy
+
 from django.utils.datastructures import MultiValueDictKeyError
 
 from botocore.exceptions import ClientError
@@ -88,57 +90,88 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
     #         response.code = status.HTTP_404_NOT_FOUND
     #         return response.response(error_message=str(e))
 
-    def is_changed_image(self):
+    def check_error(self):
         """
-        image1, 3이 있을 경우
-        기존에 있으면 삭제
-
+        is_null에 들어가 있지만
+        해당 이미지 필드에 blank가 아닌 이미지 값이 들어올 때 에러 발생
         """
-        data = self.request.data
+        return True
 
-        is_deleted_1 = data.get('is_deleted_1', False)
-        is_deleted_2 = data.get('is_deleted_2', False)
-        is_deleted_3 = data.get('is_deleted_3', False)
-        is_deleted_4 = data.get('is_deleted_4', False)
-
-        return [is_deleted_1, is_deleted_2, is_deleted_3, is_deleted_4]
-
-    def get_image_field(self, obj, i, key):
+    def get_image_field(self, obj, i):
         s3 = S3Client()
 
         if i == 1:
             if not obj.image1 == "" and not obj.image1 == None:
                 s3.delete_file(str(obj.image1))
-            # obj.image1 = key
+                obj.image1 = None
         elif i == 2:
             if not obj.image2 == "" and not obj.image2 == None:
                 s3.delete_file(str(obj.image2))
+                obj.image2 = None
+
         elif i == 3:
             if not obj.image3 == "" and not obj.image3 == None:
                 s3.delete_file(str(obj.image3))
+                obj.image3 = None
+
         else:
             if not obj.image4 == "" and not obj.image4 == None:
                 s3.delete_file(str(obj.image4))
+                obj.image4 = None
+
+    def perform_update(self, serializer):
+        return super().perform_update(serializer)
 
     def partial_update(self, request, *args, **kwargs):
         response = APIResponse(False, 400)
 
-        files = request.FILES
-        print(files)
+        request.data._mutable = True
+
+        image1 = request.data.get('image1')
+        image2 = request.data.get('image2')
+        image3 = request.data.get('image3')
+        image4 = request.data.get('image4')
+
+        if image1 == "":
+            request.data.pop('image1')
+
+        if image2 == "":
+            request.data.pop('image2')
+
+        if image3 == "":
+            request.data.pop('image3')
+
+        if image4 == "":
+            request.data.pop('image4')
+
+        # is_null에 있는 숫자에 해당되는 image 필드에 기존 이미지 삭제처리
+        is_null = request.data.pop('is_null')
+
+        if len(is_null) == 0:
+            pass
+        else:
+            for i in range(0, len(is_null)):
+                if check_str_digit(is_null[i]):
+                    is_null[i] = int(is_null[i])
+                else:
+                    pass
 
         obj = self.get_object()
 
+        # 사용자가 원하는 Delete
         for i in range(1, 5):
             try:
-                key = files[f"image{i}"]
-
-                self.get_image_field(obj, i, key)
+                if i in is_null:
+                    self.get_image_field(obj, i)
 
             except MultiValueDictKeyError:
                 pass
 
+        # 이미지 Overwrite 시 삭제할 이미지 설정
         obj.save()
 
-        return super().partial_update(request, *args, **kwargs)
-        # except Exception as e:
-        #     return response.response(error_message=str(e))
+        ret = super().partial_update(request, *args, **kwargs)
+
+        response.success = True
+        response.code = 200
+        return response.response(data=ret.data)
