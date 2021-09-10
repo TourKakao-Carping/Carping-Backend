@@ -1,6 +1,7 @@
 import datetime
 import json
 import random
+import re
 import time
 
 import requests
@@ -260,12 +261,15 @@ class SmsSendView(APIView):
         uri = f"https://sens.apigw.ntruss.com/sms/v2/services/{getattr(settings, 'NAVER_PROJECT_ID')}/messages"
         response = requests.post(uri, headers=headers, data=body)
 
-        print(response.text)
-
     def post(self, request):
         response = APIResponse(success=False, code=400)
         user = request.user
         phone_num = request.data.get('phone')
+
+        regex = re.compile('\d{11}')
+
+        if not regex.match(phone_num):
+            return response.response(error_message="휴대폰 번호는 '-' 없이 입력해주세요.")
 
         auth_num = random.randint(10000, 100000)  # 랜덤숫자 생성, 5자리
 
