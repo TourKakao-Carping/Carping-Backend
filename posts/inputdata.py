@@ -15,8 +15,8 @@ with open(os.path.join(BASE_DIR, 'secrets.json'), 'rb') as secret_file:
     secrets = json.load(secret_file)
 
 
-wb = openpyxl.load_workbook(filename="C:/Users/최예원/Downloads/region.xlsx")
-ws = wb.active
+# wb = openpyxl.load_workbook(filename="C:/Users/최예원/Downloads/region.xlsx")
+# ws = wb.active
 
 # input 완료
 class InputRegionView(APIView):

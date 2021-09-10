@@ -68,7 +68,8 @@ class EcoCarping(Base):
         ('3L', '3L'),
         ('3L 이하', '3L 이하'),
     )
-    trash = models.CharField(max_length=10, choices=TRASH_CHOICES, null=True, blank=True)
+    trash = models.CharField(
+        max_length=10, choices=TRASH_CHOICES, null=True, blank=True)
 
     def like_count(self):
         return self.like.values().count()
@@ -77,7 +78,8 @@ class EcoCarping(Base):
 class Share(Base):
     user = models.ForeignKey(User, on_delete=CASCADE,
                              related_name="share")
-    region = models.ForeignKey('Region', on_delete=CASCADE, related_name="share")
+    region = models.ForeignKey(
+        'Region', on_delete=CASCADE, related_name="share")
     image1 = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
     image2 = models.ImageField(
