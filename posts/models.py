@@ -100,5 +100,5 @@ class Share(Base):
 
 class Region(Base):
     sido = models.CharField(max_length=50)
-    sigungu = models.CharField(max_length=50)
+    sigungu = models.CharField(max_length=50, null=True)
     dong = models.CharField(max_length=50)

@@ -212,9 +212,6 @@ class ShareSort(GenericAPIView):
         data = self.request.data
         sort = data.get('sort')
 
-        if not 'latitude' in self.request.data or not 'longitude' in self.request.data:
-            return response.response(error_message="'latitude', 'longitude' fields are required")
-
         if sort == 'recent':
             if not 'count' in self.request.data:
                 return response.response(error_message="'count' field is required")
@@ -237,19 +234,20 @@ class ShareSort(GenericAPIView):
             response.code = HTTP_200_OK
             return response.response(data=serializer)
 
-        if sort == 'distance':
-            queryset = Share.objects.all()
-            paginate(self, queryset)
+        if sort == 'popular':
+            qs = Share.objects.annotate(like_count=Count("like")).order_by('like_count')
 
-            serializer = self.get_serializer(queryset, many=True)
-            data = sorted(serializer.data, key=lambda x: x['distance'])
+            queryset = self.filter_queryset(qs)
+            paginate(self, queryset)
+            serializer = [self.get_serializer(
+                queryset, many=True).data]
 
             response.success = True
             response.code = HTTP_200_OK
-            return response.response(data=data)
+            return response.response(data=serializer)
 
         else:
-            return response.response(error_message="INVALID_SORT - choices are <recent, distance>")
+            return response.response(error_message="INVALID_SORT")
 
     @swagger_auto_schema(
         operation_id=_("Sort Share-Posts(recent/distance)"),

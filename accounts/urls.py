@@ -15,4 +15,7 @@ urlpatterns = [
          name="token_refresh"),
 
     path('eco-ranking', views.EcoRankingView.as_view(), name='eco-ranking'),
+
+    path('send-sms', views.SmsSendView.as_view(), name='send-sms'),
+    path('sms-verification', views.SMSVerificationView.as_view(), name='sms-verification'),
 ]

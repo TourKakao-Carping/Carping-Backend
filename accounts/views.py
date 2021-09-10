@@ -14,6 +14,7 @@ from rest_framework import status
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao import views as kakao_view
 from allauth.socialaccount.providers.google import views as google_view
+from rest_framework.permissions import AllowAny
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
@@ -245,7 +246,7 @@ class SmsSendView(APIView):
         headers = {
             'Content-Type': "application/json; charset=UTF-8",
             'x-ncp-apigw-timestamp': timestamp,  # 네이버 API 서버와 5분이상 시간차이 발생 시 오류
-            'x-ncp-iam-access-key': getattr(settings, 'NAVER_ACCESS_KEY'),
+            'x-ncp-iam-access-key': str(getattr(settings, 'NAVER_ACCESS_KEY')),
             'x-ncp-apigw-signature-v2': make_signature(timestamp)
         }
         body = {
@@ -269,10 +270,9 @@ class SmsSendView(APIView):
         auth_num = random.randint(10000, 100000)  # 랜덤숫자 생성, 5자리
 
         Profile.objects.filter(user=user).update(phone=phone_num)
-        SmsHistory.objects.create(user_id=user.pk)
-        SmsHistory.objects.filter(user_id=user.pk).update(auth_num=auth_num)
-
         self.send_sms(phone_num=phone_num, auth_num=auth_num)
+
+        SmsHistory.objects.create(user_id=user.pk, auth_num=auth_num)
 
         response.success = True
         response.code = 200
@@ -293,19 +293,17 @@ class SMSVerificationView(APIView):
                 response.code = 200
                 return response.response(data=[{"message": "인증 문자 발송을 다시 요청해주세요."}])
 
-            # 유저 pk : user.pk -> SmsHistory.user_id에 저장,
-
-            if auth_num == request.data.get('auth_num'):
+            if str(auth_num) == str(request.data.get('auth_num')):
                 SmsHistory.objects.filter(user_id=user.pk, auth_num=auth_num).update(auth_num_check=auth_num)
-                Certification.objects.filter(user=user).update(authorized=True)
+                Certification.objects.update_or_create(user=user, authorized=True)
                 response.success = True
                 response.code = 200
                 return response.response(data=[{"message": "인증 완료"}])
 
             else:
                 fail_count += 1
-                SmsHistory.objects.filter(user_id=user.pk, auth_num=auth_num).update(auth_num_check=auth_num,
-                                                                                     fail_count=fail_count)
+                SmsHistory.objects.filter(user_id=user.pk, auth_num=auth_num).update(
+                    auth_num_check=request.data.get('auth_num'), fail_count=fail_count)
                 response.success = True
                 response.code = 200
                 return response.response(data=[{"message": "인증 실패"}])

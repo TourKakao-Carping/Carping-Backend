@@ -139,7 +139,7 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
         return data.user.profile.get().image.url
 
     def get_region(self, data):
-        return data.region.name
+        return data.region.dong
 
     def get_created_at(self, data):
         return data.created_at.strftime("%Y-%m-%d %H:%M")
@@ -152,22 +152,11 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
 
 class ShareSortSerializer(TaggitSerializer, ModelSerializer):
     like_count = serializers.IntegerField()
-    distance = serializers.SerializerMethodField()
 
     class Meta:
         model = Share
         fields = ['id', 'is_shared', 'image1', 'title',
-                  'text', 'created_at', 'like_count', 'distance']
-        # distance 반환은 하지만 안드에서 사용하지는 않을 것, 거리순 정렬용
-
-    def get_distance(self, obj):
-        data = self.context['request'].data
-
-        lat = data.get('latitude')
-        lon = data.get('longitude')
-
-        distance = check_distance(float(lat), float(lon), obj.region.latitude, obj.region.longitude)
-        return distance
+                  'text', 'created_at', 'like_count']
 
 
 class ShareCompleteSerializer(serializers.Serializer):
