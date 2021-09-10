@@ -99,6 +99,6 @@ class Share(Base):
 
 
 class Region(Base):
-    name = models.CharField(max_length=50)
-    latitude = models.FloatField(null=False)
-    longitude = models.FloatField(null=False)
+    sido = models.CharField(max_length=50)
+    sigungu = models.CharField(max_length=50)
+    dong = models.CharField(max_length=50)

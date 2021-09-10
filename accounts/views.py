@@ -1,5 +1,8 @@
 import datetime
 import json
+import random
+import time
+
 import requests
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -16,9 +19,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import Profile, User, EcoLevel
+from accounts.models import Profile, User, EcoLevel, SmsHistory, Certification
 from accounts.serializers import EcoRankingSerializer
 from bases.response import APIResponse
+from bases.utils import make_signature
 from posts.models import EcoCarping
 
 BASE_URL = "http://localhost:8000"
@@ -232,3 +236,80 @@ class EcoRankingView(APIView):
         return response.response(data=[EcoRankingSerializer(current_user).data,
                                        more_info,
                                        EcoRankingSerializer(eco, many=True).data])
+
+
+# 인증 문자 전송
+class SmsSendView(APIView):
+    def send_sms(self, phone_num, auth_num):
+        timestamp = str(int(time.time() * 1000))
+        headers = {
+            'Content-Type': "application/json; charset=UTF-8",
+            'x-ncp-apigw-timestamp': timestamp,  # 네이버 API 서버와 5분이상 시간차이 발생 시 오류
+            'x-ncp-iam-access-key': getattr(settings, 'NAVER_ACCESS_KEY'),
+            'x-ncp-apigw-signature-v2': make_signature(timestamp)
+        }
+        body = {
+            "type": "SMS",
+            "contentType": "COMM",
+            "from": "01072376542",
+            "content": f"[Carping(카핑)] 인증번호 [{auth_num}]를 입력해주세요.",
+            "messages": [{"to": f"{phone_num}"}]
+        }
+        body = json.dumps(body)
+        uri = f"https://sens.apigw.ntruss.com/sms/v2/services/{getattr(settings, 'NAVER_PROJECT_ID')}/messages"
+        response = requests.post(uri, headers=headers, data=body)
+
+        print(response.text)
+
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        phone_num = request.data.get('phone')
+
+        auth_num = random.randint(10000, 100000)  # 랜덤숫자 생성, 5자리
+
+        Profile.objects.filter(user=user).update(phone=phone_num)
+        SmsHistory.objects.create(user_id=user.pk)
+        SmsHistory.objects.filter(user_id=user.pk).update(auth_num=auth_num)
+
+        self.send_sms(phone_num=phone_num, auth_num=auth_num)
+
+        response.success = True
+        response.code = 200
+        return response.response(data=[{"message": "인증번호 발송"}])
+
+
+# 문자 인증번호와 사용자가 입력한 인증번호 비교
+class SMSVerificationView(APIView):
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        try:
+            auth_num = SmsHistory.objects.get(user_id=user.pk).auth_num
+            fail_count = SmsHistory.objects.get(user_id=user.pk, auth_num=auth_num).fail_count
+
+            if fail_count >= 3:
+                response.success = True
+                response.code = 200
+                return response.response(data=[{"message": "인증 문자 발송을 다시 요청해주세요."}])
+
+            # 유저 pk : user.pk -> SmsHistory.user_id에 저장,
+
+            if auth_num == request.data.get('auth_num'):
+                SmsHistory.objects.filter(user_id=user.pk, auth_num=auth_num).update(auth_num_check=auth_num)
+                Certification.objects.filter(user=user).update(authorized=True)
+                response.success = True
+                response.code = 200
+                return response.response(data=[{"message": "인증 완료"}])
+
+            else:
+                fail_count += 1
+                SmsHistory.objects.filter(user_id=user.pk, auth_num=auth_num).update(auth_num_check=auth_num,
+                                                                                     fail_count=fail_count)
+                response.success = True
+                response.code = 200
+                return response.response(data=[{"message": "인증 실패"}])
+
+        except Exception as e:
+            response.code = status.HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))

@@ -1,4 +1,6 @@
 import re
+from random import randint
+
 from allauth.socialaccount.models import SocialAccount
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -118,3 +120,10 @@ class Certification(Base):
     user = models.ForeignKey(User, on_delete=CASCADE, related_name="certification")
     marketing = models.BooleanField(default=1)
     authorized = models.BooleanField(default=0)
+
+
+class SmsHistory(Base):
+    user_id = models.IntegerField(verbose_name='유저 pk')
+    auth_num = models.IntegerField(verbose_name='인증 번호')
+    auth_num_check = models.IntegerField(verbose_name='인증 번호 확인', null=True)
+    fail_count = models.IntegerField(default=0, verbose_name='실패 횟수')
