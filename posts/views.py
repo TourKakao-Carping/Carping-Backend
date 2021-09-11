@@ -373,3 +373,10 @@ class ShareCompleteView(APIView):
                 return response.response(error_message=str(e))
         else:
             return response.response(error_message="'share_to_complete' field is required.")
+
+
+# 동네 검색 api
+# class RegionSearchView(APIView):
+#
+#     def post(self, request):
+#         response = APIResponse(success=False, code=400)

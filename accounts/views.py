@@ -260,6 +260,7 @@ class SmsSendView(APIView):
         body = json.dumps(body)
         uri = f"https://sens.apigw.ntruss.com/sms/v2/services/{getattr(settings, 'NAVER_PROJECT_ID')}/messages"
         response = requests.post(uri, headers=headers, data=body)
+        return response.text
 
     def post(self, request):
         response = APIResponse(success=False, code=400)
@@ -273,14 +274,18 @@ class SmsSendView(APIView):
 
         auth_num = random.randint(10000, 100000)  # 랜덤숫자 생성, 5자리
 
-        Profile.objects.filter(user=user).update(phone=phone_num)
-        self.send_sms(phone_num=phone_num, auth_num=auth_num)
+        send = self.send_sms(phone_num=phone_num, auth_num=auth_num)
 
-        SmsHistory.objects.create(user_id=user.pk, auth_num=auth_num)
+        if "success" in send:
+            Profile.objects.filter(user=user).update(phone=phone_num)
+            SmsHistory.objects.create(user_id=user.pk, auth_num=auth_num)
 
-        response.success = True
-        response.code = 200
-        return response.response(data=[{"message": "인증번호 발송"}])
+            response.success = True
+            response.code = 200
+            return response.response(data=[{"message": "인증번호 발송"}])
+
+        else:
+            return response.response(error_message=f"{send}")
 
 
 # 문자 인증번호와 사용자가 입력한 인증번호 비교

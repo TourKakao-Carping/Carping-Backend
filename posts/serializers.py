@@ -4,7 +4,7 @@ from taggit.serializers import TagListSerializerField, TaggitSerializer
 from bases.serializers import ModelSerializer
 from bases.utils import check_distance
 from comments.serializers import CommentSerializer
-from posts.models import EcoCarping, Post, Share
+from posts.models import EcoCarping, Post, Share, Region
 from camps.models import CampSite
 
 
@@ -157,6 +157,21 @@ class ShareSortSerializer(TaggitSerializer, ModelSerializer):
         model = Share
         fields = ['id', 'is_shared', 'image1', 'title',
                   'text', 'created_at', 'like_count']
+
+
+# 동네 검색 작업 중
+class SigunguSearchSerializer(ModelSerializer):
+
+    class Meta:
+        model = Region
+        fields = ['id', 'sido', 'sigungu']
+
+
+class DongSearchSerializer(ModelSerializer):
+
+    class Meta:
+        model = Region
+        fields = ['id', 'sido', 'sigungu', 'dong']
 
 
 class ShareCompleteSerializer(serializers.Serializer):
