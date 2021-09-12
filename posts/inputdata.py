@@ -14,15 +14,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 with open(os.path.join(BASE_DIR, 'secrets.json'), 'rb') as secret_file:
     secrets = json.load(secret_file)
 
-
-# wb = openpyxl.load_workbook(filename="C:/Users/최예원/Downloads/region.xlsx")
-# ws = wb.active
-
 # input 완료
 class InputRegionView(APIView):
     permission_classes = [AllowAny, ]
 
     def post(self, request):
+        # wb = openpyxl.load_workbook(filename="C:/Users/최예원/Downloads/region.xlsx")
+        # ws = wb.active
+
         response = APIResponse(success=False, code=400)
         host = secrets["DATABASES"]["default"]["HOST"]
         user = secrets["DATABASES"]["default"]["USER"]

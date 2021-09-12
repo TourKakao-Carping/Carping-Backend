@@ -159,19 +159,19 @@ class ShareSortSerializer(TaggitSerializer, ModelSerializer):
                   'text', 'created_at', 'like_count']
 
 
-# 동네 검색 작업 중
+# 동네 검색
 class SigunguSearchSerializer(ModelSerializer):
 
     class Meta:
         model = Region
-        fields = ['id', 'sido', 'sigungu']
+        fields = ['sido', 'sigungu']
 
 
 class DongSearchSerializer(ModelSerializer):
 
     class Meta:
         model = Region
-        fields = ['id', 'sido', 'sigungu', 'dong']
+        fields = ['sido', 'sigungu', 'dong']
 
 
 class ShareCompleteSerializer(serializers.Serializer):

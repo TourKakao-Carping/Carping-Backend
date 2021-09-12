@@ -13,6 +13,7 @@ urlpatterns = [
     path('eco-carping/like', EcoLike.as_view(), name='eco-carping-like'),
     path('share/sort',
          ShareSort.as_view(), name="share-sort"),
+    path('share/search', RegionSearchView.as_view(), name='region-search'),
     path('share/like', ShareLike.as_view(), name='share-like'),
     path('share/complete', ShareCompleteView.as_view(), name='share-complete'),
     # path('share/input-data', InputRegionView.as_view(), ),

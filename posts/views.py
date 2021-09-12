@@ -1,4 +1,5 @@
 import datetime
+from collections import OrderedDict
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -12,9 +13,9 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
 from bases.serializers import MessageSerializer
-from posts.models import EcoCarping, Post, Share
+from posts.models import EcoCarping, Post, Share, Region
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
-    ShareCompleteSerializer, ShareSortSerializer
+    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict, check_distance
 from bases.response import APIResponse
@@ -376,7 +377,49 @@ class ShareCompleteView(APIView):
 
 
 # 동네 검색 api
-# class RegionSearchView(APIView):
-#
-#     def post(self, request):
-#         response = APIResponse(success=False, code=400)
+class RegionSearchView(APIView):
+    @swagger_auto_schema(
+        operation_id=_("Search region in Share"),
+        operation_description=_("무료나눔 동네 검색"),
+        request_body=SigunguSearchSerializer,
+        tags=[_("posts"), ]
+    )
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+
+        sido = request.data.get('sido')
+        sigungu = request.data.get('sigungu')
+
+        sido_list = [_("강원도"), _("경기도"), _("경상남도"), _("경상북도"), _("광주광역시"),
+                _("대구광역시"), _("대전광역시"), _("부산광역시"), _("서울특별시"), _("세종특별자치시"),
+                _("울산광역시"), _("인천광역시"), _("전라남도"), _("전라북도"), _("제주특별자치도"),
+                _("충청남도"), _("충청북도"), ]
+
+        if 'sigungu' in request.data:
+            print("hi")
+            qs = Region.objects.filter(sigungu=sigungu)
+            data = DongSearchSerializer(qs, many=True).data
+
+            response.success = True
+            response.code = HTTP_200_OK
+            return response.response(data=data)
+
+        else:
+            if sido in sido_list:
+                qs = Region.objects.filter(sido=f"{sido}")
+                data = SigunguSearchSerializer(qs, many=True).data
+
+                result = []
+
+                for i in range(len(data)):
+                    if data[i] in result:
+                        pass
+                    else:
+                        result.append(data[i])
+
+                response.success = True
+                response.code = HTTP_200_OK
+                return response.response(data=result)
+
+            else:
+                return response.response(error_message="시도명이 잘못되었습니다.")
