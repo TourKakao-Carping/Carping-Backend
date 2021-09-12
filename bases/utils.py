@@ -1,3 +1,8 @@
+import base64
+import hashlib
+import hmac
+
+from django.conf import settings
 from haversine import haversine
 
 
@@ -69,3 +74,16 @@ def check_distance(user_lat, user_lon, camp_lat, camp_lon):
     distance = haversine(user_loc, camp_loc, unit='km')
 
     return round(distance, 2)
+
+
+def make_signature(timestamp):
+    access_key = getattr(settings, 'NAVER_ACCESS_KEY')
+    secret_key = getattr(settings, 'NAVER_SECRET_KEY')
+    secret_key = bytes(secret_key, 'UTF-8')
+
+    uri = f"/sms/v2/services/{getattr(settings, 'NAVER_PROJECT_ID')}/messages"
+
+    message = "POST" + " " + uri + "\n" + timestamp + "\n" + access_key
+    message = bytes(message, 'UTF-8')
+    signingKey = base64.b64encode(hmac.new(secret_key, message, digestmod=hashlib.sha256).digest())
+    return signingKey

@@ -1,5 +1,9 @@
 import datetime
 import json
+import random
+import re
+import time
+
 import requests
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -11,14 +15,16 @@ from rest_framework import status
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao import views as kakao_view
 from allauth.socialaccount.providers.google import views as google_view
+from rest_framework.permissions import AllowAny
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import Profile, User, EcoLevel
+from accounts.models import Profile, User, EcoLevel, SmsHistory, Certification
 from accounts.serializers import EcoRankingSerializer
 from bases.response import APIResponse
+from bases.utils import make_signature
 from posts.models import EcoCarping
 
 BASE_URL = "http://localhost:8000"
@@ -110,14 +116,11 @@ class GoogleLoginView(SocialLoginView):
         user = self.user
         profile_qs = Profile.objects.filter(user=user)
         if profile_qs.exists():
-            profile = profile_qs.first()
-            profile_image = profile.image
+            profile = profile_qs
         else:
-            profile_image = self.user.socialaccount_set.values(
-                "extra_data")[0].get("extra_data")['picture']
-            Profile.objects.update_or_create(image=profile_image, user=user)
+            profile = Profile.objects.update_or_create(user=user)
         profile_data = {
-            'image': profile_image,
+            'image': profile[0].image.url,
         }
         response = super().get_response()
 
@@ -170,13 +173,12 @@ class KakaoLoginView(SocialLoginView):
                 0].get("extra_data")
             kakao_account = extra_data.get("kakao_account")
             profile = kakao_account.get('profile')
-            profile_image = profile.get('profile_image_url')
             gender = profile.get('gender')
             profile = Profile.objects.create(
-                image=profile_image, gender=gender, user=user)
+                gender=gender, user=user)
 
         profile_data = {
-            "image": profile.image
+            "image": profile.image.url
         }
 
         response = super().get_response()
@@ -236,3 +238,85 @@ class EcoRankingView(APIView):
         return response.response(data=[EcoRankingSerializer(current_user).data,
                                        more_info,
                                        EcoRankingSerializer(eco, many=True).data])
+
+
+# 인증 문자 전송
+class SmsSendView(APIView):
+    def send_sms(self, phone_num, auth_num):
+        timestamp = str(int(time.time() * 1000))
+        headers = {
+            'Content-Type': "application/json; charset=UTF-8",
+            'x-ncp-apigw-timestamp': timestamp,  # 네이버 API 서버와 5분이상 시간차이 발생 시 오류
+            'x-ncp-iam-access-key': str(getattr(settings, 'NAVER_ACCESS_KEY')),
+            'x-ncp-apigw-signature-v2': make_signature(timestamp)
+        }
+        body = {
+            "type": "SMS",
+            "contentType": "COMM",
+            "from": "01072376542",
+            "content": f"[Carping(카핑)] 인증번호 [{auth_num}]를 입력해주세요.",
+            "messages": [{"to": f"{phone_num}"}]
+        }
+        body = json.dumps(body)
+        uri = f"https://sens.apigw.ntruss.com/sms/v2/services/{getattr(settings, 'NAVER_PROJECT_ID')}/messages"
+        response = requests.post(uri, headers=headers, data=body)
+        return response.text
+
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        phone_num = request.data.get('phone')
+
+        regex = re.compile('\d{11}')
+
+        if not regex.match(phone_num):
+            return response.response(error_message="휴대폰 번호는 '-' 없이 입력해주세요.")
+
+        auth_num = random.randint(10000, 100000)  # 랜덤숫자 생성, 5자리
+
+        send = self.send_sms(phone_num=phone_num, auth_num=auth_num)
+
+        if "success" in send:
+            Profile.objects.filter(user=user).update(phone=phone_num)
+            SmsHistory.objects.create(user_id=user.pk, auth_num=auth_num)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[{"message": "인증번호 발송"}])
+
+        else:
+            return response.response(error_message=f"{send}")
+
+
+# 문자 인증번호와 사용자가 입력한 인증번호 비교
+class SMSVerificationView(APIView):
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        try:
+            auth_num = SmsHistory.objects.get(user_id=user.pk).auth_num
+            fail_count = SmsHistory.objects.get(user_id=user.pk, auth_num=auth_num).fail_count
+
+            if fail_count >= 3:
+                response.success = True
+                response.code = 200
+                return response.response(data=[{"message": "인증 문자 발송을 다시 요청해주세요."}])
+
+            if str(auth_num) == str(request.data.get('auth_num')):
+                SmsHistory.objects.filter(user_id=user.pk, auth_num=auth_num).update(auth_num_check=auth_num)
+                Certification.objects.update_or_create(user=user, authorized=True)
+                response.success = True
+                response.code = 200
+                return response.response(data=[{"message": "인증 완료"}])
+
+            else:
+                fail_count += 1
+                SmsHistory.objects.filter(user_id=user.pk, auth_num=auth_num).update(
+                    auth_num_check=request.data.get('auth_num'), fail_count=fail_count)
+                response.success = True
+                response.code = 200
+                return response.response(data=[{"message": "인증 실패"}])
+
+        except Exception as e:
+            response.code = status.HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))

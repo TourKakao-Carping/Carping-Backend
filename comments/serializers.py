@@ -20,7 +20,7 @@ class ReviewSerializer(ModelSerializer):
         return data.user.username
 
     def get_profile(self, data):
-        return data.user.profile.get().image
+        return data.user.profile.get().image.url
 
     def get_created_at(self, data):
         return data.created_at.strftime("%Y. %m. %d")
@@ -49,7 +49,7 @@ class CommentSerializer(ModelSerializer):
         return data.user.username
 
     def get_profile(self, data):
-        return data.user.profile.get().image
+        return data.user.profile.get().image.url
 
     def get_level(self, data):
         return data.user.profile.get().level.level

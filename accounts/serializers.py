@@ -27,7 +27,7 @@ class EcoRankingSerializer(ModelSerializer):
         fields = ['id', 'username', 'image', 'level', 'badge', 'eco_count']
 
     def get_image(self, data):
-        return data.profile.get().image
+        return data.profile.get().image.url
 
     def get_level(self, data):
         if data.profile.get().level is None:
