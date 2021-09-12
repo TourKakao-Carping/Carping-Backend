@@ -198,7 +198,8 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         sort_obj.save()
 
         # self.perform_update(self.get_serializer_class)
+        change_obj = self.get_serializer(sort_obj)
 
         response.success = True
         response.code = 200
-        return response.response(data=ret.data)
+        return response.response(data=change_obj.data)
