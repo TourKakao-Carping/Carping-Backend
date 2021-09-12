@@ -119,6 +119,9 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
                 s3.delete_file(str(obj.image4))
                 obj.image4 = None
 
+    def swap_image(arr, i, j):
+        arr[i], arr[j] = arr[j], arr[i]
+
     def perform_update(self, serializer):
         return super().perform_update(serializer)
 
@@ -171,6 +174,30 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         obj.save()
 
         ret = super().partial_update(request, *args, **kwargs)
+
+        sort_obj = self.get_object()
+
+        arr = []
+
+        arr.append(sort_obj.image1)
+        arr.append(sort_obj.image2)
+        arr.append(sort_obj.image3)
+        arr.append(sort_obj.image4)
+
+        # j가 공백이고 j + 1에 이미지가 있을 경우
+        for i in reversed(range(len(arr))):  # 3, 2, 1, 0
+            for j in range(i):  # 2, 1, 0
+                if arr[j] == "" and not arr[j + 1] == "":
+                    arr[j], arr[j + 1] = arr[j + 1], arr[j]
+
+        sort_obj.image1 = arr[0]
+        sort_obj.image2 = arr[1]
+        sort_obj.image3 = arr[2]
+        sort_obj.image4 = arr[3]
+
+        sort_obj.save()
+
+        # self.perform_update(self.get_serializer_class)
 
         response.success = True
         response.code = 200
