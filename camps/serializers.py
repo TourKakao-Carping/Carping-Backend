@@ -47,6 +47,9 @@ class AutoCampSerializer(TaggitSerializer, ModelSerializer):
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
+        """
+        기존에 저장되어 있다면 이미지 삭제하고 다시 업로드
+        """
         fields = validated_data.keys()
 
         s3 = S3Client()
