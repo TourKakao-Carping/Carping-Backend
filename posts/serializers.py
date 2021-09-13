@@ -4,7 +4,7 @@ from rest_framework import serializers
 from taggit.serializers import TagListSerializerField, TaggitSerializer
 
 from bases.serializers import ModelSerializer
-from bases.utils import check_distance
+from bases.utils import check_distance, modify_created_time
 from comments.serializers import CommentSerializer
 from posts.models import EcoCarping, Post, Share, Region
 from camps.models import CampSite
@@ -39,7 +39,7 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
         return data.user.profile.get().image.url
 
     def get_created_at(self, data):
-        return data.created_at.strftime("%Y-%m-%d %H:%M")
+        return modify_created_time(data)
 
     def get_is_liked(self, data):
         # if data.like.count() == 0:
@@ -159,10 +159,7 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
         return data.region.dong
 
     def get_created_at(self, data):
-        # now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        # create_time = data.created_at.strftime("%Y-%m-%d %H:%M")
-        # print()
-        return data.created_at.strftime("%Y-%m-%d %H:%M")
+        return modify_created_time(data)
 
     def get_is_liked(self, data):
         if self.context['request'].user.eco_like.filter(id=data.id):
@@ -172,21 +169,18 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
 
 class SharePostSerializer(TaggitSerializer, ModelSerializer):
     tags = TagListSerializerField()
-    created_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Share
         fields = ['id', 'user', 'region', 'image1', 'image2',
                   'image3', 'image4', 'title', 'text', 'tags',
-                  'chat_addr', 'created_at']
-
-    def get_created_at(self, data):
-        return data.created_at.strftime("%Y-%m-%d %H:%M")
+                  'chat_addr']
 
 
 class ShareSortSerializer(TaggitSerializer, ModelSerializer):
     region = serializers.SerializerMethodField()
     like_count = serializers.IntegerField()
+    created_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Share
@@ -195,6 +189,9 @@ class ShareSortSerializer(TaggitSerializer, ModelSerializer):
 
     def get_region(self, data):
         return data.region.dong
+
+    def get_created_at(self, data):
+        return modify_created_time(data)
 
 
 class ShareCompleteSerializer(serializers.Serializer):

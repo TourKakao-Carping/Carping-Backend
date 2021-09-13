@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from accounts.serializers import EcoLevelSerializer
 from bases.serializers import ModelSerializer
+from bases.utils import modify_created_time
 from comments.models import Comment, Review
 
 
@@ -23,7 +24,7 @@ class ReviewSerializer(ModelSerializer):
         return data.user.profile.get().image.url
 
     def get_created_at(self, data):
-        return data.created_at.strftime("%Y. %m. %d")
+        return modify_created_time(data)
 
     def get_is_liked(self, data):
         # if data.like_count == 0:
@@ -58,7 +59,7 @@ class CommentSerializer(ModelSerializer):
         return EcoLevelSerializer(data.user.profile.get().level, read_only=True).data['image']
 
     def get_created_at(self, data):
-        return data.created_at.strftime("%Y-%m-%d %H:%M")
+        return modify_created_time(data)
 
 
 class ReviewLikeSerializer(serializers.Serializer):

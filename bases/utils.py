@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import hmac
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from haversine import haversine
@@ -87,3 +88,19 @@ def make_signature(timestamp):
     message = bytes(message, 'UTF-8')
     signingKey = base64.b64encode(hmac.new(secret_key, message, digestmod=hashlib.sha256).digest())
     return signingKey
+
+
+def modify_created_time(data):
+    time = datetime.now() - data.created_at
+
+    if time < timedelta(minutes=1):
+        return '방금 전'
+    elif time < timedelta(hours=1):
+        return str(int(time.seconds / 60)) + '분 전'
+    elif time < timedelta(days=1):
+        return str(int(time.seconds / 3600)) + '시간 전'
+    elif time < timedelta(days=30):
+        time = datetime.now().date() - data.created_at.date()
+        return str(time.days) + '일 전'
+    else:
+        return data.created_at.strftime("%Y년 %m월 %d일")
