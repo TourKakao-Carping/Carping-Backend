@@ -294,7 +294,7 @@ class SMSVerificationView(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         try:
-            auth_num = SmsHistory.objects.get(user_id=user.pk).auth_num
+            auth_num = SmsHistory.objects.filter(user_id=user.pk).order_by('-id')[0].auth_num
             fail_count = SmsHistory.objects.get(user_id=user.pk, auth_num=auth_num).fail_count
 
             if fail_count >= 3:
