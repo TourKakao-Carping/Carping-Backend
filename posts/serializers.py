@@ -159,9 +159,9 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
         return data.region.dong
 
     def get_created_at(self, data):
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        create_time = data.created_at.strftime("%Y-%m-%d %H:%M")
-        print()
+        # now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        # create_time = data.created_at.strftime("%Y-%m-%d %H:%M")
+        # print()
         return data.created_at.strftime("%Y-%m-%d %H:%M")
 
     def get_is_liked(self, data):

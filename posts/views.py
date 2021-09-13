@@ -225,8 +225,8 @@ class ShareSort(GenericAPIView):
 
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
-            serializer = [self.get_serializer(
-                queryset, many=True).data]
+            serializer = self.get_serializer(
+                queryset, many=True).data
 
             total_share = Share.objects.all().count()
             serializer.insert(0, {"total_share": total_share})  # 안드와 요청 방식 상의
