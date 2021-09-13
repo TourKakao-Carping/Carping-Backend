@@ -213,11 +213,11 @@ class ShareSort(GenericAPIView):
         data = self.request.data
         sort = data.get('sort')
 
-        if sort == 'recent':
-            if not 'count' in self.request.data:
-                return response.response(error_message="'count' field is required")
-            count = int(self.request.data.get('count', None))
+        if not 'count' in self.request.data:
+            return response.response(error_message="'count' field is required")
+        count = int(self.request.data.get('count', None))
 
+        if sort == 'recent':
             if count == 0:
                 qs = Share.objects.annotate(like_count=Count("like")).order_by('-created_at')
             elif count > 0:
@@ -236,7 +236,10 @@ class ShareSort(GenericAPIView):
             return response.response(data=serializer)
 
         if sort == 'popular':
-            qs = Share.objects.annotate(like_count=Count("like")).order_by('-like_count')
+            if count == 0:
+                qs = Share.objects.annotate(like_count=Count("like")).order_by('-like_count')
+            elif count > 0:
+                qs = Share.objects.annotate(like_count=Count("like")).order_by('-like_count')[:count]
 
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
