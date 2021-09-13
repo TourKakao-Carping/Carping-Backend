@@ -116,6 +116,21 @@ class PostLikeSerializer(serializers.Serializer):
     post_to_like = serializers.IntegerField(write_only=True)
 
 
+# 동네 검색
+class SigunguSearchSerializer(ModelSerializer):
+
+    class Meta:
+        model = Region
+        fields = ['sido', 'sigungu']
+
+
+class DongSearchSerializer(ModelSerializer):
+
+    class Meta:
+        model = Region
+        fields = ['id', 'sido', 'sigungu', 'dong']
+
+
 # 무료나눔
 class ShareSerializer(TaggitSerializer, ModelSerializer):
     username = serializers.SerializerMethodField()
@@ -150,6 +165,20 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
         return False
 
 
+class SharePostSerializer(TaggitSerializer, ModelSerializer):
+    tags = TagListSerializerField()
+    created_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Share
+        fields = ['id', 'user', 'region', 'image1', 'image2',
+                  'image3', 'image4', 'title', 'text', 'tags',
+                  'chat_addr', 'created_at']
+
+    def get_created_at(self, data):
+        return data.created_at.strftime("%Y-%m-%d %H:%M")
+
+
 class ShareSortSerializer(TaggitSerializer, ModelSerializer):
     like_count = serializers.IntegerField()
 
@@ -157,21 +186,6 @@ class ShareSortSerializer(TaggitSerializer, ModelSerializer):
         model = Share
         fields = ['id', 'is_shared', 'image1', 'title',
                   'text', 'created_at', 'like_count']
-
-
-# 동네 검색
-class SigunguSearchSerializer(ModelSerializer):
-
-    class Meta:
-        model = Region
-        fields = ['sido', 'sigungu']
-
-
-class DongSearchSerializer(ModelSerializer):
-
-    class Meta:
-        model = Region
-        fields = ['sido', 'sigungu', 'dong']
 
 
 class ShareCompleteSerializer(serializers.Serializer):

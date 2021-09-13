@@ -6,7 +6,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 from rest_framework.viewsets import GenericViewSet
 
 from bases.utils import check_str_digit
-from posts.serializers import AutoCampPostSerializer, EcoCarpingSerializer, ShareSerializer
+from posts.serializers import AutoCampPostSerializer, EcoCarpingSerializer, ShareSerializer, SharePostSerializer
 from posts.models import EcoCarping, Post, Share
 from bases.response import APIResponse
 from rest_framework.exceptions import MethodNotAllowed
@@ -65,11 +65,6 @@ class EcoCarpingViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin,
         image4 = request.data.get('image4')
 
         try:
-            # for i in range(1, 5):
-            #     setattr(mod, 'image{}'.format(i), request.data.get('image{}'.format(i), None))
-            #     img = 'image{}'.format(i)
-            #     if img is None:
-            #         eco.img.delete()
             if image1 is None:
                 eco.image1.delete()
             if image2 is None:
@@ -141,11 +136,16 @@ class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Crea
         response = APIResponse(success=False, code=400)
 
         try:
-            ret = super(ShareViewSet, self).create(request)
+            serializer = SharePostSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            latest = Share.objects.latest('id').id
+            result = Share.objects.get(id=latest)
+            serializer2 = self.get_serializer(result)
 
             response.success = True
             response.code = HTTP_200_OK
-            return response.response(data=[ret.data])
+            return response.response(data=[serializer2.data])
 
         except Exception as e:
             if not self.get_serializer(data=request.data).is_valid():

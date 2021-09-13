@@ -236,7 +236,7 @@ class ShareSort(GenericAPIView):
             return response.response(data=serializer)
 
         if sort == 'popular':
-            qs = Share.objects.annotate(like_count=Count("like")).order_by('like_count')
+            qs = Share.objects.annotate(like_count=Count("like")).order_by('-like_count')
 
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
