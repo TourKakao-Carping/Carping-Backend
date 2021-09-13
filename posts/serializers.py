@@ -185,12 +185,16 @@ class SharePostSerializer(TaggitSerializer, ModelSerializer):
 
 
 class ShareSortSerializer(TaggitSerializer, ModelSerializer):
+    region = serializers.SerializerMethodField()
     like_count = serializers.IntegerField()
 
     class Meta:
         model = Share
-        fields = ['id', 'is_shared', 'image1', 'title',
+        fields = ['id', 'region', 'is_shared', 'image1', 'title',
                   'text', 'created_at', 'like_count']
+
+    def get_region(self, data):
+        return data.region.dong
 
 
 class ShareCompleteSerializer(serializers.Serializer):

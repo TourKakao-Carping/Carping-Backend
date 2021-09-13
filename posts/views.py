@@ -243,8 +243,8 @@ class ShareSort(GenericAPIView):
 
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
-            serializer = [self.get_serializer(
-                queryset, many=True).data]
+            serializer = self.get_serializer(
+                queryset, many=True).data
 
             response.success = True
             response.code = HTTP_200_OK
