@@ -69,6 +69,8 @@ class GetAutoCampPostForWeekend(GenericAPIView):
 
 
 class EcoCarpingSort(GenericAPIView):
+    serializer_class = EcoCarpingSortSerializer
+
     def list(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
 
@@ -87,8 +89,8 @@ class EcoCarpingSort(GenericAPIView):
 
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
-            serializer = EcoCarpingSortSerializer(
-                custom_list(queryset), many=True).data
+            serializer = self.get_serializer(
+                queryset, many=True).data
 
             today_count = EcoCarping.objects.filter(
                 created_at__contains=datetime.date.today()).count()
@@ -98,41 +100,20 @@ class EcoCarpingSort(GenericAPIView):
             response.code = HTTP_200_OK
             return response.response(data=serializer)
 
-        if sort == 'distance':
-            if not 'latitude' in self.request.data or not 'longitude' in self.request.data:
-                return response.response(error_message="'latitude', 'longitude' fields are required")
-
-            queryset = EcoCarping.objects.all()
-            paginate(self, queryset)
-
-            list = []
-            for i in queryset:
-                distance = check_distance(float(data.get('latitude', None)),
-                                          float(data.get('longitude', None)),
-                                          float(i.latitude), float(i.longitude))
-                i = custom_dict(i)
-                i['distance'] = distance
-                list.append(i)
-            list.sort(key=(lambda x: x['distance']))
-
-            response.success = True
-            response.code = HTTP_200_OK
-            return response.response(data=EcoCarpingSortSerializer(list, many=True).data)
-
         if sort == 'popular':
             qs = EcoCarping.objects.annotate(
                 like_count=Count('like')).order_by('-like_count')
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
-            serializer = EcoCarpingSortSerializer(
-                custom_list(queryset), many=True)
+            serializer = self.get_serializer(
+                queryset, many=True)
 
             response.success = True
             response.code = HTTP_200_OK
             return response.response(data=serializer.data)
 
         else:
-            return response.response(error_message="INVALID_SORT - choices are <recent, distance, popular>")
+            return response.response(error_message="INVALID_SORT - choices are <recent, popular>")
 
     @swagger_auto_schema(
         operation_id=_("Sort EcoCarping(recent/distance/popular)"),

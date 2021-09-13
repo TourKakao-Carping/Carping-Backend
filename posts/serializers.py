@@ -51,6 +51,7 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
 
 class EcoCarpingSortSerializer(TaggitSerializer, ModelSerializer):
     username = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
 
     class Meta:
         model = EcoCarping
@@ -60,6 +61,9 @@ class EcoCarpingSortSerializer(TaggitSerializer, ModelSerializer):
         if type(data) == dict:
             return data['username']
         return data.user.username
+
+    def get_created_at(self, data):
+        return modify_created_time(data)
 
 
 class AutoCampPostSerializer(TaggitSerializer, ModelSerializer):
