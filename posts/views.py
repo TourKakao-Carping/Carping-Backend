@@ -380,8 +380,11 @@ class RegionSearchView(APIView):
                 _("충청남도"), _("충청북도"), ]
 
         if 'sigungu' in request.data:
-            print("hi")
-            qs = Region.objects.filter(sigungu=sigungu)
+            if sigungu == "":
+                qs = Region.objects.filter(sido=sido)
+            else:
+                qs = Region.objects.filter(sigungu=sigungu)
+
             data = DongSearchSerializer(qs, many=True).data
 
             response.success = True
