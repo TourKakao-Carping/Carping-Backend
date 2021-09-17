@@ -150,7 +150,7 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
 
     class Meta:
         model = Share
-        fields = ['id', 'user', 'username', 'profile', 'region',
+        fields = ['id', 'user', 'username', 'profile', 'region', 'is_shared',
                   'image1', 'image2', 'image3', 'image4', 'title', 'text', 'tags',
                   'chat_addr', 'created_at', 'comment', 'like_count', 'is_liked']
 
