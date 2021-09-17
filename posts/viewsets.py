@@ -1,5 +1,6 @@
 import sys
 
+from django.db.models import Count, Case, When
 from rest_framework import viewsets, status
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
@@ -121,11 +122,28 @@ class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Crea
     def retrieve(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
         try:
-            ret = super(ShareViewSet, self).retrieve(request)
+            qs = Share.objects
+
+            is_liked = qs.filter(like=request.user.pk)
+            liked_list = []
+
+            if is_liked.exists():
+                liked_list = is_liked.values_list("id", flat=True)
+
+            qs = qs.annotate(like_count=Count("like"),
+                             is_liked=Case(
+                                 When(
+                                     id__in=liked_list,
+                                     then=True
+                                 ), default=False
+                             )
+                             )
+
+            ret = self.get_serializer(qs.filter(id=self.get_object().id), many=True)
 
             response.success = True
             response.code = HTTP_200_OK
-            return response.response(data=[ret.data])
+            return response.response(data=ret.data)
 
         except Exception as e:
             response.success = False
@@ -141,6 +159,7 @@ class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Crea
             serializer.save()
             latest = Share.objects.latest('id').id
             result = Share.objects.get(id=latest)
+            result.is_liked = False
             serializer2 = self.get_serializer(result)
 
             response.success = True

@@ -145,7 +145,8 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
     comment = CommentSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
     created_at = serializers.SerializerMethodField()
-    is_liked = serializers.SerializerMethodField()
+    like_count = serializers.IntegerField()
+    is_liked = serializers.BooleanField()
 
     class Meta:
         model = Share
@@ -164,11 +165,6 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
 
     def get_created_at(self, data):
         return modify_created_time(data)
-
-    def get_is_liked(self, data):
-        if self.context['request'].user.eco_like.filter(id=data.id):
-            return True
-        return False
 
 
 class SharePostSerializer(TaggitSerializer, ModelSerializer):
