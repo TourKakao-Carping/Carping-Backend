@@ -172,3 +172,15 @@ class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Crea
                 return response.response(error_message=str(e))
             response.code = HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
+
+    def destroy(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+        try:
+            ret = super(ShareViewSet, self).destroy(request)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[ret.data])
+        except Exception as e:
+            response.code = HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
