@@ -1,12 +1,16 @@
 from django.core.validators import URLValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
+from django.db.models.fields.related import ForeignKey
 from taggit.managers import TaggableManager
 
 from accounts.models import User
 from bases.models import Base
 from bases.functions import upload_user_directory
 from camps.models import CampSite
+
+
+from django.utils.translation import ugettext_lazy as _
 
 
 class Post(Base):
@@ -101,3 +105,46 @@ class Region(Base):
     sido = models.CharField(max_length=50)
     sigungu = models.CharField(max_length=50, null=True)
     dong = models.CharField(max_length=50)
+
+
+class UserPost(Base):
+    title = models.CharField(max_length=100)
+    thumbnail = models.ImageField(
+        upload_to=upload_user_directory)
+
+    sub_title1 = models.CharField(max_length=100)
+    text1 = models.TextField()
+    image1 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+
+    sub_title2 = models.CharField(max_length=100, null=True, blank=True)
+    text2 = models.TextField(null=True, blank=True)
+    image2 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+
+    sub_title3 = models.CharField(max_length=100, null=True, blank=True)
+    text3 = models.TextField(null=True, blank=True)
+    image3 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+
+    sub_title4 = models.CharField(max_length=100, null=True, blank=True)
+    text4 = models.TextField(null=True, blank=True)
+    image4 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+
+    sub_title5 = models.CharField(max_length=100, null=True, blank=True)
+    text5 = models.TextField(null=True, blank=True)
+    image5 = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
+
+
+class UserPostInfo(Base):
+    author = models.ForeignKey(
+        User, on_delete=CASCADE, related_name="post_author")
+    pay_type = models.IntegerField(default=0, verbose_name=_("유/무료 여부"))
+    point = models.IntegerField(default=0, verbose_name=_("가격"))
+    info = models.CharField(max_length=100, verbose_name=_("포스트 소개"))
+    recommend_to = models.CharField(max_length=100, verbose_name=_("추천하는 대상"))
+    is_approved = models.BooleanField(default=0, verbose_name=_("관리자 승인여부"))
+    like = models.ManyToManyField(
+        User, related_name="userpost_like", blank=True)
