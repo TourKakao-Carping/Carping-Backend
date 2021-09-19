@@ -148,7 +148,10 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
             request.data.pop('image4')
 
         # is_null에 있는 숫자에 해당되는 image 필드에 기존 이미지 삭제처리
-        is_null = request.data.pop('is_null')
+        try:
+            is_null = request.data.pop('is_null')
+        except KeyError:
+            is_null = []
 
         if len(is_null) == 0:
             pass
@@ -202,4 +205,4 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
 
         response.success = True
         response.code = 200
-        return response.response(data=change_obj.data)
+        return response.response(data=[change_obj.data])
