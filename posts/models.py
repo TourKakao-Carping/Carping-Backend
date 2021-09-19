@@ -148,3 +148,31 @@ class UserPostInfo(Base):
     is_approved = models.BooleanField(default=0, verbose_name=_("관리자 승인여부"))
     like = models.ManyToManyField(
         User, related_name="userpost_like", blank=True)
+
+    def review_count(self):
+        return self.review.values().count()
+
+    def star1_avg(self):
+        if self.review_count() == 0:
+            return 0
+        return round(self.review.aggregate(models.Avg('star1'))['star1__avg'], 1)
+
+    def star2_avg(self):
+        if self.review_count() == 0:
+            return 0
+        return round(self.review.aggregate(models.Avg('star2'))['star2__avg'], 1)
+
+    def star3_avg(self):
+        if self.review_count() == 0:
+            return 0
+        return round(self.review.aggregate(models.Avg('star3'))['star3__avg'], 1)
+
+    def star4_avg(self):
+        if self.review_count() == 0:
+            return 0
+        return round(self.review.aggregate(models.Avg('star4'))['star4__avg'], 1)
+
+    def total_star_avg(self):
+        if self.review_count() == 0:
+            return 0
+        return round(self.review.aggregate(models.Avg('total_star'))['total_star__avg'], 1)
