@@ -16,6 +16,7 @@ urlpatterns = [
     path('share/like', ShareLike.as_view(), name='share-like'),
     path('share/complete', ShareCompleteView.as_view(), name='share-complete'),
     # path('share/input-data', InputRegionView.as_view(), ),
+    path('store', StoreListView.as_view(), name='store'),
 ]
 
 router = routers.DefaultRouter()

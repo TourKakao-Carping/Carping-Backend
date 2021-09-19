@@ -6,7 +6,7 @@ from taggit.serializers import TagListSerializerField, TaggitSerializer
 from bases.serializers import ModelSerializer
 from bases.utils import check_distance, modify_created_time
 from comments.serializers import CommentSerializer
-from posts.models import EcoCarping, Post, Share, Region
+from posts.models import EcoCarping, Post, Share, Region, Store
 from camps.models import CampSite
 
 
@@ -196,3 +196,9 @@ class ShareSortSerializer(TaggitSerializer, ModelSerializer):
 
 class ShareCompleteSerializer(serializers.Serializer):
     share_to_complete = serializers.IntegerField(write_only=True)
+
+
+class StoreSerializer(ModelSerializer):
+    class Meta:
+        model = Store
+        fields = ['id', 'item', 'image', 'price']
