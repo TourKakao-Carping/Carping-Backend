@@ -4,7 +4,7 @@ from django.db.models import Count, Case, When
 from rest_framework import viewsets, status
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from bases.utils import check_str_digit
 from posts.serializers import AutoCampPostSerializer, EcoCarpingSerializer, ShareSerializer, SharePostSerializer
@@ -136,10 +136,11 @@ class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Crea
                                      id__in=liked_list,
                                      then=True
                                  ), default=False
-                             )
-                             )
+            )
+            )
 
-            ret = self.get_serializer(qs.filter(id=self.get_object().id), many=True)
+            ret = self.get_serializer(
+                qs.filter(id=self.get_object().id), many=True)
 
             response.success = True
             response.code = HTTP_200_OK
