@@ -2,13 +2,16 @@ import requests
 
 from urllib.parse import urlencode, quote_plus
 
-from camps.models import AutoCamp, CampSite
+from camps.models import AutoCamp, CampSite, TourSite
 
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
 from django.conf import settings
 from django.db import transaction
+
+import xml.etree.ElementTree as ET
+import pymysql
 # 전체 num : 2649
 
 # 26개
@@ -19,6 +22,8 @@ column = ['name', 'lat', 'lon' 'animal', 'event', 'program', 'website', 'phone',
 json_column = ['facltNm', 'mapY', 'mapX', 'animalCmgCl', 'clturEvent', 'exprnProgrm', 'homepage', 'tel', 'addr1',
                'brazierCl', 'operDeCl', 'hvofBgnde', 'hvofEnddle', 'facltDivNm', 'prmisnDe', 'resveCl', 'toiletCo', 'swrmCo', 'induty', 'sbrsCl', 'sbrsEtc', 'operPdCl', 'firstImageUrl', 'doNm', 'themaEnvrnCl',  'eqpmnLendCl', 'gnrlSiteCo', 'autoSiteCo', 'glampSiteCo', 'caravSiteCo', 'indvdlCaravSiteCo', 'createdtime', 'modifiedtime']
 
+column_tour = ['type', 'image', 'lat', 'lon', 'name']
+json_column_tour = ['contenttypeid', 'firstimage', 'mapy', 'mapx', 'title']
 
 class InputDataAPIView(APIView):
     permission_classes = [AllowAny, ]
@@ -87,6 +92,48 @@ class InputDataAPIView(APIView):
                     27], main_glamcamp=input_data[28], main_caravan=input_data[29],
                 main_personal_caravan=input_data[30], created_at=created_at, updated_at=updated_at)
             i += 1
+
+        return JsonResponse({"input_items": i})
+
+
+class InputTourAPIView(APIView):
+    permission_classes = [AllowAny, ]
+
+    def get_data(self):
+        API_KEY = getattr(settings, "TOUR_API_KEY")
+        url = "http://api.visitkorea.or.kr/openapi/service/rest/KorService/areaBasedList"
+        queryParams = '?' + urlencode({quote_plus(
+            'numOfRows'): '27118',
+            quote_plus('MobileOS'): 'AND',
+            quote_plus('MobileApp'): 'Carping',
+            quote_plus('_type'): 'json',
+            quote_plus('ServiceKey'): ""}) + API_KEY
+
+        req = requests.get(url + queryParams)
+        req_json = req.json()
+        response = req_json['response']
+        body = response['body']
+        items = body['items']
+        item = items['item']
+        return item
+
+    @transaction.atomic
+    def post(self, request):
+        TourSite.objects.all().delete()
+
+        items = self.get_data()
+        i = 0
+        for item in items:
+            input_data = []
+            for num in range(len(json_column_tour)):
+                print(item.get(json_column_tour[num]))
+                input_data.append(item.get(json_column_tour[num]))
+
+            if input_data[0] != 32:
+                TourSite.objects.create(
+                    type=input_data[0], image=input_data[1], lat=input_data[2],
+                    lon=input_data[3], name=input_data[4])
+                i += 1
 
         return JsonResponse({"input_items": i})
 

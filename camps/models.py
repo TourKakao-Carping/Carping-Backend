@@ -109,3 +109,11 @@ class AutoCamp(Base):
         if self.review_count() == 0:
             return 0
         return round(self.review.aggregate(Avg('total_star'))['total_star__avg'], 1)
+
+
+class TourSite(Base):
+    type = models.IntegerField(null=True)
+    image = models.URLField(null=True)
+    lat = models.FloatField(null=True)
+    lon = models.FloatField(null=True)
+    name = models.CharField(max_length=255, null=True)
