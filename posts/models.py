@@ -176,3 +176,10 @@ class UserPostInfo(Base):
         if self.review_count() == 0:
             return 0
         return round(self.review.aggregate(models.Avg('total_star'))['total_star__avg'], 1)
+
+
+class Store(Base):
+    item = models.CharField(max_length=100)
+    image = models.ImageField(
+        upload_to='img/store/', null=True, blank=True)
+    price = models.CharField(max_length=100)

@@ -13,9 +13,9 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
 from bases.serializers import MessageSerializer
-from posts.models import EcoCarping, Post, Share, Region
+from posts.models import EcoCarping, Post, Share, Region, Store
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
-    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer
+    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict, check_distance
 from bases.response import APIResponse
@@ -410,3 +410,17 @@ class RegionSearchView(APIView):
 
             else:
                 return response.response(error_message="시도명이 잘못되었습니다.")
+
+
+# 스토어 리스트 반환 api
+class StoreListView(APIView):
+    def get(self, request):
+        response = APIResponse(success=False, code=400)
+
+        items = Store.objects.all()
+
+        data = StoreSerializer(items, many=True).data
+
+        response.success = True
+        response.code = HTTP_200_OK
+        return response.response(data=data)
