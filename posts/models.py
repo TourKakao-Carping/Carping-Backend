@@ -1,3 +1,4 @@
+from posts.managers import UserPostInfoManager
 from django.core.validators import URLValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
@@ -138,16 +139,26 @@ class UserPost(Base):
         upload_to=upload_user_directory, null=True, blank=True)
 
 
+PAY_CHOICES = (
+    (0, _("유료")),
+    (1, _("무료"))
+)
+
+
 class UserPostInfo(Base):
     author = models.ForeignKey(
         User, on_delete=CASCADE, related_name="post_author")
-    pay_type = models.IntegerField(default=0, verbose_name=_("유/무료 여부"))
+    user_post = models.ForeignKey(UserPost, on_delete=CASCADE)
+    pay_type = models.IntegerField(
+        default=0, choices=PAY_CHOICES, verbose_name=_("유/무료 여부"))
     point = models.IntegerField(default=0, verbose_name=_("가격"))
     info = models.CharField(max_length=100, verbose_name=_("포스트 소개"))
     recommend_to = models.CharField(max_length=100, verbose_name=_("추천하는 대상"))
     is_approved = models.BooleanField(default=0, verbose_name=_("관리자 승인여부"))
     like = models.ManyToManyField(
         User, related_name="userpost_like", blank=True)
+
+    objects = UserPostInfoManager()
 
     def review_count(self):
         return self.review.values().count()
@@ -173,6 +184,7 @@ class UserPostInfo(Base):
         return round(self.review.aggregate(models.Avg('star4'))['star4__avg'], 1)
 
     def total_star_avg(self):
+        print(self.review_count())
         if self.review_count() == 0:
             return 0
         return round(self.review.aggregate(models.Avg('total_star'))['total_star__avg'], 1)
