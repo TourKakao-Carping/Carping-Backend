@@ -6,7 +6,7 @@ from taggit.serializers import TagListSerializerField, TaggitSerializer
 from bases.serializers import ModelSerializer
 from bases.utils import check_distance, modify_created_time
 from comments.serializers import CommentSerializer
-from posts.models import EcoCarping, Post, Share, Region, Store
+from posts.models import EcoCarping, Post, Share, Region, Store, UserPostInfo
 from camps.models import CampSite
 
 
@@ -55,7 +55,8 @@ class EcoCarpingSortSerializer(TaggitSerializer, ModelSerializer):
 
     class Meta:
         model = EcoCarping
-        fields = ['id', 'user', 'username', 'image1', 'title', 'text', 'created_at']
+        fields = ['id', 'user', 'username',
+                  'image1', 'title', 'text', 'created_at']
 
     def get_username(self, data):
         if type(data) == dict:
@@ -202,3 +203,25 @@ class StoreSerializer(ModelSerializer):
     class Meta:
         model = Store
         fields = ['id', 'item', 'image', 'price']
+
+
+class UserPostAtoZSerializer(serializers.ModelSerializer):
+    thumbnail = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
+    is_liked = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        # id, thumnail, title, review, is_liked
+        model = UserPostInfo
+        fields = ['id', 'title', 'total_star_avg',
+                  'thumbnail', 'is_liked']
+
+    def get_thumbnail(self, instance):
+        request = self.context.get('request')
+        thumnail = instance.user_post.thumbnail
+
+        return request.build_absolute_uri(thumnail.url)
+
+    def get_title(self, instance):
+        title = instance.user_post.title
+        return title

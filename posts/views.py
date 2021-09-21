@@ -11,11 +11,12 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
+from rest_framework.mixins import ListModelMixin
 
 from bases.serializers import MessageSerializer
-from posts.models import EcoCarping, Post, Share, Region, Store
+from posts.models import EcoCarping, Post, Share, Region, Store, UserPostInfo
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
-    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer
+    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAtoZSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict, check_distance
 from bases.response import APIResponse
@@ -200,9 +201,11 @@ class ShareSort(GenericAPIView):
 
         if sort == 'recent':
             if count == 0:
-                qs = Share.objects.annotate(like_count=Count("like")).order_by('-created_at')
+                qs = Share.objects.annotate(
+                    like_count=Count("like")).order_by('-created_at')
             elif count > 0:
-                qs = Share.objects.annotate(like_count=Count("like")).order_by('-created_at')[:count]
+                qs = Share.objects.annotate(like_count=Count(
+                    "like")).order_by('-created_at')[:count]
 
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
@@ -218,9 +221,11 @@ class ShareSort(GenericAPIView):
 
         if sort == 'popular':
             if count == 0:
-                qs = Share.objects.annotate(like_count=Count("like")).order_by('-like_count')
+                qs = Share.objects.annotate(
+                    like_count=Count("like")).order_by('-like_count')
             elif count > 0:
-                qs = Share.objects.annotate(like_count=Count("like")).order_by('-like_count')[:count]
+                qs = Share.objects.annotate(like_count=Count(
+                    "like")).order_by('-like_count')[:count]
 
             queryset = self.filter_queryset(qs)
             paginate(self, queryset)
@@ -375,9 +380,11 @@ class RegionSearchView(APIView):
         sigungu = request.data.get('sigungu')
 
         sido_list = [_("강원도"), _("경기도"), _("경상남도"), _("경상북도"), _("광주광역시"),
-                _("대구광역시"), _("대전광역시"), _("부산광역시"), _("서울특별시"), _("세종특별자치시"),
-                _("울산광역시"), _("인천광역시"), _("전라남도"), _("전라북도"), _("제주특별자치도"),
-                _("충청남도"), _("충청북도"), ]
+                     _("대구광역시"), _("대전광역시"), _("부산광역시"), _(
+                         "서울특별시"), _("세종특별자치시"),
+                     _("울산광역시"), _("인천광역시"), _(
+                         "전라남도"), _("전라북도"), _("제주특별자치도"),
+                     _("충청남도"), _("충청북도"), ]
 
         if 'sigungu' in request.data:
             if sigungu == "":
@@ -424,3 +431,41 @@ class StoreListView(APIView):
         response.success = True
         response.code = HTTP_200_OK
         return response.response(data=data)
+
+
+class UserPostListAPIView(ListModelMixin, GenericAPIView):
+    serializer_class = UserPostAtoZSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        data = self.request.data
+
+        type = int(data.get('type'))
+
+        qs_type = UserPostInfo.objects.random_qs(10)
+
+        qs = qs_type.like_qs(user.pk)
+        return qs
+
+    def post(self, request):
+        """
+        type
+        1 : A부터 Z까지 리스트 (랜덤 10개)
+        2 : 차박 포스트 페이지 리스트 (카테고리별) -> 인기 TOP3, 차박에 관한 모든 것, 차에 맞는 차박여행
+        3 : 각 카테고리 리스트
+        """
+        data = request.data
+        user = request.user
+
+        response = APIResponse(success=False, code=400)
+
+        type = data.get('type')
+
+        if not check_str_digit(type):
+            response.code = status.HTTP_400_BAD_REQUEST
+            return response.response(error_message=_("Invalid type"))
+
+        list = super().list(request)
+
+        response.code = 200
+        return response.response(data=list.data)
