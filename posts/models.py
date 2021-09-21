@@ -140,8 +140,15 @@ class UserPost(Base):
 
 
 PAY_CHOICES = (
-    (0, _("유료")),
-    (1, _("무료"))
+    (0, _("무료")),
+    (1, _("유료")),
+)
+
+CATEGORY_CHOICES = (
+    (0, _("기본")),
+    (1, _("인기 TOP 3")),
+    (2, _("차박에 관한 모든 것")),
+    (3, _("차에 맞는 차박여행")),
 )
 
 
@@ -149,6 +156,9 @@ class UserPostInfo(Base):
     author = models.ForeignKey(
         User, on_delete=CASCADE, related_name="post_author")
     user_post = models.ForeignKey(UserPost, on_delete=CASCADE)
+    category = models.IntegerField(
+        default=0, choices=CATEGORY_CHOICES, verbose_name=_("카테고리")
+    )
     pay_type = models.IntegerField(
         default=0, choices=PAY_CHOICES, verbose_name=_("유/무료 여부"))
     point = models.IntegerField(default=0, verbose_name=_("가격"))
@@ -184,7 +194,6 @@ class UserPostInfo(Base):
         return round(self.review.aggregate(models.Avg('star4'))['star4__avg'], 1)
 
     def total_star_avg(self):
-        print(self.review_count())
         if self.review_count() == 0:
             return 0
         return round(self.review.aggregate(models.Avg('total_star'))['total_star__avg'], 1)

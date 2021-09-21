@@ -18,6 +18,9 @@ urlpatterns = [
     # path('share/input-data', InputRegionView.as_view(), ),
     path('store', StoreListView.as_view(), name='store'),
     path('user-post', UserPostListAPIView.as_view(), name="user-post"),
+    path('user-post/detail/<int:pk>',
+         UserPostDetailAPIView.as_view(), name="user-post"),
+
 ]
 
 router = routers.DefaultRouter()

@@ -1,3 +1,5 @@
+from posts.constants import A_TO_Z_LIST_NUM
+from bases.constants import POST_INFO_CATEGORY_LIST_NUM
 import datetime
 from collections import OrderedDict
 
@@ -11,7 +13,7 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
-from rest_framework.mixins import ListModelMixin
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 
 from bases.serializers import MessageSerializer
 from posts.models import EcoCarping, Post, Share, Region, Store, UserPostInfo
@@ -437,25 +439,37 @@ class UserPostListAPIView(ListModelMixin, GenericAPIView):
     serializer_class = UserPostAtoZSerializer
 
     def get_queryset(self):
-        user = self.request.user
-        data = self.request.data
-
-        type = int(data.get('type'))
-
-        qs_type = UserPostInfo.objects.random_qs(10)
-
-        qs = qs_type.like_qs(user.pk)
-        return qs
-
-    def post(self, request):
         """
         type
         1 : A부터 Z까지 리스트 (랜덤 10개)
         2 : 차박 포스트 페이지 리스트 (카테고리별) -> 인기 TOP3, 차박에 관한 모든 것, 차에 맞는 차박여행
         3 : 각 카테고리 리스트
         """
+
+        user = self.request.user
+        data = self.request.data
+
+        type = int(data.get('type'))
+
+        try:
+            category = int(data.get('category'))
+        except TypeError:
+            category = 0
+
+        if type == 1:
+            qs_type = UserPostInfo.objects.random_qs(A_TO_Z_LIST_NUM)
+        elif type == 2:
+            qs_type = UserPostInfo.objects.category_qs(
+                POST_INFO_CATEGORY_LIST_NUM)
+        else:
+            qs_type = UserPostInfo.objects.filter(category=category)
+
+        qs = qs_type.like_qs(user.pk)
+
+        return qs
+
+    def post(self, request):
         data = request.data
-        user = request.user
 
         response = APIResponse(success=False, code=400)
 
@@ -468,4 +482,10 @@ class UserPostListAPIView(ListModelMixin, GenericAPIView):
         list = super().list(request)
 
         response.code = 200
+        response.success = True
         return response.response(data=list.data)
+
+
+class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)

@@ -1,3 +1,4 @@
+from bases.constants import POST_INFO_CATEGORY_LIST_NUM
 import random
 
 from django.db import models
@@ -28,6 +29,31 @@ class UserPostInfoQuerySet(models.QuerySet):
             i += 1
 
         return self.all().filter(id__in=pk_arr)
+
+    # category function
+    # type -> "top3", "carcamp", "campforcar"
+    def get_list(self, qs_all, category, count):
+        qs = qs_all.filter(category=category)
+
+        if qs.exists():
+            qs_count = qs.count()
+            if qs_count < POST_INFO_CATEGORY_LIST_NUM:
+                return qs[:qs_count]
+            else:
+                return qs[:count]
+        else:
+            return False
+
+    def category_qs(self, count):
+        qs_all = self.all()
+
+        qs_arr = []
+        for i in range(1, 4):
+            qs_arr.append(self.get_list(qs_all, i, count))
+
+        qs = qs_arr[0] | qs_arr[1] | qs_arr[2]
+
+        return qs
 
     def like_qs(self, user_pk):
         qs = self.prefetch_related('like')

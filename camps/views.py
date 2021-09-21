@@ -49,11 +49,9 @@ class GetPopularSearchList(APIView):
             qs2 = AutoCamp.objects.ordering_views(count)
 
             qs = self.check_popular_views(qs1, qs2)
-            print(qs[:3])
             return qs
 
     def post(self, request):
-        print(self.get_queryset())
         return JsonResponse("hi", safe=False)
 
 
