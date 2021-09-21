@@ -14,3 +14,6 @@ class UserPostInfoManager(models.Manager):
 
     def random_qs(self, count):
         return self.get_queryset().random_qs(count)
+
+    def category_qs(self, count):
+        return self.get_queryset().category_qs(count)

@@ -209,12 +209,17 @@ class UserPostAtoZSerializer(serializers.ModelSerializer):
     thumbnail = serializers.SerializerMethodField()
     title = serializers.SerializerMethodField()
     is_liked = serializers.BooleanField(read_only=True)
+    author = serializers.SerializerMethodField()
+    # pay_type = serializers.ChoiceField()
 
     class Meta:
         # id, thumnail, title, review, is_liked
         model = UserPostInfo
-        fields = ['id', 'title', 'total_star_avg',
-                  'thumbnail', 'is_liked']
+        fields = ['id', 'title', 'total_star_avg', 'author',
+                  'thumbnail', 'is_liked', 'category', 'pay_type', 'point']
+
+    def get_author(self, instance):
+        return instance.author.username
 
     def get_thumbnail(self, instance):
         request = self.context.get('request')
