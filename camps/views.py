@@ -235,6 +235,10 @@ class CampSiteDetailAPIView(RetrieveModelMixin, GenericAPIView):
         try:
             ret = super(CampSiteDetailAPIView, self).retrieve(request)
 
+            obj = self.get_object()
+            obj.views += 1
+            obj.save()
+
             response.success = True
             response.code = status.HTTP_200_OK
             return response.response(data=[ret.data])

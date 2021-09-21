@@ -12,6 +12,10 @@ cache:
   directories:
     - "$HOME/.m2/repository"
     - "$HOME/.gradle"
+# safelist
+branches:
+  only:
+    - main
 before_deploy:
   - zip -r aws-carping ./*
   - mkdir -p dpl_cd_upload
