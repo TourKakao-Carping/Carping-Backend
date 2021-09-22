@@ -230,3 +230,9 @@ class UserPostAtoZSerializer(serializers.ModelSerializer):
     def get_title(self, instance):
         title = instance.user_post.title
         return title
+
+
+class UserPostDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPostInfo
+        fields = '__all__'

@@ -1,13 +1,13 @@
-from posts.constants import A_TO_Z_LIST_NUM
-from bases.constants import POST_INFO_CATEGORY_LIST_NUM
 import datetime
+
+from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
 from collections import OrderedDict
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from haversine import haversine
 
-from django.db.models import Count
+from django.db.models import Count, query
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -18,7 +18,7 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from bases.serializers import MessageSerializer
 from posts.models import EcoCarping, Post, Share, Region, Store, UserPostInfo
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
-    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAtoZSerializer
+    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAtoZSerializer, UserPostDetailSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict, check_distance
 from bases.response import APIResponse
@@ -487,5 +487,11 @@ class UserPostListAPIView(ListModelMixin, GenericAPIView):
 
 
 class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
+    queryset = UserPostInfo.objects.all()
+    serializer_class = UserPostDetailSerializer
+
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+
+    def get(self, request, pk):
+        return self.retrieve(request)
