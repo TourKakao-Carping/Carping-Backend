@@ -7,8 +7,9 @@ from taggit.managers import TaggableManager
 
 from accounts.models import User
 from bases.models import Base
-from bases.functions import upload_user_directory
+from bases.functions import upload_user_directory, upload_user_directory_userpost
 from camps.models import CampSite
+from posts.constants import *
 
 
 from django.utils.translation import ugettext_lazy as _
@@ -66,13 +67,6 @@ class EcoCarping(Base):
     tags = TaggableManager(blank=True)
     like = models.ManyToManyField(
         User, related_name="eco_like", blank=True)
-    TRASH_CHOICES = (
-        ('20L', '20L'),
-        ('10L', '10L'),
-        ('5L', '5L'),
-        ('3L', '3L'),
-        ('3L 이하', '3L 이하'),
-    )
     trash = models.CharField(
         max_length=10, choices=TRASH_CHOICES, null=True, blank=True)
 
@@ -111,45 +105,35 @@ class Region(Base):
 class UserPost(Base):
     title = models.CharField(max_length=100)
     thumbnail = models.ImageField(
-        upload_to=upload_user_directory)
+        upload_to=upload_user_directory_userpost)
 
     sub_title1 = models.CharField(max_length=100)
     text1 = models.TextField()
     image1 = models.ImageField(
-        upload_to=upload_user_directory, null=True, blank=True)
+        upload_to=upload_user_directory_userpost, null=True, blank=True)
 
     sub_title2 = models.CharField(max_length=100, null=True, blank=True)
     text2 = models.TextField(null=True, blank=True)
     image2 = models.ImageField(
-        upload_to=upload_user_directory, null=True, blank=True)
+        upload_to=upload_user_directory_userpost, null=True, blank=True)
 
     sub_title3 = models.CharField(max_length=100, null=True, blank=True)
     text3 = models.TextField(null=True, blank=True)
     image3 = models.ImageField(
-        upload_to=upload_user_directory, null=True, blank=True)
+        upload_to=upload_user_directory_userpost, null=True, blank=True)
 
     sub_title4 = models.CharField(max_length=100, null=True, blank=True)
     text4 = models.TextField(null=True, blank=True)
     image4 = models.ImageField(
-        upload_to=upload_user_directory, null=True, blank=True)
+        upload_to=upload_user_directory_userpost, null=True, blank=True)
 
     sub_title5 = models.CharField(max_length=100, null=True, blank=True)
     text5 = models.TextField(null=True, blank=True)
     image5 = models.ImageField(
-        upload_to=upload_user_directory, null=True, blank=True)
+        upload_to=upload_user_directory_userpost, null=True, blank=True)
 
-
-PAY_CHOICES = (
-    (0, _("무료")),
-    (1, _("유료")),
-)
-
-CATEGORY_CHOICES = (
-    (0, _("기본")),
-    (1, _("인기 TOP 3")),
-    (2, _("차박에 관한 모든 것")),
-    (3, _("차에 맞는 차박여행")),
-)
+    def __str__(self):
+        return self.title
 
 
 class UserPostInfo(Base):
@@ -197,6 +181,9 @@ class UserPostInfo(Base):
         if self.review_count() == 0:
             return 0
         return round(self.review.aggregate(models.Avg('total_star'))['total_star__avg'], 1)
+
+    def __str__(self):
+        return self.user_post.title
 
 
 class Store(Base):
