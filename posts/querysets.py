@@ -1,4 +1,4 @@
-from bases.constants import POST_INFO_CATEGORY_LIST_NUM
+from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
 import random
 
 from django.db import models
@@ -24,7 +24,7 @@ class UserPostInfoQuerySet(models.QuerySet):
         pk_arr = []
 
         i = 0
-        while i < 2:
+        while i < A_TO_Z_LIST_NUM:
             pk_arr.append(random.randint(min_id, max_id))
             i += 1
 
@@ -42,10 +42,10 @@ class UserPostInfoQuerySet(models.QuerySet):
             else:
                 return qs[:count]
         else:
-            return False
+            return qs
 
     def category_qs(self, count):
-        qs_all = self.all()
+        qs_all = self.all().filter(is_approved=True)
 
         qs_arr = []
         for i in range(1, 4):
