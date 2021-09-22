@@ -15,6 +15,7 @@ urlpatterns = [
     path('posts/', include('posts.urls')),
     path('comments/', include('comments.urls')),
     path('mypage/', include('mypage.urls')),
+    path('search/', include('search.urls')),
 ]
 
 # Swagger

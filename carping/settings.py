@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'camps',
     'posts',
     'comments',
+    'search',
     'taggit',
     'taggit_serializer',
     # swagger

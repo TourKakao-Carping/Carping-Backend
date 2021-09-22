@@ -119,18 +119,16 @@ class InputTourAPIView(APIView):
 
     @transaction.atomic
     def post(self, request):
-        TourSite.objects.all().delete()
 
         items = self.get_data()
         i = 0
         for item in items:
             input_data = []
             for num in range(len(json_column_tour)):
-                print(item.get(json_column_tour[num]))
                 input_data.append(item.get(json_column_tour[num]))
 
             if input_data[0] != 32:
-                TourSite.objects.create(
+                TourSite.objects.update_or_create(
                     type=input_data[0], image=input_data[1], lat=input_data[2],
                     lon=input_data[3], name=input_data[4])
                 i += 1
