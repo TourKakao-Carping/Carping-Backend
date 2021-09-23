@@ -10,7 +10,7 @@ class AutoCampSearchSerializer(ModelSerializer):
 
     class Meta:
         model = AutoCamp
-        fields = ['id', 'image1', 'latitude', 'longitude', 'title', 'text', 'distance']
+        fields = ['id', 'user', 'image1', 'latitude', 'longitude', 'title', 'text', 'distance']
 
     def get_distance(self, obj):
         data = self.context['request'].data
