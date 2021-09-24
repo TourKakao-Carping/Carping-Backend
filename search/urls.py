@@ -4,7 +4,8 @@ from search.views import *
 
 urlpatterns = [
     path('map', ToursiteSearchView.as_view(), name='map-search'),
-    path('map/auto-camp', AutoCampMapView.as_view(), name='map-auto-camp')
+    path('map/auto-camp', AutoCampMapView.as_view(), name='map-auto-camp'),
+    path('region', RegionTourView.as_view(), name='region-popular-campsite'),
 ]
 
 router = routers.DefaultRouter()
