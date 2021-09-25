@@ -16,12 +16,12 @@ PAY_CHOICES = (
 
 CATEGORY_CHOICES = (
     (0, _("기본")),
-    (1, _("인기 TOP 3")),
+    (1, _("초보 차박러를 위한 포스트")),
     (2, _("차박에 관한 모든 것")),
     (3, _("차에 맞는 차박여행")),
 )
 
 
-A_TO_Z_LIST_NUM = 2
+A_TO_Z_LIST_NUM = 3
 
 POST_INFO_CATEGORY_LIST_NUM = 3

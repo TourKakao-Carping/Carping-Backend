@@ -13,9 +13,6 @@ class UserPostInfoQuerySet(models.QuerySet):
     차에 맞는 차박여행
     """
 
-    # def a_to_z(self):
-    # self.all().
-
     def random_qs(self, count):
         range = self.all().aggregate(max_id=Max("id"), min_id=Min("id"))
         max_id = range["max_id"]
@@ -31,33 +28,22 @@ class UserPostInfoQuerySet(models.QuerySet):
         return self.all().filter(id__in=pk_arr)
 
     # category function
-    # type -> "top3", "carcamp", "campforcar"
-    def get_list(self, qs_all, category, count):
+    # type -> "newbie", "carcamp", "campforcar"
+    def get_list(self, qs_all, category, count, user_pk):
         qs = qs_all.filter(category=category)
+        qs = qs.like_qs(user_pk)
 
         if qs.exists():
             qs_count = qs.count()
-            if qs_count < POST_INFO_CATEGORY_LIST_NUM:
+            if qs_count < count:
                 return qs[:qs_count]
             else:
                 return qs[:count]
         else:
             return qs
 
-    def category_qs(self, count):
-        qs_all = self.all().filter(is_approved=True)
-
-        qs_arr = []
-        for i in range(1, 4):
-            qs_arr.append(self.get_list(qs_all, i, count))
-
-        qs = qs_arr[0] | qs_arr[1] | qs_arr[2]
-
-        return qs
-
     def like_qs(self, user_pk):
         qs = self.prefetch_related('like')
-
         is_liked = qs.filter(like=user_pk)
 
         liked_list = []
@@ -73,5 +59,16 @@ class UserPostInfoQuerySet(models.QuerySet):
             ), default=False
         )
         )
+
+        return qs
+
+    def category_qs(self, count, user_pk):
+        qs_all = self.all().filter(is_approved=True)
+
+        qs_arr = []
+        for i in range(1, 4):
+            qs_arr.append(self.get_list(qs_all, i, count, user_pk))
+
+        qs = qs_arr[0].union(qs_arr[1]).union(qs_arr[2])
 
         return qs

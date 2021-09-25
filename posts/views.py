@@ -442,7 +442,7 @@ class UserPostListAPIView(ListModelMixin, GenericAPIView):
         """
         type
         1 : A부터 Z까지 리스트 (랜덤 10개)
-        2 : 차박 포스트 페이지 리스트 (카테고리별) -> 인기 TOP3, 차박에 관한 모든 것, 차에 맞는 차박여행
+        2 : 차박 포스트 페이지 리스트 (카테고리별) -> 초보 차박러를 위한 포스트, 차박에 관한 모든 것, 차에 맞는 차박여행
         3 : 각 카테고리 리스트
         """
 
@@ -459,8 +459,11 @@ class UserPostListAPIView(ListModelMixin, GenericAPIView):
         if type == 1:
             qs_type = UserPostInfo.objects.random_qs(A_TO_Z_LIST_NUM)
         elif type == 2:
-            qs_type = UserPostInfo.objects.category_qs(
-                POST_INFO_CATEGORY_LIST_NUM)
+            qs = UserPostInfo.objects.category_qs(
+                POST_INFO_CATEGORY_LIST_NUM, user.pk)
+
+            return qs
+
         else:
             qs_type = UserPostInfo.objects.filter(category=category)
 
