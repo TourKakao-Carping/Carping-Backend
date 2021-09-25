@@ -17,3 +17,6 @@ class UserPostInfoManager(models.Manager):
 
     def category_qs(self, count, user_pk):
         return self.get_queryset().category_qs(count, user_pk)
+
+    def user_post_info_detail(self):
+        return self.get_queryset().user_post_info_detail()

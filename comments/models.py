@@ -15,7 +15,7 @@ class Review(Base):
         AutoCamp, on_delete=CASCADE, related_name="review", null=True, blank=True)
     post = models.ForeignKey(Post, on_delete=CASCADE,
                              related_name="review", null=True, blank=True)
-    userpost = models.ForeignKey(
+    userpostinfo = models.ForeignKey(
         UserPostInfo, on_delete=CASCADE, related_name="review", null=True, blank=True)
     text = models.TextField()
     image = models.ImageField(
@@ -32,6 +32,22 @@ class Review(Base):
 
     def like_count(self):
         return self.like.values().count()
+
+    def __str__(self):
+        if not self.post == None:
+            category = "Post"
+            title = self.post.title
+        elif not self.autocamp == None:
+            category = "Autocamp"
+            title = self.autocamp.title
+        elif not self.userpostinfo == None:
+            category = "UserPostInfo"
+            title = self.userpostinfo.user_post.title
+        else:
+            category = "Undefined Category"
+            title = "Undefined Comment"
+
+        return f"{category} | {title}"
 
 
 class Comment(Base):
