@@ -435,7 +435,7 @@ class StoreListView(APIView):
         return response.response(data=data)
 
 
-class UserPostListAPIView(ListModelMixin, GenericAPIView):
+class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
     # serializer_class = UserPostListSerializer
 
     def get_serializer_class(self):
@@ -499,6 +499,18 @@ class UserPostListAPIView(ListModelMixin, GenericAPIView):
         response.code = 200
         response.success = True
         return response.response(data=list.data)
+
+
+class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    def get(self, request, pk):
+        return self.retrieve(request)
 
 
 class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
