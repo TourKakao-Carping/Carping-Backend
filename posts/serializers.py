@@ -1,3 +1,5 @@
+from django.db.models.aggregates import Avg
+from comments.models import Review
 import datetime
 
 from rest_framework import serializers
@@ -7,8 +9,8 @@ from bases.serializers import ModelSerializer
 from bases.utils import check_distance, modify_created_time
 from bases.s3 import S3Client
 
-from comments.serializers import CommentSerializer
-from posts.models import EcoCarping, Post, Share, Region, Store, UserPostInfo
+from comments.serializers import CommentSerializer, ReviewSerializer
+from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo
 from camps.models import CampSite
 
 
@@ -265,7 +267,28 @@ class UserPostAddProfileSerializer(UserPostListSerializer):
                   'thumbnail', 'is_liked', 'category', 'pay_type', 'point', 'user_profile']
 
 
-class UserPostDetailSerializer(serializers.ModelSerializer):
+class UserPostInfoDetailSerializer(serializers.ModelSerializer):
+    thumbnail = serializers.URLField(read_only=True)
+    review = ReviewSerializer(many=True, read_only=True)
+    is_liked = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = UserPostInfo
+        fields = ['title', 'point', 'review', 'star1_avg',
+                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count']
+
+    def get_my_star_avg(self, data):
+        if not Review.objects.filter(user=self.context['request'].user, userpostinfo=data):
+            return 0
+        else:
+            return round(Review.objects.filter(user=self.context['request'].user, userpostinfo=data).aggregate(
+                Avg('total_star'))['total_star__avg'], 1)
+
+    def get_my_review_count(self, data):
+        return data.review.filter(user=self.context['request'].user).count()
+
+
+class UserPostDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPost
         fields = '__all__'
