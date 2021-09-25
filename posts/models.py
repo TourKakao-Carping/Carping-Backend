@@ -147,6 +147,7 @@ class UserPostInfo(Base):
         default=0, choices=PAY_CHOICES, verbose_name=_("유/무료 여부"))
     point = models.IntegerField(default=0, verbose_name=_("가격"))
     info = models.CharField(max_length=100, verbose_name=_("포스트 소개"))
+    kakao_openchat_url = models.URLField(null=True, blank=True)
     author_comment = models.CharField(
         max_length=100, verbose_name=_("작가의 한마디"))
     recommend_to = models.CharField(max_length=100, verbose_name=_("추천하는 대상"))
