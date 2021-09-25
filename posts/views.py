@@ -7,7 +7,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from haversine import haversine
 
-from django.db.models import Count, query
+from django.db.models import Count, query, F
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -18,7 +18,7 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from bases.serializers import MessageSerializer
 from posts.models import EcoCarping, Post, Share, Region, Store, UserPostInfo
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
-    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAtoZSerializer, UserPostDetailSerializer
+    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAddProfileSerializer, UserPostListSerializer, UserPostDetailSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict, check_distance
 from bases.response import APIResponse
@@ -436,7 +436,17 @@ class StoreListView(APIView):
 
 
 class UserPostListAPIView(ListModelMixin, GenericAPIView):
-    serializer_class = UserPostAtoZSerializer
+    # serializer_class = UserPostListSerializer
+
+    def get_serializer_class(self):
+        data = self.request.data
+
+        type = int(data.get('type'))
+
+        if type == 1:
+            return UserPostAddProfileSerializer
+        else:
+            return UserPostListSerializer
 
     def get_queryset(self):
         """
@@ -463,9 +473,11 @@ class UserPostListAPIView(ListModelMixin, GenericAPIView):
                 POST_INFO_CATEGORY_LIST_NUM, user.pk)
 
             return qs
-
         else:
             qs_type = UserPostInfo.objects.filter(category=category)
+
+        qs_type = qs_type.select_related('author').prefetch_related(
+            'author__profile').annotate(user_profile=F("author__profile__image"))
 
         qs = qs_type.like_qs(user.pk)
 

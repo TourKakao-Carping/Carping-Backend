@@ -230,12 +230,11 @@ class StoreSerializer(ModelSerializer):
         fields = ['id', 'item', 'image', 'price']
 
 
-class UserPostAtoZSerializer(serializers.ModelSerializer):
+class UserPostListSerializer(serializers.ModelSerializer):
     thumbnail = serializers.SerializerMethodField()
     title = serializers.SerializerMethodField()
     is_liked = serializers.BooleanField(read_only=True)
     author = serializers.SerializerMethodField()
-    # pay_type = serializers.ChoiceField()
 
     class Meta:
         # id, thumnail, title, review, is_liked
@@ -255,6 +254,15 @@ class UserPostAtoZSerializer(serializers.ModelSerializer):
     def get_title(self, instance):
         title = instance.user_post.title
         return title
+
+
+class UserPostAddProfileSerializer(UserPostListSerializer):
+    user_profile = serializers.URLField()
+
+    class Meta:
+        model = UserPostInfo
+        fields = ['id', 'title', 'total_star_avg', 'author',
+                  'thumbnail', 'is_liked', 'category', 'pay_type', 'point', 'user_profile']
 
 
 class UserPostDetailSerializer(serializers.ModelSerializer):
