@@ -151,6 +151,7 @@ class UserPostInfo(Base):
     is_approved = models.BooleanField(default=0, verbose_name=_("관리자 승인여부"))
     like = models.ManyToManyField(
         User, related_name="userpost_like", blank=True)
+    views = models.IntegerField(default=0)
 
     objects = UserPostInfoManager()
 

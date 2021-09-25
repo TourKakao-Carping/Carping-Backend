@@ -5,6 +5,8 @@ from taggit.serializers import TagListSerializerField, TaggitSerializer
 
 from bases.serializers import ModelSerializer
 from bases.utils import check_distance, modify_created_time
+from bases.s3 import S3Client
+
 from comments.serializers import CommentSerializer
 from posts.models import EcoCarping, Post, Share, Region, Store, UserPostInfo
 from camps.models import CampSite
@@ -47,6 +49,29 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
         if self.context['request'].user.eco_like.filter(id=data.id):
             return True
         return False
+
+    def update(self, instance, validated_data):
+        """
+        기존에 저장되어 있다면 이미지 삭제하고 다시 업로드
+        """
+        fields = validated_data.keys()
+        s3 = S3Client()
+
+        for key in fields:
+            if key == "image1":
+                if not instance.image1 == "" and not instance.image1 == None:
+                    s3.delete_file(str(instance.image1))
+            elif key == "image2":
+                if not instance.image2 == "" and not instance.image2 == None:
+                    s3.delete_file(str(instance.image2))
+            elif key == "image3":
+                if not instance.image3 == "" and not instance.image3 == None:
+                    s3.delete_file(str(instance.image3))
+            else:
+                if not instance.image4 == "" and not instance.image4 == None:
+                    s3.delete_file(str(instance.image4))
+
+        return super().update(instance, validated_data)
 
 
 class EcoCarpingSortSerializer(TaggitSerializer, ModelSerializer):
