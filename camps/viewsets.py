@@ -54,49 +54,6 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
 
-    # def update(self, request, *args, **kwargs):
-    #     print("1")
-    #     response = APIResponse(success=False, code=400)
-    #     auto = self.get_object()
-    #     # print(auto)
-    #     lat = request.data.get('latitude')
-    #     lon = request.data.get('longitude')
-    #     image1 = request.data.get('image1')
-    #     image2 = request.data.get('image2')
-    #     image3 = request.data.get('image3')
-    #     image4 = request.data.get('image4')
-
-    #     try:
-    #         if image1 is None:
-    #             auto.image1.delete()
-    #         if image2 is None:
-    #             auto.image2.delete()
-    #         if image3 is None:
-    #             auto.image3.delete()
-    #         if image4 is None:
-    #             auto.image4.delete()
-
-    #         if check_str_digit(lat) and check_str_digit(lon):
-    #             float(lat)
-    #             float(lon)
-
-    #         ret = super(AutoCampViewSet, self).update(request)
-
-    #         response.success = True
-    #         response.code = 200
-    #         return response.response(data=[ret.data])
-
-    #     except Exception as e:
-    #         response.code = status.HTTP_404_NOT_FOUND
-    #         return response.response(error_message=str(e))
-
-    def check_error(self):
-        """
-        is_null에 들어가 있지만
-        해당 이미지 필드에 blank가 아닌 이미지 값이 들어올 때 에러 발생
-        """
-        return True
-
     def get_image_field(self, obj, i):
         s3 = S3Client()
 
@@ -127,7 +84,6 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
 
     def partial_update(self, request, *args, **kwargs):
         response = APIResponse(False, 400)
-
         request.data._mutable = True
 
         image1 = request.data.get('image1')
@@ -177,7 +133,6 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         obj.save()
 
         ret = super().partial_update(request, *args, **kwargs)
-
         sort_obj = self.get_object()
 
         arr = []
@@ -200,7 +155,6 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
 
         sort_obj.save()
 
-        # self.perform_update(self.get_serializer_class)
         change_obj = self.get_serializer(sort_obj)
 
         response.success = True

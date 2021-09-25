@@ -66,7 +66,7 @@ class UserPostInfoQuerySet(models.QuerySet):
         qs_all = self.all().filter(is_approved=True)
 
         qs_arr = []
-        for i in range(1, 4):
+        for i in range(1, 5):
             qs_arr.append(self.get_list(qs_all, i, count, user_pk))
 
         qs = qs_arr[0].union(qs_arr[1]).union(qs_arr[2])
