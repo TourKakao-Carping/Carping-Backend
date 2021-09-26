@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 
 from bases.serializers import MessageSerializer
-from posts.models import EcoCarping, Post, Share, Region, Store, UserPostInfo
+from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
     ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer
 
@@ -514,17 +514,37 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
 
         return qs
 
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
     def get(self, request, pk):
-        return self.retrieve(request)
+        response = APIResponse(success=False, code=400)
+
+        try:
+            ret = super().retrieve(request)
+            response.success = True
+            response.code = 200
+            return response.response(data=ret.data)
+
+        except BaseException as e:
+            return response.response(error_message=str(e))
 
 
 class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
+    queryset = UserPost.objects.all()
+    serializer_class = UserPostDetailSerializer
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
     def get(self, request, pk):
-        return self.retrieve(request)
+        response = APIResponse(success=False, code=400)
+
+        try:
+            ret = super().retrieve(request)
+            response.success = True
+            response.code = 200
+            return response.response(data=ret.data)
+
+        except BaseException as e:
+            return response.response(error_message=str(e))
+
+
+# class UserPostPaymentAPIView()

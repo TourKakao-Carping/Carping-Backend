@@ -21,8 +21,9 @@ urlpatterns = [
          name="user-post-info-list"),
     path('user-post/info/<int:pk>/',
          UserPostInfoDetailAPIView.as_view(), name="user-post-info"),
-    path('user-post/detail/<int:pk>',
+    path('user-post/<int:pk>',
          UserPostDetailAPIView.as_view(), name="user-post"),
+
 ]
 
 router = routers.DefaultRouter()
