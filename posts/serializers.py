@@ -269,13 +269,16 @@ class UserPostAddProfileSerializer(UserPostListSerializer):
 
 class UserPostInfoDetailSerializer(serializers.ModelSerializer):
     thumbnail = serializers.URLField(read_only=True)
+    title = serializers.CharField(read_only=True)
     review = ReviewSerializer(many=True, read_only=True)
     is_liked = serializers.BooleanField(read_only=True)
+    my_star_avg = serializers.SerializerMethodField()
+    my_review_count = serializers.SerializerMethodField()
 
     class Meta:
         model = UserPostInfo
-        fields = ['title', 'point', 'review', 'star1_avg',
-                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count']
+        fields = ['id', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'review', 'star1_avg',
+                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'is_liked']
 
     def get_my_star_avg(self, data):
         if not Review.objects.filter(user=self.context['request'].user, userpostinfo=data):

@@ -18,7 +18,7 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from bases.serializers import MessageSerializer
 from posts.models import EcoCarping, Post, Share, Region, Store, UserPostInfo
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
-    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAddProfileSerializer, UserPostListSerializer, UserPostDetailSerializer
+    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict, check_distance
 from bases.response import APIResponse
@@ -451,9 +451,9 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
     def get_queryset(self):
         """
         type
-        1 : A부터 Z까지 리스트 (랜덤 10개)
-        2 : 차박 포스트 페이지 리스트 (카테고리별) -> 초보 차박러를 위한 포스트, 차박에 관한 모든 것, 차에 맞는 차박여행
-        3 : 각 카테고리 리스트
+        2 : A부터 Z까지 리스트 (랜덤 10개)
+        3 : 차박 포스트 페이지 리스트 (카테고리별) -> 초보 차박러를 위한 포스트, 차박에 관한 모든 것, 차에 맞는 차박여행
+        4 : 각 카테고리 리스트
         """
 
         user = self.request.user
@@ -502,9 +502,17 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
 
 
 class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
+    queryset = UserPostInfo.objects.user_post_info_detail()
+    serializer_class = UserPostInfoDetailSerializer
 
     def get_queryset(self):
-        return super().get_queryset()
+        user = self.request.user
+        pk = user.pk
+
+        qs_info = UserPostInfo.objects.user_post_info_detail()
+        qs = qs_info.like_qs(pk)
+
+        return qs
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -514,8 +522,6 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
 
 
 class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
-    queryset = UserPostInfo.objects.all()
-    serializer_class = UserPostDetailSerializer
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
