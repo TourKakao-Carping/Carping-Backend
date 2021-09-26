@@ -117,3 +117,4 @@ class TourSite(Base):
     lat = models.FloatField(null=True)
     lon = models.FloatField(null=True)
     name = models.CharField(max_length=255, null=True)
+    address = models.CharField(max_length=255, null=True)

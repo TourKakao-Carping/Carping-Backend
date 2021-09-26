@@ -2,6 +2,7 @@ import requests
 
 from urllib.parse import urlencode, quote_plus
 
+from bases.utils import reverse_geocode
 from camps.models import AutoCamp, CampSite, TourSite
 
 from rest_framework.views import APIView
@@ -119,6 +120,7 @@ class InputTourAPIView(APIView):
 
     @transaction.atomic
     def post(self, request):
+        TourSite.objects.all().delete()
 
         items = self.get_data()
         i = 0
@@ -132,6 +134,22 @@ class InputTourAPIView(APIView):
                     type=input_data[0], image=input_data[1], lat=input_data[2],
                     lon=input_data[3], name=input_data[4])
                 i += 1
+
+        return JsonResponse({"input_items": i})
+
+
+class InputTourAddressAPIView(APIView):
+    permission_classes = [AllowAny, ]
+
+    @transaction.atomic
+    def post(self, request):
+        items = TourSite.objects.all()
+        i = 0
+
+        for item in items:
+            address = reverse_geocode(item.lon, item.lat)
+            TourSite.objects.filter(lat=item.lat, lon=item.lon, name=item.name).update(address=address)
+            i += 1
 
         return JsonResponse({"input_items": i})
 

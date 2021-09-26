@@ -25,7 +25,6 @@ class AutoCampSearchSerializer(ModelSerializer):
 
 class TourSiteSerializer(ModelSerializer):
     distance = serializers.SerializerMethodField()
-    address = serializers.SerializerMethodField()
 
     class Meta:
         model = TourSite
@@ -40,10 +39,6 @@ class TourSiteSerializer(ModelSerializer):
         distance = check_distance(float(lat), float(lon), obj.lat, obj.lon)
 
         return distance
-
-    def get_address(self, obj):
-        address = reverse_geocode(obj.lon, obj.lat)
-        return address
 
 
 class RegionCampSiteSerializer(ModelSerializer):
