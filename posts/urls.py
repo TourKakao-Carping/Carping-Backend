@@ -24,6 +24,9 @@ urlpatterns = [
     path('user-post/<int:pk>',
          UserPostDetailAPIView.as_view(), name="user-post"),
 
+    path('user-post/<int:pk>/payment-ready',
+         UserPostPaymentReadyAPIView.as_view(), name='kakao-pay-ready')
+
 ]
 
 router = routers.DefaultRouter()

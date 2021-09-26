@@ -7,6 +7,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from haversine import haversine
 
+from django.conf import settings
 from django.db.models import Count, query, F
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
@@ -15,6 +16,7 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 
+from bases.payment import KakaoPayClient
 from bases.serializers import MessageSerializer
 from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
@@ -547,4 +549,28 @@ class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
             return response.response(error_message=str(e))
 
 
-# class UserPostPaymentAPIView()
+class UserPostPaymentReadyAPIView(APIView):
+
+    def post(self, request, pk):
+        kakao_pay = KakaoPayClient()
+        response = APIResponse(success=False, code=400)
+
+        user = request.user
+
+        userpost_qs = UserPost.objects.filter(id=pk)
+
+        if not userpost_qs.exists():
+            response.code = 404
+            return response.response(error_message=_("UserPostInfo Not Found"))
+
+        userpost = userpost_qs.first()
+
+        # 카카오페이 결제준비 API 호출
+        success, ready_process = kakao_pay.ready(user, userpost)
+
+        if success:
+            response.success = True
+            response.code = 200
+            return response.response(data=ready_process)
+        else:
+            return response.response(error_message=ready_process)
