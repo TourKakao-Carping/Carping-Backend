@@ -1,11 +1,12 @@
-from django.db.models import Count
+from django.db.models import Count, Q
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin
 
 from bases.response import APIResponse
 from bases.utils import check_str_digit
 from camps.models import TourSite, AutoCamp, CampSite
-from camps.serializers import MainPageThemeSerializer
+from posts.models import UserPostInfo
+from posts.serializers import UserPostListSerializer
 from search.serializers import TourSiteSerializer, AutoCampSearchSerializer, RegionCampSiteSerializer
 
 
@@ -26,7 +27,13 @@ class ToursiteSearchView(ListModelMixin, GenericAPIView):
 
         qs = TourSite.objects.filter(name__contains=f"{keyword}")
         serializer = self.get_serializer(qs, many=True)
-        data = sorted(serializer.data, key=lambda x: x['distance'])
+        near_data = []
+
+        for i in serializer.data:
+            if i['distance'] <= 10:  # 10km 반경 설정
+                near_data.append(i)
+
+        data = sorted(near_data, key=lambda x: x['distance'])
 
         response.code = 200
         response.success = True
@@ -52,7 +59,13 @@ class AutoCampMapView(GenericAPIView, ListModelMixin):
 
         qs = AutoCamp.objects.all()
         serializer = self.get_serializer(qs, many=True)
-        data = sorted(serializer.data, key=lambda x: x['distance'])
+        near_data = []
+
+        for i in serializer.data:
+            if i['distance'] <= 10:  # 10km 반경 설정
+                near_data.append(i)
+
+        data = sorted(near_data, key=lambda x: x['distance'])
 
         response.code = 200
         response.success = True
@@ -79,6 +92,7 @@ class RegionTourView(GenericAPIView, ListModelMixin):
             response.code = 400
             return response.response(error_message="check lat, lon")
 
+        # 캠핑장 이름만 가져오도록 변경할 지 논의
         if popular != "" and popular is not None:
             qs = CampSite.objects.annotate(
                 bookmark_count=Count("bookmark")).filter(
@@ -92,6 +106,40 @@ class RegionTourView(GenericAPIView, ListModelMixin):
         qs = CampSite.objects.filter(area__contains=f"{region}")
         bookmark_qs = qs.bookmark_qs(request.user.pk)
         serializer = self.get_serializer(bookmark_qs, many=True)
+
+        response.code = 200
+        response.success = True
+        return response.response(data=serializer.data)
+
+    def post(self, request):
+        return self.list(request)
+
+
+# 포스트 - 유저 작성 포스트 검색 -- UserPostListSerializer
+class UserPostSearchView(GenericAPIView, ListModelMixin):
+    serializer_class = UserPostListSerializer
+
+    def list(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+
+        keyword = request.data.get('keyword')
+
+        qs = UserPostInfo.objects.filter(Q(user_post__title__icontains=f"{keyword}")
+                                         | Q(user_post__sub_title1__icontains=f"{keyword}")
+                                         | Q(user_post__text1__icontains=f"{keyword}")
+                                         | Q(user_post__sub_title2__icontains=f"{keyword}")
+                                         | Q(user_post__text2__icontains=f"{keyword}")
+                                         | Q(user_post__sub_title3__icontains=f"{keyword}")
+                                         | Q(user_post__text3__icontains=f"{keyword}")
+                                         | Q(user_post__sub_title4__icontains=f"{keyword}")
+                                         | Q(user_post__text4__icontains=f"{keyword}")
+                                         | Q(user_post__sub_title5__icontains=f"{keyword}")
+                                         | Q(user_post__text5__icontains=f"{keyword}")
+                                         | Q(category__icontains=f"{keyword}")
+                                         | Q(info__icontains=f"{keyword}")
+                                         | Q(recommend_to__icontains=f"{keyword}"))
+
+        serializer = self.get_serializer(qs, many=True)
 
         response.code = 200
         response.success = True
