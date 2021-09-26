@@ -76,7 +76,7 @@ class UserPostInfoQuerySet(models.QuerySet):
     def user_post_info_detail(self):
         qs_all = self.all().filter(is_approved=True)
         qs_all = qs_all.annotate(thumbnail=F(
-            'user_post__thumbnail'), title=F('user_post__title'))
-        qs_image = qs_all
+            'user_post__thumbnail'), title=F('user_post__title'),
+            preview_image1=F('user_post__image1'), preview_image2=F('user_post__image2'),  preview_image3=F('user_post__image3'))
 
         return qs_all
