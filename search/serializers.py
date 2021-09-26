@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from bases.serializers import ModelSerializer
-from bases.utils import check_distance
+from bases.utils import check_distance, reverse_geocode
 from camps.models import TourSite, AutoCamp, CampSite
 
 
@@ -25,10 +25,11 @@ class AutoCampSearchSerializer(ModelSerializer):
 
 class TourSiteSerializer(ModelSerializer):
     distance = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
 
     class Meta:
         model = TourSite
-        fields = ['id', 'image', 'lat', 'lon', 'name', 'distance']
+        fields = ['id', 'image', 'lat', 'lon', 'name', 'distance', 'address']
 
     def get_distance(self, obj):
         data = self.context['request'].data
@@ -39,6 +40,10 @@ class TourSiteSerializer(ModelSerializer):
         distance = check_distance(float(lat), float(lon), obj.lat, obj.lon)
 
         return distance
+
+    def get_address(self, obj):
+        address = reverse_geocode(obj.lon, obj.lat)
+        return address
 
 
 class RegionCampSiteSerializer(ModelSerializer):

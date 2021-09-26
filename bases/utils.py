@@ -1,10 +1,14 @@
 import base64
 import hashlib
 import hmac
+import json
 from datetime import datetime, timedelta
 
+import requests
 from django.conf import settings
 from haversine import haversine
+
+URL = 'https://dapi.kakao.com/v2/local/geo/coord2regioncode.json'
 
 
 def check_data_key(key):
@@ -104,3 +108,24 @@ def modify_created_time(data):
         return str(time.days) + '일 전'
     else:
         return data.created_at.strftime("%Y년 %m월 %d일")
+
+
+def json_request(url='', encoding='utf-8', success=None):
+    headers = {"Authorization": "KakaoAK " + getattr(settings, 'KAKAO_REST_API_KEY')}
+    resp = requests.get(url, headers=headers)
+
+    return resp.text
+
+
+def reverse_geocode(longitude, latitude):
+    url = '%s?x=%s&y=%s' % (URL, longitude, latitude)
+    # json request
+    try:
+        json_req = json_request(url=url)
+        json_data = json.loads(json_req)
+        json_doc = json_data.get('documents')[0]
+        json_name = json_doc.get('address_name')
+    except:
+        json_name = 'NaN'
+
+    return json_name

@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin
 
 from bases.response import APIResponse
-from bases.utils import check_str_digit
+from bases.utils import check_str_digit, check_distance
 from camps.models import TourSite, AutoCamp, CampSite
 from posts.models import UserPostInfo
 from posts.serializers import UserPostListSerializer
@@ -26,14 +26,14 @@ class ToursiteSearchView(ListModelMixin, GenericAPIView):
             return response.response(error_message="check lat, lon")
 
         qs = TourSite.objects.filter(name__contains=f"{keyword}")
-        serializer = self.get_serializer(qs, many=True)
         near_data = []
 
-        for i in serializer.data:
-            if i['distance'] <= 10:  # 10km 반경 설정
+        for i in qs:  # 10km 반경 설정
+            if check_distance(float(user_lat), float(user_lon), i.lat, i.lon) <= 10:
                 near_data.append(i)
 
-        data = sorted(near_data, key=lambda x: x['distance'])
+        serializer = self.get_serializer(near_data, many=True)
+        data = sorted(serializer.data, key=lambda x: x['distance'])
 
         response.code = 200
         response.success = True
