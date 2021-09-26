@@ -25,6 +25,9 @@ class ToursiteSearchView(ListModelMixin, GenericAPIView):
             response.code = 400
             return response.response(error_message="check lat, lon")
 
+        if keyword == "" or keyword == " " or keyword is None:
+            return response.response(error_message="키워드를 입력해주세요")
+
         qs = TourSite.objects.filter(name__contains=f"{keyword}")
         near_data = []
 
