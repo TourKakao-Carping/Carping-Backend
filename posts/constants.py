@@ -21,6 +21,17 @@ CATEGORY_CHOICES = (
     (3, _("차에 맞는 차박여행")),
 )
 
+PAY_STATUS_CHOICES = (
+    (0, _("대기중")),
+    (1, _("성공")),
+    (2, _("실패")),
+    (3, _("취소")),
+)
+
+PAY_TYPE_CHOICES = (
+    (0, _("CARD")),
+    (1, _("MONEY")),
+)
 
 A_TO_Z_LIST_NUM = 3
 

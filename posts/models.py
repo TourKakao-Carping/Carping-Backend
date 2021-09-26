@@ -1,7 +1,7 @@
 from posts.managers import UserPostInfoManager
 from django.core.validators import URLValidator
 from django.db import models
-from django.db.models.deletion import CASCADE
+from django.db.models.deletion import CASCADE, PROTECT
 from django.db.models.fields.related import ForeignKey
 from taggit.managers import TaggableManager
 
@@ -188,6 +188,42 @@ class UserPostInfo(Base):
 
     def __str__(self):
         return self.user_post.title
+
+# 이 테이블의 pk가 카카오페이 API 요청 시의 partner_order_id와 일치
+
+
+class UserPostPaymentRequest(Base):
+    user = models.ForeignKey(User, on_delete=PROTECT, verbose_name=_("구매자"))
+    userpost = models.ForeignKey(
+        UserPost, on_delete=PROTECT, verbose_name=_("유저 포스트"))
+    total_amount = models.IntegerField(verbose_name=_("결제총액"))
+    tax_free_amount = models.IntegerField(verbose_name=_("상품 비과세 금액"))
+    vat_amount = models.IntegerField(default=0, verbose_name=_("상품 부가세 금액"))
+    tid = models.CharField(max_length=50, verbose_name=_(
+        "결제 고유번호"), null=True, blank=True)
+    pg_token = models.CharField(max_length=100, verbose_name=_(
+        "결제 승인 요청 토큰"), null=True, blank=True)
+    status = models.IntegerField(
+        default=0,  choices=PAY_STATUS_CHOICES, verbose_name=_("결제요청 상태"))
+    ready_requested_at = models.DateTimeField(null=True, blank=True)
+
+
+class UserPostPaymentApprovalResult(Base):
+    payment_request = models.ForeignKey(
+        UserPostPaymentRequest, on_delete=PROTECT, verbose_name=_("주문번호"))
+    aid = models.CharField(max_length=50, verbose_name=_("요청 고유 번호"))
+    payment_type = models.IntegerField(
+        choices=PAY_TYPE_CHOICES, verbose_name=_("결제 수단"))
+    # amount
+    total_amount = models.IntegerField(verbose_name=_("결제총액"))
+    tax_free_amount = models.IntegerField(verbose_name=_("상품 비과세 금액"))
+    vat_amount = models.IntegerField(default=0, verbose_name=_("상품 부가세 금액"))
+    # card_info
+    card_info = models.TextField(null=True, blank=True)
+    item_name = models.CharField(max_length=100)
+
+    ready_requested_at = models.DateTimeField()
+    approved_at = models.DateTimeField()
 
 
 class Store(Base):
