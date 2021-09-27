@@ -259,16 +259,25 @@ class UserPostListSerializer(serializers.ModelSerializer):
 
 
 class UserPostAddProfileSerializer(UserPostListSerializer):
-    user_profile = serializers.URLField()
+    user_profile = serializers.SerializerMethodField()
 
     class Meta:
         model = UserPostInfo
         fields = ['id', 'title', 'total_star_avg', 'author',
                   'thumbnail', 'is_liked', 'category', 'pay_type', 'point', 'user_profile']
 
+    def get_user_profile(self, instance):
+        request = self.context.get('request')
+        profile = instance.author.profile.get()
+
+        image = profile.image
+        return request.build_absolute_uri(image.url)
+
 
 class UserPostInfoDetailSerializer(serializers.ModelSerializer):
-    thumbnail = serializers.URLField(read_only=True)
+    thumbnail = serializers.SerializerMethodField()
+    author_name = serializers.SerializerMethodField()
+    author_profile = serializers.SerializerMethodField()
     title = serializers.CharField(read_only=True)
     review = ReviewSerializer(many=True, read_only=True)
     is_liked = serializers.BooleanField(read_only=True)
@@ -280,18 +289,34 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserPostInfo
-        fields = ['id', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'review', 'star1_avg',
+        fields = ['id', 'author_name', 'author_profile', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'review', 'star1_avg',
                   'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3']
 
-    def get_my_star_avg(self, data):
-        if not Review.objects.filter(user=self.context['request'].user, userpostinfo=data):
+    def get_thumbnail(self, instance):
+        request = self.context.get('request')
+        thumnail = instance.user_post.thumbnail
+
+        return request.build_absolute_uri(thumnail.url)
+
+    def get_author_name(self, instance):
+        return instance.author.username
+
+    def get_author_profile(self, instance):
+        request = self.context.get('request')
+        profile = instance.author.profile.get()
+
+        image = profile.image
+        return request.build_absolute_uri(image.url)
+
+    def get_my_star_avg(self, instance):
+        if not Review.objects.filter(user=self.context['request'].user, userpostinfo=instance):
             return 0
         else:
-            return round(Review.objects.filter(user=self.context['request'].user, userpostinfo=data).aggregate(
+            return round(Review.objects.filter(user=self.context['request'].user, userpostinfo=instance).aggregate(
                 Avg('total_star'))['total_star__avg'], 1)
 
-    def get_my_review_count(self, data):
-        return data.review.filter(user=self.context['request'].user).count()
+    def get_my_review_count(self, instance):
+        return instance.review.filter(user=self.context['request'].user).count()
 
 
 class UserPostDetailSerializer(serializers.ModelSerializer):
