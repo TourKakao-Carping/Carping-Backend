@@ -478,9 +478,6 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
         else:
             qs_type = UserPostInfo.objects.filter(category=category)
 
-        qs_type = qs_type.select_related('author').prefetch_related(
-            'author__profile')
-
         qs = qs_type.like_qs(user.pk)
 
         return qs
@@ -523,6 +520,7 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
             ret = super().retrieve(request)
             response.success = True
             response.code = 200
+
             return response.response(data=ret.data)
 
         except BaseException as e:
