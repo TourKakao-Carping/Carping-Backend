@@ -479,7 +479,7 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
             qs_type = UserPostInfo.objects.filter(category=category)
 
         qs_type = qs_type.select_related('author').prefetch_related(
-            'author__profile').annotate(user_profile=F("author__profile__image"))
+            'author__profile')
 
         qs = qs_type.like_qs(user.pk)
 

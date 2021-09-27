@@ -259,12 +259,19 @@ class UserPostListSerializer(serializers.ModelSerializer):
 
 
 class UserPostAddProfileSerializer(UserPostListSerializer):
-    user_profile = serializers.URLField()
+    user_profile = serializers.SerializerMethodField()
 
     class Meta:
         model = UserPostInfo
         fields = ['id', 'title', 'total_star_avg', 'author',
                   'thumbnail', 'is_liked', 'category', 'pay_type', 'point', 'user_profile']
+
+    def get_user_profile(self, instance):
+        request = self.context.get('request')
+        profile = instance.author.profile.get()
+
+        image = profile.image
+        return request.build_absolute_uri(image.url)
 
 
 class UserPostInfoDetailSerializer(serializers.ModelSerializer):
