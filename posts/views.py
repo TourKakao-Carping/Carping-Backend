@@ -14,7 +14,7 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, DestroyModelMixin
 
 from bases.payment import KakaoPayClient
 from bases.serializers import MessageSerializer
@@ -22,7 +22,7 @@ from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserP
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
     ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer
 
-from bases.utils import check_data_key, check_str_digit, paginate, custom_list, custom_dict, check_distance
+from bases.utils import check_data_key, check_str_digit, paginate
 from bases.response import APIResponse
 
 
@@ -529,7 +529,7 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
             return response.response(error_message=str(e))
 
 
-class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
+class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     serializer_class = UserPostDetailSerializer
 
@@ -541,6 +541,21 @@ class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
 
         try:
             ret = super().retrieve(request)
+            response.success = True
+            response.code = 200
+            return response.response(data=ret.data)
+
+        except BaseException as e:
+            return response.response(error_message=str(e))
+
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+
+    def delete(self, request, pk):
+        response = APIResponse(success=False, code=400)
+
+        try:
+            ret = self.destroy(request)
             response.success = True
             response.code = 200
             return response.response(data=ret.data)
@@ -574,3 +589,62 @@ class UserPostPaymentReadyAPIView(APIView):
             return response.response(data=ready_process)
         else:
             return response.response(error_message=ready_process)
+
+
+class UserPostLike(APIView):
+    @swagger_auto_schema(
+        operation_id=_("Add Like User-Post"),
+        operation_description=_("사용자 작성 포스트에 좋아요를 답니다."),
+        request_body=PostLikeSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("posts"), ]
+    )
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        serializer = PostLikeSerializer(data=request.data)
+
+        if serializer.is_valid():
+            try:
+                post_to_like = UserPostInfo.objects.get(
+                    id=serializer.validated_data["post_to_like"])
+                user.userpost_like.add(post_to_like)
+                data = MessageSerializer({"message": _("포스트 좋아요 완료")}).data
+
+                response.success = True
+                response.code = HTTP_200_OK
+                return response.response(data=[data])
+
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
+        else:
+            return response.response(error_message="'post_to_like' field is required.")
+
+    @swagger_auto_schema(
+        operation_id=_("Delete Like User-Post"),
+        operation_description=_("유저 포스트에 단 좋아요를 취소합니다."),
+        request_body=PostLikeSerializer,
+        responses={200: openapi.Response(_("OK"), MessageSerializer)},
+        tags=[_("posts"), ]
+    )
+    def delete(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        serializer = PostLikeSerializer(data=request.data)
+
+        if serializer.is_valid():
+            try:
+                user.userpost_like.through.objects.filter(
+                    user=user, userpostinfo=serializer.validated_data["post_to_like"]).delete()
+                data = MessageSerializer({"message": _("포스트 좋아요 취소")}).data
+
+                response.success = True
+                response.code = HTTP_200_OK
+                return response.response(data=[data])
+
+            except Exception as e:
+                response.code = status.HTTP_404_NOT_FOUND
+                return response.response(error_message=str(e))
+        else:
+            return response.response(error_message="'post_to_like' field is required.")

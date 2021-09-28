@@ -12,8 +12,8 @@ from bases.s3 import S3Client
 from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
 from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, \
-    MyEcoSerializer, InfoSerializer
-from posts.models import EcoCarping
+    MyEcoSerializer, InfoSerializer, MyShareSerializer
+from posts.models import EcoCarping, Share
 
 
 class MyPageView(GenericAPIView):
@@ -65,9 +65,25 @@ class MyPageView(GenericAPIView):
 
         # if sort == 'post':
         #     # 발행 / 구매 / 스크랩
-        #
-        # if sort == 'share':
-        #     # 마이 / 좋아요
+
+        if sort == 'share':
+            # 마이 / 좋아요
+            subsort = self.request.data.get('subsort', None)
+
+            if subsort == 'my':
+                qs = Share.objects.annotate(
+                    like_count=Count("like")).filter(user=user).order_by('-created_at')
+            elif subsort == 'like':
+                qs = Share.objects.annotate(
+                    like_count=Count("like")).filter(like=user).order_by('-created_at')
+            else:
+                return response.response(error_message="INVALID_SUBSORT - choices are <my, like>")
+            queryset = self.filter_queryset(qs)
+            paginate(self, queryset)
+
+            response.success = True
+            response.code = HTTP_200_OK
+            return response.response(data=MyShareSerializer(queryset, many=True).data)
 
         if sort == 'eco':
             # 마이 / 좋아요

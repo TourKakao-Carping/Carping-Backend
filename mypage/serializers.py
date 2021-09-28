@@ -5,7 +5,7 @@ from accounts.serializers import EcoLevelSerializer
 from bases.serializers import ModelSerializer
 from bases.utils import check_distance
 from camps.models import AutoCamp, CampSite
-from posts.models import EcoCarping
+from posts.models import EcoCarping, Share
 
 
 class MyAutoCampSerializer(ModelSerializer):
@@ -34,6 +34,19 @@ class ScrapCampSiteSerializer(ModelSerializer):
 
         distance = check_distance(float(lat), float(lon), obj.lat, obj.lon)
         return distance
+
+
+class MyShareSerializer(ModelSerializer):
+    region = serializers.SerializerMethodField()
+    like_count = serializers.IntegerField()
+
+    class Meta:
+        model = Share
+        fields = ['id', 'region', 'is_shared', 'image1',
+                  'title', 'text', 'like_count']
+
+    def get_region(self, data):
+        return data.region.dong
 
 
 class MyEcoSerializer(ModelSerializer):
