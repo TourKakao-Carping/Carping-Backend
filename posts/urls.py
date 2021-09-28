@@ -23,6 +23,7 @@ urlpatterns = [
          UserPostInfoDetailAPIView.as_view(), name="user-post-info"),
     path('user-post/<int:pk>',
          UserPostDetailAPIView.as_view(), name="user-post"),
+    path('user-post/like', UserPostLike.as_view(), name='user-post-like'),
 
     path('user-post/<int:pk>/payment-ready',
          UserPostPaymentReadyAPIView.as_view(), name='kakao-pay-ready')
