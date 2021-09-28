@@ -278,19 +278,24 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
     thumbnail = serializers.SerializerMethodField()
     author_name = serializers.SerializerMethodField()
     author_profile = serializers.SerializerMethodField()
+
     title = serializers.CharField(read_only=True)
     review = ReviewSerializer(many=True, read_only=True)
     is_liked = serializers.BooleanField(read_only=True)
+
     my_star_avg = serializers.SerializerMethodField()
     my_review_count = serializers.SerializerMethodField()
-    preview_image1 = serializers.URLField(read_only=True)
-    preview_image2 = serializers.URLField(read_only=True)
-    preview_image3 = serializers.URLField(read_only=True)
+
+    preview_image1 = serializers.SerializerMethodField()
+    preview_image2 = serializers.SerializerMethodField()
+    preview_image3 = serializers.SerializerMethodField()
+
+    contents_count = serializers.SerializerMethodField()
 
     class Meta:
         model = UserPostInfo
-        fields = ['id', 'author_name', 'author_profile', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'review', 'star1_avg',
-                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3']
+        fields = ['id', 'author_name', 'author_profile', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3', 'contents_count', 'like_count', 'star1_avg',
+                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'review']
 
     def get_thumbnail(self, instance):
         request = self.context.get('request')
@@ -317,6 +322,52 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
     def get_my_review_count(self, instance):
         return instance.review.filter(user=self.context['request'].user).count()
+
+    def get_preview_image1(self, instance):
+        userpost = instance.user_post
+
+        image1 = userpost.image1
+        if not image1 == None:
+            request = self.context.get('request')
+            return request.build_absolute_uri(image1.url)
+        else:
+            return None
+
+    def get_preview_image2(self, instance):
+        userpost = instance.user_post
+
+        image2 = userpost.image2
+        if not image2 == None:
+            request = self.context.get('request')
+            return request.build_absolute_uri(image2.url)
+        else:
+            return None
+
+    def get_preview_image3(self, instance):
+        userpost = instance.user_post
+
+        image3 = userpost.image3
+        if not image3 == None:
+            request = self.context.get('request')
+            return request.build_absolute_uri(image3.url)
+        else:
+            return None
+
+    def get_contents_count(self, instance):
+        userpost = instance.user_post
+
+        if userpost.sub_title2 == None:
+            return 1
+        elif userpost.sub_title3 == None:
+            return 2
+        elif userpost.sub_title4 == None:
+            return 3
+        elif userpost.sub_title5 == None:
+            return 4
+        else:
+            return 5
+
+    # def
 
 
 class UserPostDetailSerializer(serializers.ModelSerializer):

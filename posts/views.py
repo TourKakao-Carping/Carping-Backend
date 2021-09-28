@@ -453,9 +453,9 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
     def get_queryset(self):
         """
         type
-        2 : A부터 Z까지 리스트 (랜덤 10개)
-        3 : 차박 포스트 페이지 리스트 (카테고리별) -> 초보 차박러를 위한 포스트, 차박에 관한 모든 것, 차에 맞는 차박여행
-        4 : 각 카테고리 리스트
+        1 : A부터 Z까지 리스트 (랜덤 10개)
+        2 : 차박 포스트 페이지 리스트 (카테고리별) -> 1 : 인기 TOP3, 2 :초보 차박러를 위한 포스트, 3 :차박에 관한 모든 것, 4 : 차에 맞는 차박여행
+        3 : 각 카테고리 리스트
         """
 
         user = self.request.user
@@ -501,7 +501,7 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
 
 
 class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
-    queryset = UserPostInfo.objects.user_post_info_detail()
+    # queryset = UserPostInfo.objects.user_post_info_detail()
     serializer_class = UserPostInfoDetailSerializer
 
     def get_queryset(self):
