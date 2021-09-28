@@ -508,7 +508,8 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
     def get_queryset(self):
         user = self.request.user
         pk = user.pk
-        qs_info = UserPostInfo.objects.all().filter(is_approved=True)
+        qs_info = UserPostInfo.objects.all().filter(
+            is_approved=True).annotate(title=F('user_post__title'))
 
         qs = qs_info.like_qs(pk)
 
