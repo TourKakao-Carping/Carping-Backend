@@ -1,4 +1,6 @@
+from accounts.models import Profile
 from django.db.models.aggregates import Avg
+from django.http import request
 from comments.models import Review
 import datetime
 
@@ -278,6 +280,10 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
     thumbnail = serializers.SerializerMethodField()
     author_name = serializers.SerializerMethodField()
     author_profile = serializers.SerializerMethodField()
+    author_comment = serializers.SerializerMethodField()
+
+    login_user = serializers.SerializerMethodField()
+    login_user_profile = serializers.SerializerMethodField()
 
     title = serializers.CharField(read_only=True)
     review = ReviewSerializer(many=True, read_only=True)
@@ -294,8 +300,8 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserPostInfo
-        fields = ['id', 'author_name', 'author_profile', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3', 'contents_count', 'like_count', 'star1_avg',
-                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'review']
+        fields = ['id', 'author_name', 'author_profile', 'author_comment', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3', 'contents_count', 'like_count', 'star1_avg',
+                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'login_user', 'login_user_profile', 'review']
 
     def get_thumbnail(self, instance):
         request = self.context.get('request')
@@ -309,6 +315,26 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
     def get_author_profile(self, instance):
         request = self.context.get('request')
         profile = instance.author.profile.get()
+
+        image = profile.image
+        return request.build_absolute_uri(image.url)
+
+    def get_author_comment(self, instance):
+        profile = instance.author.profile.get()
+
+        return profile.author_comment
+
+    def get_login_user(self, instance):
+        request = self.context.get('request')
+        user = request.user
+
+        return user.username
+
+    def get_login_user_profile(self, instance):
+        request = self.context.get('request')
+        user = request.user
+
+        profile = user.profile.get()
 
         image = profile.image
         return request.build_absolute_uri(image.url)
@@ -327,7 +353,7 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
         userpost = instance.user_post
 
         image1 = userpost.image1
-        if not image1 == None:
+        if not image1 == None and not image1 == "":
             request = self.context.get('request')
             return request.build_absolute_uri(image1.url)
         else:
@@ -337,7 +363,7 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
         userpost = instance.user_post
 
         image2 = userpost.image2
-        if not image2 == None:
+        if not image2 == None and not image2 == "":
             request = self.context.get('request')
             return request.build_absolute_uri(image2.url)
         else:
@@ -347,7 +373,7 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
         userpost = instance.user_post
 
         image3 = userpost.image3
-        if not image3 == None:
+        if not image3 == None and not image3 == "":
             request = self.context.get('request')
             return request.build_absolute_uri(image3.url)
         else:

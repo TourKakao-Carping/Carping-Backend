@@ -1,3 +1,4 @@
+from accounts.models import Profile
 import datetime
 
 from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
@@ -507,8 +508,8 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
     def get_queryset(self):
         user = self.request.user
         pk = user.pk
+        qs_info = UserPostInfo.objects.all().filter(is_approved=True)
 
-        qs_info = UserPostInfo.objects.user_post_info_detail()
         qs = qs_info.like_qs(pk)
 
         return qs
@@ -521,7 +522,7 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
             response.success = True
             response.code = 200
 
-            return response.response(data=ret.data)
+            return response.response(data=[ret.data])
 
         except BaseException as e:
             return response.response(error_message=str(e))
