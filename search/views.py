@@ -87,28 +87,11 @@ class RegionTourView(GenericAPIView, ListModelMixin):
 
         data = request.data
         region = data.get('region')
-        popular = data.get('popular')
-        user_lat = data.get('lat')
-        user_lon = data.get('lon')
 
-        if not check_str_digit(user_lat) or not check_str_digit(user_lon):
-            response.code = 400
-            return response.response(error_message="check lat, lon")
-
-        # 캠핑장 이름만 가져오도록 변경할 지 논의
-        if popular != "" and popular is not None:
-            qs = CampSite.objects.annotate(
-                bookmark_count=Count("bookmark")).filter(
-                area__contains=f"{region}").order_by('-bookmark_count')[:5]
-            serializer = self.get_serializer(qs, many=True)
-
-            response.code = 200
-            response.success = True
-            return response.response(data=serializer.data)
-
-        qs = CampSite.objects.filter(area__contains=f"{region}")
-        bookmark_qs = qs.bookmark_qs(request.user.pk)
-        serializer = self.get_serializer(bookmark_qs, many=True)
+        qs = CampSite.objects.annotate(
+            bookmark_count=Count("bookmark")).filter(
+            area__contains=f"{region}").order_by('-bookmark_count')[:5]
+        serializer = self.get_serializer(qs, many=True)
 
         response.code = 200
         response.success = True
