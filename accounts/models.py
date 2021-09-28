@@ -92,9 +92,11 @@ class Profile(Base):
     """
     phone = models.CharField(max_length=50, null=True,
                              blank=True, validators=[validate_phone])
-    image = models.ImageField(upload_to=upload_user_directory, default='img/default/default_img.jpg')
+    image = models.ImageField(
+        upload_to=upload_user_directory, default='img/default/default_img.jpg')
     gender = models.IntegerField(default=0, null=True)
-    level = models.ForeignKey('EcoLevel', on_delete=CASCADE, related_name="user", default=1)
+    level = models.ForeignKey(
+        'EcoLevel', on_delete=CASCADE, related_name="user", default=1)
     bio = models.TextField(null=True, blank=True)
     INTEREST_CHOICES = (
         ('차크닉', '🚗차크닉'),
@@ -107,17 +109,21 @@ class Profile(Base):
         ('낚시', '🎣낚시'),
         ('클린 차박', '🌱클린 차박'),
     )
-    interest = MultiSelectField(choices=INTEREST_CHOICES, null=True, blank=True)
+    interest = MultiSelectField(
+        choices=INTEREST_CHOICES, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=CASCADE,
                              related_name="profile", null=True)
     # socialaccount = models.ForeignKey(
     #     SocialAccount, on_delete=CASCADE, null=True, related_name="socialaccount_fk")
+    author_comment = models.CharField(
+        max_length=100, verbose_name=_("작가의 한마디"), null=True, blank=True)
 
     objects = ProfileManager()
 
 
 class Certification(Base):
-    user = models.ForeignKey(User, on_delete=CASCADE, related_name="certification")
+    user = models.ForeignKey(User, on_delete=CASCADE,
+                             related_name="certification")
     marketing = models.BooleanField(default=1)
     authorized = models.BooleanField(default=0)
 

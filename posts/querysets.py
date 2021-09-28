@@ -69,7 +69,7 @@ class UserPostInfoQuerySet(models.QuerySet):
         for i in range(1, 5):
             qs_arr.append(self.get_list(qs_all, i, count, user_pk))
 
-        qs = qs_arr[0].union(qs_arr[1]).union(qs_arr[2])
+        qs = qs_arr[0].union(qs_arr[1]).union(qs_arr[2]).union(qs_arr[3])
 
         return qs
 

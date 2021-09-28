@@ -148,8 +148,6 @@ class UserPostInfo(Base):
     point = models.IntegerField(default=0, verbose_name=_("가격"))
     info = models.CharField(max_length=100, verbose_name=_("포스트 소개"))
     kakao_openchat_url = models.URLField(null=True, blank=True)
-    author_comment = models.CharField(
-        max_length=100, verbose_name=_("작가의 한마디"))
     recommend_to = models.CharField(max_length=100, verbose_name=_("추천하는 대상"))
     is_approved = models.BooleanField(default=0, verbose_name=_("관리자 승인여부"))
     like = models.ManyToManyField(
@@ -160,6 +158,9 @@ class UserPostInfo(Base):
 
     def review_count(self):
         return self.review.values().count()
+
+    def like_count(self):
+        return self.like.values().count()
 
     def star1_avg(self):
         if self.review_count() == 0:
