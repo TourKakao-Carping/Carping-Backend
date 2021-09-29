@@ -66,7 +66,6 @@ class UserKeywordView(GenericAPIView, ListModelMixin, DestroyModelMixin):
         recent = []
         popular = []
 
-        # 검색어 몇개까지 보여줄지 상의
         if type == 'main':
             # recent_qs = Search.objects.filter(user=user, type=0).order_by('-created_at')
             # popular_qs = sorted(Search.objects.filter(type=0),
@@ -74,7 +73,12 @@ class UserKeywordView(GenericAPIView, ListModelMixin, DestroyModelMixin):
             # recent_serializer = self.get_serializer(recent_qs, many=True)
             # popular_serializer = self.get_serializer(popular_qs, many=True)
             for i in Search.objects.filter(user=user, type=0).order_by('-created_at'):
-                recent.append(i.keyword)
+                if i.keyword in recent:
+                    pass
+                else:
+                    recent.append(i.keyword)
+                if len(recent) > 5:
+                    break
 
             for i in sorted(Search.objects.filter(type=0),
                             key=lambda a: Search.same_keyword_count(Search, a), reverse=True):
@@ -82,10 +86,17 @@ class UserKeywordView(GenericAPIView, ListModelMixin, DestroyModelMixin):
                     pass
                 else:
                     popular.append(i.name)
+                if len(popular) > 9:
+                    break
 
         elif type == 'post':
             for i in Search.objects.filter(user=user, type=1).order_by('-created_at'):
-                recent.append(i.keyword)
+                if i.keyword in recent:
+                    pass
+                else:
+                    recent.append(i.keyword)
+                if len(recent) > 5:
+                    break
 
             for i in sorted(Search.objects.filter(type=1),
                             key=lambda a: Search.same_keyword_count(Search, a), reverse=True):
@@ -93,6 +104,8 @@ class UserKeywordView(GenericAPIView, ListModelMixin, DestroyModelMixin):
                     pass
                 else:
                     popular.append(i.name)
+                if len(popular) > 9:
+                    break
 
         else:
             return response.response(error_message="INVALID_TYPE - choices are <main, post>")
