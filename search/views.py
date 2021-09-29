@@ -1,6 +1,9 @@
 from django.db.models import Count, Q
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from django.utils.translation import ugettext_lazy as _
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import ListModelMixin
+from rest_framework.mixins import ListModelMixin, DestroyModelMixin
 
 from accounts.models import Search
 from bases.response import APIResponse
@@ -50,7 +53,7 @@ class MainSearchView(GenericAPIView, ListModelMixin):
         return self.list(request)
 
 
-class UserKeywordView(GenericAPIView, ListModelMixin):
+class UserKeywordView(GenericAPIView, ListModelMixin, DestroyModelMixin):
     serializer_class = UserKeywordSerializer
 
     def list(self, request, *args, **kwargs):
@@ -75,10 +78,10 @@ class UserKeywordView(GenericAPIView, ListModelMixin):
 
             for i in sorted(Search.objects.filter(type=0),
                             key=lambda a: Search.same_keyword_count(Search, a), reverse=True):
-                if i.keyword in popular:
+                if i.name in popular:
                     pass
                 else:
-                    popular.append(i.keyword)
+                    popular.append(i.name)
 
         elif type == 'post':
             for i in Search.objects.filter(user=user, type=1).order_by('-created_at'):
@@ -86,10 +89,10 @@ class UserKeywordView(GenericAPIView, ListModelMixin):
 
             for i in sorted(Search.objects.filter(type=1),
                             key=lambda a: Search.same_keyword_count(Search, a), reverse=True):
-                if i.keyword in popular:
+                if i.name in popular:
                     pass
                 else:
-                    popular.append(i.keyword)
+                    popular.append(i.name)
 
         else:
             return response.response(error_message="INVALID_TYPE - choices are <main, post>")
@@ -102,8 +105,45 @@ class UserKeywordView(GenericAPIView, ListModelMixin):
     def post(self, request):
         return self.list(request)
 
+    def destroy(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
 
-class KeywordSaveView(ListModelMixin, GenericAPIView):
+        data = request.data
+        user = request.user
+
+        keyword = data.get('keyword')
+        type = data.get('type')
+        all = data.get('all')
+
+        # 최근 검색어 데이터 삭제
+        if type == 'main':
+            if Search.objects.filter(user=user, keyword=keyword, type=0).exists():
+                Search.objects.filter(user=user, keyword=keyword, type=0).delete()
+            else:
+                return response.response(error_message="유저와 검색어를 다시 확인해주세요.")
+
+        if type == 'post':
+            if Search.objects.filter(user=user, keyword=keyword, type=1).exists():
+                Search.objects.filter(user=user, keyword=keyword, type=1).delete()
+            else:
+                return response.response(error_message="유저와 검색어를 다시 확인해주세요.")
+
+        response.code = 200
+        response.success = True
+        return response.response(data=[])
+
+    @swagger_auto_schema(
+        operation_id=_("Delete Recent User-Keyword"),
+        operation_description=_("사용자의 최근 검색어를 삭제합니다."),
+        request_body=MainSearchSerializer,
+        responses={200: openapi.Response(_("OK"), )},
+        tags=[_("search"), ]
+    )
+    def delete(self, request):
+        return self.destroy(request)
+
+
+class KeywordSaveView(ListModelMixin, DestroyModelMixin, GenericAPIView):
     serializer_class = MainSearchSerializer
 
     def list(self, request, *args, **kwargs):
@@ -113,20 +153,21 @@ class KeywordSaveView(ListModelMixin, GenericAPIView):
         user = request.user
 
         keyword = data.get('keyword')
+        name = data.get('name')
         type = data.get('type')
 
         # 검색 데이터 쌓음
         if type == 'main':
-            if Search.objects.filter(user=user, keyword=keyword, type=0).exists():
+            if Search.objects.filter(user=user, keyword=keyword, name=name, type=0).exists():
                 pass
             else:
-                Search.objects.create(user=user, keyword=keyword, type=0)
+                Search.objects.create(user=user, keyword=keyword, name=name, type=0)
 
         if type == 'post':
-            if Search.objects.filter(user=user, keyword=keyword, type=1).exists():
+            if Search.objects.filter(user=user, keyword=keyword, name=name, type=1).exists():
                 pass
             else:
-                Search.objects.create(user=user, keyword=keyword, type=1)
+                Search.objects.create(user=user, keyword=keyword, name=name, type=1)
 
         response.code = 200
         response.success = True

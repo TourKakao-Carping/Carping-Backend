@@ -139,8 +139,9 @@ class SmsHistory(Base):
 class Search(Base):
     user = models.ForeignKey(User, on_delete=CASCADE, related_name="search")
     keyword = models.CharField(max_length=255)
+    name = models.CharField(max_length=500)
     type = models.IntegerField(
         default=0, choices=SEARCH_TYPE_CHOICES, verbose_name='메인/포스트')
 
     def same_keyword_count(self, obj):
-        return self.objects.filter(keyword=obj.keyword).count()
+        return self.objects.filter(keyword=obj.name).count()
