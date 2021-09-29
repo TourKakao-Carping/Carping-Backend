@@ -30,6 +30,9 @@ class MainSearchView(GenericAPIView, ListModelMixin):
             response.code = 400
             return response.response(error_message="check lat, lon")
 
+        if keyword == "" or keyword == " " or keyword is None:
+            return response.response(error_message="키워드를 입력해주세요")
+
         qs = CampSite.objects.filter(Q(name__icontains=f"{keyword}")
                                      | Q(event__icontains=f"{keyword}")
                                      | Q(program__icontains=f"{keyword}")
@@ -293,6 +296,9 @@ class UserPostSearchView(GenericAPIView, ListModelMixin):
     def list(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
         keyword = request.data.get('keyword')
+
+        if keyword == "" or keyword == " " or keyword is None:
+            return response.response(error_message="키워드를 입력해주세요")
 
         qs = UserPostInfo.objects.filter(Q(user_post__title__icontains=f"{keyword}")
                                          | Q(user_post__sub_title1__icontains=f"{keyword}")
