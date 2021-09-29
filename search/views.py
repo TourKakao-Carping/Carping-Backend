@@ -19,8 +19,6 @@ class MainSearchView(GenericAPIView, ListModelMixin):
         response = APIResponse(success=False, code=400)
 
         data = request.data
-        user = request.user
-
         keyword = data.get('keyword')
         user_lat = data.get('lat')
         user_lon = data.get('lon')
@@ -29,13 +27,6 @@ class MainSearchView(GenericAPIView, ListModelMixin):
             response.code = 400
             return response.response(error_message="check lat, lon")
 
-        # 검색 데이터 쌓음
-        if Search.objects.filter(user=user, keyword=keyword, type=0).exists():
-            pass
-        else:
-            Search.objects.create(user=user, keyword=keyword, type=0)
-
-        # 실제 검색
         qs = CampSite.objects.filter(Q(name__icontains=f"{keyword}")
                                      | Q(event__icontains=f"{keyword}")
                                      | Q(program__icontains=f"{keyword}")
@@ -107,6 +98,39 @@ class UserKeywordView(GenericAPIView, ListModelMixin):
         response.success = True
         return response.response(data=[{"recent": recent},
                                        {"popular": popular}])
+
+    def post(self, request):
+        return self.list(request)
+
+
+class KeywordSaveView(ListModelMixin, GenericAPIView):
+    serializer_class = MainSearchSerializer
+
+    def list(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+
+        data = request.data
+        user = request.user
+
+        keyword = data.get('keyword')
+        type = data.get('type')
+
+        # 검색 데이터 쌓음
+        if type == 'main':
+            if Search.objects.filter(user=user, keyword=keyword, type=0).exists():
+                pass
+            else:
+                Search.objects.create(user=user, keyword=keyword, type=0)
+
+        if type == 'post':
+            if Search.objects.filter(user=user, keyword=keyword, type=1).exists():
+                pass
+            else:
+                Search.objects.create(user=user, keyword=keyword, type=1)
+
+        response.code = 200
+        response.success = True
+        return response.response(data=[])
 
     def post(self, request):
         return self.list(request)
@@ -209,17 +233,8 @@ class UserPostSearchView(GenericAPIView, ListModelMixin):
 
     def list(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
-
-        user = request.user
         keyword = request.data.get('keyword')
 
-        # 검색 데이터 쌓음
-        if Search.objects.filter(user=user, keyword=keyword, type=1).exists():
-            pass
-        else:
-            Search.objects.create(user=user, keyword=keyword, type=1)
-
-        # 실제 검색
         qs = UserPostInfo.objects.filter(Q(user_post__title__icontains=f"{keyword}")
                                          | Q(user_post__sub_title1__icontains=f"{keyword}")
                                          | Q(user_post__text1__icontains=f"{keyword}")
