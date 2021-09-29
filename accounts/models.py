@@ -12,6 +12,7 @@ from multiselectfield import MultiSelectField
 
 from bases.functions import upload_user_directory
 from bases.models import Base
+from posts.constants import SEARCH_TYPE_CHOICES
 
 
 def validate_phone(value):
@@ -133,3 +134,13 @@ class SmsHistory(Base):
     auth_num = models.IntegerField(verbose_name='인증 번호')
     auth_num_check = models.IntegerField(verbose_name='인증 번호 확인', null=True)
     fail_count = models.IntegerField(default=0, verbose_name='실패 횟수')
+
+
+class Search(Base):
+    user = models.ForeignKey(User, on_delete=CASCADE, related_name="search")
+    keyword = models.CharField(max_length=255)
+    type = models.IntegerField(
+        default=0, choices=SEARCH_TYPE_CHOICES, verbose_name='메인/포스트')
+
+    def same_keyword_count(self, obj):
+        return self.objects.filter(keyword=obj.keyword).count()
