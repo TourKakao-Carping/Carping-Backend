@@ -77,7 +77,7 @@ class UserKeywordView(GenericAPIView, ListModelMixin, DestroyModelMixin):
                     pass
                 else:
                     recent.append(i.keyword)
-                if len(recent) > 5:
+                if len(recent) > 9:
                     break
 
             for i in sorted(Search.objects.filter(type=0),
@@ -86,7 +86,7 @@ class UserKeywordView(GenericAPIView, ListModelMixin, DestroyModelMixin):
                     pass
                 else:
                     popular.append(i.name)
-                if len(popular) > 9:
+                if len(popular) > 5:
                     break
 
         elif type == 'post':
@@ -95,7 +95,7 @@ class UserKeywordView(GenericAPIView, ListModelMixin, DestroyModelMixin):
                     pass
                 else:
                     recent.append(i.keyword)
-                if len(recent) > 5:
+                if len(recent) > 9:
                     break
 
             for i in sorted(Search.objects.filter(type=1),
@@ -104,7 +104,7 @@ class UserKeywordView(GenericAPIView, ListModelMixin, DestroyModelMixin):
                     pass
                 else:
                     popular.append(i.name)
-                if len(popular) > 9:
+                if len(popular) > 5:
                     break
 
         else:
