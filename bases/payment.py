@@ -7,7 +7,9 @@ from posts.constants import PAY_STATUS_CANCEL, PAY_STATUS_ERROR, PAY_STATUS_SUCC
 
 
 class KakaoPayClient(object):
-    BASE_URL = "http://chanjongp.co.kr/posts/"
+    # BASE_URL = "http://chanjongp.co.kr/posts/"
+    BASE_URL = "http://localhost:8000/posts/"
+
     ADMIN_KEY = getattr(settings, "KAKAO_APP_ADMIN_KEY")
     READY_URL = 'https://kapi.kakao.com/v1/payment/ready'
     APPROVE_URL = 'https://kapi.kakao.com/v1/payment/approve'
@@ -88,7 +90,7 @@ class KakaoPayClient(object):
 
                 return False, status
 
-    def approve(self, user, pg_token, payment_req):
+    def approve(self, pg_token, payment_req):
         params = {
             "cid": f"{self.cid}",
             "tid": f"{payment_req.tid}",
@@ -124,6 +126,11 @@ class KakaoPayClient(object):
             with transaction.atomic():
                 UserPostPaymentApprovalResult.objects.create(aid=aid, payment_type=PAY_TYPE[payment_type], total_amount=total_amount, tax_free_amount=tax_free_amount,
                                                              vat_amount=vat_amount, card_info=card_info, item_name=item_name, ready_requested_at=ready_requested_at, approved_at=approved_at, payment_request=payment_req)
+
+                request_user = payment_req.user
+                userpost = payment_req.userpost
+
+                userpost.approved_user.add(request_user)
 
                 payment_req.status = PAY_STATUS_SUCCESS
                 payment_req.save()
