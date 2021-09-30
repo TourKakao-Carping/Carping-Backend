@@ -596,6 +596,7 @@ class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIVie
 class UserPostPaymentReadyAPIView(APIView):
 
     def post(self, request, pk):
+
         kakao_pay = KakaoPayClient()
         response = APIResponse(success=False, code=400)
 

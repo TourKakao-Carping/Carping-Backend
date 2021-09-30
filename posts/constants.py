@@ -26,12 +26,25 @@ PAY_STATUS_CHOICES = (
     (1, _("성공")),
     (2, _("실패")),
     (3, _("취소")),
+    (4, _("에러케이스"))
 )
+
+
+PAY_STATUS_SUCCESS = 1
+PAY_STATUS_FAIL = 2
+PAY_STATUS_CANCEL = 3
+PAY_STATUS_ERROR = 4
+
 
 PAY_TYPE_CHOICES = (
     (0, _("CARD")),
     (1, _("MONEY")),
 )
+
+PAY_TYPE = {
+    "CARD": 0,
+    "MONEY": 1
+}
 
 SEARCH_TYPE_CHOICES = (
     (0, _("메인 차박지")),
