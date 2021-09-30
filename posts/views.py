@@ -1,3 +1,4 @@
+from comments.models import Review
 from accounts.models import Profile
 import datetime
 
@@ -526,7 +527,12 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
             response.success = True
             response.code = 200
 
-            return response.response(data=[ret.data])
+            data = ret.data
+            review = data.pop('review')
+            review = review[:3]
+            data["review"] = review
+
+            return response.response(data=[data])
 
         except BaseException as e:
             return response.response(error_message=str(e))
@@ -544,7 +550,8 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
             if sort == 'recent':
                 review = user_post.review.order_by('-created_at')
             elif sort == 'popular':
-                review = user_post.review.annotate(like_count=Count("like")).order_by('-like_count')
+                review = user_post.review.annotate(
+                    like_count=Count("like")).order_by('-like_count')
             else:
                 return response.response(error_message="INVALID SORT - choices are <recent, popular>")
 
