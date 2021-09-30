@@ -61,7 +61,6 @@ class UserPostSuccessCallbackAPIView(APIView):
 
     def get(self, request, pk):
         kakao_pay = KakaoPayClient()
-        user = request.user
         query_params = request.META['QUERY_STRING']
         params = parse_qs(query_params)
         pg_token = params["pg_token"][0]
@@ -70,7 +69,7 @@ class UserPostSuccessCallbackAPIView(APIView):
         try:
             payment_req = UserPostPaymentRequest.objects.get(id=pk)
 
-            success, status = kakao_pay.approve(user, pg_token, payment_req)
+            success, status = kakao_pay.approve(pg_token, payment_req)
 
             if success:
 

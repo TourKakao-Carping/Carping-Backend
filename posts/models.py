@@ -132,6 +132,8 @@ class UserPost(Base):
     image5 = models.ImageField(
         upload_to=upload_user_directory_userpost, null=True, blank=True)
 
+    approved_user = models.ManyToManyField(User, blank=True)
+
     def __str__(self):
         return self.title
 
