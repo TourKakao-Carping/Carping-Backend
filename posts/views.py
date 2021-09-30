@@ -21,7 +21,9 @@ from bases.payment import KakaoPayClient
 from bases.serializers import MessageSerializer
 from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
-    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer
+    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, \
+    UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer, \
+    UserPostMoreReviewSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate
 from bases.response import APIResponse
@@ -529,6 +531,24 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
             return response.response(error_message=str(e))
 
 
+class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
+    serializer_class = UserPostMoreReviewSerializer
+
+    def get(self, request, pk):
+        response = APIResponse(success=False, code=400)
+
+        try:
+            user_post = UserPostInfo.objects.get(pk=pk)
+            serializer = self.get_serializer(user_post)
+            response.success = True
+            response.code = 200
+
+            return response.response(data=[serializer.data])
+
+        except BaseException as e:
+            return response.response(error_message=str(e))
+
+
 class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     serializer_class = UserPostDetailSerializer
@@ -543,7 +563,7 @@ class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIVie
             ret = super().retrieve(request)
             response.success = True
             response.code = 200
-            return response.response(data=ret.data)
+            return response.response(data=[ret.data])
 
         except BaseException as e:
             return response.response(error_message=str(e))
