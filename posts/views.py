@@ -1,6 +1,7 @@
 from accounts.models import Profile
 import datetime
 
+from comments.serializers import ReviewSerializer
 from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
 from collections import OrderedDict
 
@@ -21,7 +22,9 @@ from bases.payment import KakaoPayClient
 from bases.serializers import MessageSerializer
 from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
-    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer
+    ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, \
+    UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer, \
+    UserPostMoreReviewSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate
 from bases.response import APIResponse
@@ -508,7 +511,8 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
     def get_queryset(self):
         user = self.request.user
         pk = user.pk
-        qs_info = UserPostInfo.objects.all().filter(is_approved=True)
+        qs_info = UserPostInfo.objects.all().filter(
+            is_approved=True).annotate(title=F('user_post__title'))
 
         qs = qs_info.like_qs(pk)
 
@@ -528,6 +532,32 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
             return response.response(error_message=str(e))
 
 
+class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
+    serializer_class = ReviewSerializer
+
+    def post(self, request, pk):
+        response = APIResponse(success=False, code=400)
+        sort = request.data.get('sort')
+
+        try:
+            user_post = UserPostInfo.objects.get(pk=pk)
+            if sort == 'recent':
+                review = user_post.review.order_by('-created_at')
+            elif sort == 'popular':
+                review = user_post.review.annotate(like_count=Count("like")).order_by('-like_count')
+            else:
+                return response.response(error_message="INVALID SORT - choices are <recent, popular>")
+
+            serializer = self.get_serializer(review, many=True)
+            response.success = True
+            response.code = 200
+
+            return response.response(data=serializer.data)
+
+        except BaseException as e:
+            return response.response(error_message=str(e))
+
+
 class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     serializer_class = UserPostDetailSerializer
@@ -542,7 +572,7 @@ class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIVie
             ret = super().retrieve(request)
             response.success = True
             response.code = 200
-            return response.response(data=ret.data)
+            return response.response(data=[ret.data])
 
         except BaseException as e:
             return response.response(error_message=str(e))

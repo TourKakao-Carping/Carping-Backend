@@ -46,6 +46,11 @@ PAY_TYPE = {
     "MONEY": 1
 }
 
+SEARCH_TYPE_CHOICES = (
+    (0, _("메인 차박지")),
+    (1, _("포스트")),
+)
+
 A_TO_Z_LIST_NUM = 3
 
 POST_INFO_CATEGORY_LIST_NUM = 3
