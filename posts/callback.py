@@ -68,6 +68,7 @@ class UserPostSuccessCallbackAPIView(APIView):
             success, status = kakao_pay.approve(user, pg_token, payment_req)
 
             if success:
+
                 response.success = True
                 response.code = 200
                 return response.response(data=status)

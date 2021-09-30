@@ -3,11 +3,11 @@ import requests
 from django.conf import settings
 from django.db import transaction, DatabaseError
 
-from posts.constants import PAY_STATUS_CANCEL, PAY_STATUS_ERROR, PAY_TYPE
+from posts.constants import PAY_STATUS_CANCEL, PAY_STATUS_ERROR, PAY_STATUS_SUCCESS, PAY_TYPE
 
 
 class KakaoPayClient(object):
-    BASE_URL = "http://localhost:8000/posts/"
+    BASE_URL = "http://chanjongp.co.kr/posts/"
     ADMIN_KEY = getattr(settings, "KAKAO_APP_ADMIN_KEY")
     READY_URL = 'https://kapi.kakao.com/v1/payment/ready'
     APPROVE_URL = 'https://kapi.kakao.com/v1/payment/approve'
@@ -101,7 +101,7 @@ class KakaoPayClient(object):
             self.APPROVE_URL, headers=self.headers, params=params)
 
         res_json = res.json()
-        print(res_json)
+
         if res.status_code == 200:
 
             aid = res_json.get('aid')
@@ -114,17 +114,27 @@ class KakaoPayClient(object):
             vat_amount = amount.get('vat')
 
             card_info = amount.get('card_info')
-            ready_requested_at = amount.get('created_at')
-            approved_at = amount.get('approved_at')
+
+            if not card_info == None:
+                card_info = str(card_info)
+
+            ready_requested_at = res_json.get('created_at')
+            approved_at = res_json.get('approved_at')
 
             with transaction.atomic():
-                UserPostPaymentApprovalResult.objects.create(aid=aid, payment_type=PAY_TYPE[payment_type], total_amount=total_amount, tax_free_amount=tax_free_amount, vat_amount=vat_amount, card_info=str(
-                    card_info), item_name=item_name, ready_requested_at=ready_requested_at, approved_at=approved_at, payment_request=payment_req)
+                UserPostPaymentApprovalResult.objects.create(aid=aid, payment_type=PAY_TYPE[payment_type], total_amount=total_amount, tax_free_amount=tax_free_amount,
+                                                             vat_amount=vat_amount, card_info=card_info, item_name=item_name, ready_requested_at=ready_requested_at, approved_at=approved_at, payment_request=payment_req)
+
+                payment_req.status = PAY_STATUS_SUCCESS
+                payment_req.save()
 
                 return True, "결제가 완료되었습니다."
 
         else:
             extras = res_json.get('extras')
             message = extras.get('method_result_message')
+
+            payment_req.status = PAY_STATUS_ERROR
+            payment_req.save()
 
             return False, message
