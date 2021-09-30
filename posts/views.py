@@ -1,6 +1,7 @@
 from accounts.models import Profile
 import datetime
 
+from comments.serializers import ReviewSerializer
 from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
 from collections import OrderedDict
 
@@ -532,18 +533,26 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
 
 
 class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
-    serializer_class = UserPostMoreReviewSerializer
+    serializer_class = ReviewSerializer
 
-    def get(self, request, pk):
+    def post(self, request, pk):
         response = APIResponse(success=False, code=400)
+        sort = request.data.get('sort')
 
         try:
             user_post = UserPostInfo.objects.get(pk=pk)
-            serializer = self.get_serializer(user_post)
+            if sort == 'recent':
+                review = user_post.review.order_by('-created_at')
+            elif sort == 'popular':
+                review = user_post.review.annotate(like_count=Count("like")).order_by('-like_count')
+            else:
+                return response.response(error_message="INVALID SORT - choices are <recent, popular>")
+
+            serializer = self.get_serializer(review, many=True)
             response.success = True
             response.code = 200
 
-            return response.response(data=[serializer.data])
+            return response.response(data=serializer.data)
 
         except BaseException as e:
             return response.response(error_message=str(e))
