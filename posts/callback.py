@@ -8,8 +8,11 @@ from posts.models import UserPostPaymentRequest, UserPostPaymentApprovalResult
 
 from django.utils.translation import ugettext_lazy as _
 
+from rest_framework.permissions import AllowAny
+
 
 class UserPostFailCallbackAPIView(APIView):
+    permission_classes = [AllowAny, ]
 
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
@@ -30,6 +33,7 @@ class UserPostFailCallbackAPIView(APIView):
 
 
 class UserPostCancelCallbackAPIView(APIView):
+    permission_classes = [AllowAny, ]
 
     def get(self, request, pk):
         kakao_pay = KakaoPayClient()
@@ -53,6 +57,7 @@ class UserPostCancelCallbackAPIView(APIView):
 
 
 class UserPostSuccessCallbackAPIView(APIView):
+    permission_classes = [AllowAny, ]
 
     def get(self, request, pk):
         kakao_pay = KakaoPayClient()
