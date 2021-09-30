@@ -397,6 +397,24 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
 
 class UserPostDetailSerializer(serializers.ModelSerializer):
+    created_at = serializers.SerializerMethodField()
+
     class Meta:
         model = UserPost
-        fields = '__all__'
+        fields = ['id', 'created_at', 'title', 'thumbnail',
+                  'sub_title1', 'text1', 'image1',
+                  'sub_title2', 'text2', 'image2',
+                  'sub_title3', 'text3', 'image3',
+                  'sub_title4', 'text4', 'image4',
+                  'sub_title5', 'text5', 'image5']
+
+    def get_created_at(self, data):
+        return data.created_at.strftime('%Y. %m. %d')
+
+
+class UserPostMoreReviewSerializer(serializers.ModelSerializer):
+    review = ReviewSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = UserPost
+        fields = ['review']
