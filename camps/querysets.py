@@ -55,8 +55,11 @@ class CampSiteQuerySet(models.QuerySet):
             return qs.order_by('-created_at')
         if sort == "popular":
             return qs.order_by('views')
+        else:
+            return qs
 
     # 문화행사
+
     def theme_event(self, sort):
         qs = self.all().filter(event__isnull=False, type__contains=_("자동차야영장"))
         if sort == "recent":
