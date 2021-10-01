@@ -577,9 +577,11 @@ class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIVie
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
-    # def get_permissions(self):
+    # def get_object(self):
+    #     return super().get_object()
 
-    #     self.permission_classes[0].get_pk()
+    # def check_object_permissions(self, request, obj):
+    #     return super().check_object_permissions(request, obj)
 
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
@@ -674,7 +676,7 @@ class UserPostPaymentReadyAPIView(APIView):
         if success:
             response.success = True
             response.code = 200
-            return response.response(data=ready_process)
+            return response.response(data=[ready_process])
         else:
             return response.response(error_message=ready_process)
 
