@@ -132,6 +132,8 @@ class UserPost(Base):
     image5 = models.ImageField(
         upload_to=upload_user_directory_userpost, null=True, blank=True)
 
+    approved_user = models.ManyToManyField(User, blank=True)
+
     def __str__(self):
         return self.title
 
@@ -202,8 +204,6 @@ class UserPostPaymentRequest(Base):
     vat_amount = models.IntegerField(default=0, verbose_name=_("상품 부가세 금액"))
     tid = models.CharField(max_length=50, verbose_name=_(
         "결제 고유번호"), null=True, blank=True)
-    pg_token = models.CharField(max_length=100, verbose_name=_(
-        "결제 승인 요청 토큰"), null=True, blank=True)
     status = models.IntegerField(
         default=0,  choices=PAY_STATUS_CHOICES, verbose_name=_("결제요청 상태"))
     ready_requested_at = models.DateTimeField(null=True, blank=True)

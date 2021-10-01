@@ -5,7 +5,6 @@ import datetime
 
 from comments.serializers import ReviewSerializer
 from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
-from collections import OrderedDict
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -513,7 +512,8 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
     def get_queryset(self):
         user = self.request.user
         pk = user.pk
-        qs_info = UserPostInfo.objects.all().filter(is_approved=True)
+        qs_info = UserPostInfo.objects.all().filter(
+            is_approved=True).annotate(title=F('user_post__title'))
 
         qs = qs_info.like_qs(pk)
 
@@ -527,7 +527,12 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
             response.success = True
             response.code = 200
 
-            return response.response(data=[ret.data])
+            data = ret.data
+            review = data.pop('review')
+            review = review[:3]
+            data["review"] = review
+
+            return response.response(data=[data])
 
         except BaseException as e:
             return response.response(error_message=str(e))
@@ -545,7 +550,8 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
             if sort == 'recent':
                 review = user_post.review.order_by('-created_at')
             elif sort == 'popular':
-                review = user_post.review.annotate(like_count=Count("like")).order_by('-like_count')
+                review = user_post.review.annotate(
+                    like_count=Count("like")).order_by('-like_count')
             else:
                 return response.response(error_message="INVALID SORT - choices are <recent, popular>")
 
@@ -634,6 +640,7 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
 class UserPostPaymentReadyAPIView(APIView):
 
     def post(self, request, pk):
+
         kakao_pay = KakaoPayClient()
         response = APIResponse(success=False, code=400)
 

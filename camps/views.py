@@ -194,7 +194,10 @@ class GetMainPageThemeTravel(ListModelMixin, GenericAPIView):
         qs = self.filter_queryset(
             self.get_queryset())
 
-        bookmark_qs = qs.bookmark_qs(user.pk)
+        if qs is not None:
+            bookmark_qs = qs.bookmark_qs(user.pk)
+        else:
+            bookmark_qs = qs
 
         serializer = self.get_serializer(bookmark_qs, many=True)
 

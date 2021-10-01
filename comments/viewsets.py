@@ -8,7 +8,7 @@ from bases.utils import check_str_digit
 from camps.models import AutoCamp
 from comments.models import Review, Comment
 from comments.serializers import ReviewSerializer, CommentSerializer
-from posts.models import EcoCarping, Share
+from posts.models import EcoCarping, Share, UserPostInfo
 
 
 class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin, GenericViewSet):
@@ -31,12 +31,22 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
     def create(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
         autocamp = request.data.get('autocamp')
+        post = request.data.get('post')
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
+            if autocamp and post:
+                response.code = status.HTTP_400_BAD_REQUEST
+                return response.response(error_message=_(
+                    "Invalid Request: cannot send autocamp & post together."))
             self.perform_create(serializer)
             latest = Review.objects.latest('id').id
-            AutoCamp.objects.get(id=autocamp).review.add(
-                Review.objects.get(id=latest))
+
+            if autocamp:
+                AutoCamp.objects.get(id=autocamp).review.add(
+                    Review.objects.get(id=latest))
+            if post:
+                UserPostInfo.objects.get(id=post).review.add(
+                    Review.objects.get(id=latest))
 
             response.success = True
             response.code = status.HTTP_200_OK

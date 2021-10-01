@@ -4,6 +4,7 @@ from django.urls import path, include
 from posts.inputdata import InputRegionView
 from posts.viewsets import AutoCampPostForWeekendViewSet, EcoCarpingViewSet, ShareViewSet
 from posts.views import *
+from posts.callback import *
 
 urlpatterns = [
     path('autocamp/weekend-post',
@@ -32,8 +33,14 @@ urlpatterns = [
     path('user-post/like', UserPostLike.as_view(), name='user-post-like'),
 
     path('user-post/<int:pk>/payment-ready',
-         UserPostPaymentReadyAPIView.as_view(), name='kakao-pay-ready')
+         UserPostPaymentReadyAPIView.as_view(), name='kakao-pay-ready'),
 
+    path('user-post/callback/<int:pk>/fail', UserPostFailCallbackAPIView.as_view(),
+         name="user-post-fail-callback"),
+    path('user-post/callback/<int:pk>/cancel', UserPostCancelCallbackAPIView.as_view(),
+         name="user-post-cancel-callback"),
+    path('user-post/callback/<int:pk>/success', UserPostSuccessCallbackAPIView.as_view(),
+         name="user-post-cancel-callback"),
 ]
 
 router = routers.DefaultRouter()
