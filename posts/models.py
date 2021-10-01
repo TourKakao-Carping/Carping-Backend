@@ -140,7 +140,7 @@ class UserPost(Base):
 
 class UserPostInfo(Base):
     author = models.ForeignKey(
-        User, on_delete=CASCADE, related_name="post_author")
+        User, on_delete=CASCADE, related_name="user_post")
     user_post = models.ForeignKey(UserPost, on_delete=CASCADE)
     category = models.IntegerField(
         default=0, choices=CATEGORY_CHOICES, verbose_name=_("카테고리")
