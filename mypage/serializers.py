@@ -5,7 +5,7 @@ from accounts.serializers import EcoLevelSerializer
 from bases.serializers import ModelSerializer
 from bases.utils import check_distance
 from camps.models import AutoCamp, CampSite
-from posts.models import EcoCarping, Share
+from posts.models import EcoCarping, Share, UserPostInfo
 
 
 class MyAutoCampSerializer(ModelSerializer):
@@ -94,3 +94,32 @@ class InfoSerializer(ModelSerializer):
 
     def get_badge(self, data):
         return EcoLevelSerializer(data.level, read_only=True).data['image']
+
+
+class UserPostStatusSerializer(serializers.ModelSerializer):
+    profile = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
+    author = serializers.SerializerMethodField()
+
+    class Meta:
+        # id, thumnail, title, review, is_liked
+        model = UserPostInfo
+        fields = ['id', 'title', 'total_star_avg', 'author', 'profile',
+                  'thumbnail', 'pay_type']
+
+    def get_author(self, instance):
+        return instance.author.username
+
+    def get_profile(self, instance):
+        return instance.author.profile.get().image.url
+
+    def get_thumbnail(self, instance):
+        request = self.context.get('request')
+        thumnail = instance.user_post.thumbnail
+
+        return request.build_absolute_uri(thumnail.url)
+
+    def get_title(self, instance):
+        title = instance.user_post.title
+        return title

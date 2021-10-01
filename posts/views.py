@@ -614,9 +614,9 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
         info = data.get('info')
         recommend_to = data.get('recommend_to')
         if pay_type == 0:
-            is_approved = 1
+            is_approved = True
         else:
-            is_approved = 0
+            is_approved = False
         try:
             with transaction.atomic():
                 serializer = self.get_serializer(data=request.data)
