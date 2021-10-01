@@ -5,7 +5,7 @@ from accounts.serializers import EcoLevelSerializer
 from bases.serializers import ModelSerializer
 from bases.utils import check_distance
 from camps.models import AutoCamp, CampSite
-from posts.models import EcoCarping, Share, UserPostInfo
+from posts.models import EcoCarping, Share, UserPostInfo, UserPostPaymentRequest
 
 
 class MyAutoCampSerializer(ModelSerializer):
@@ -115,11 +115,7 @@ class UserPostStatusSerializer(serializers.ModelSerializer):
         return instance.author.profile.get().image.url
 
     def get_thumbnail(self, instance):
-        request = self.context.get('request')
-        thumnail = instance.user_post.thumbnail
-
-        return request.build_absolute_uri(thumnail.url)
+        return instance.user_post.thumbnail.url
 
     def get_title(self, instance):
-        title = instance.user_post.title
-        return title
+        return instance.user_post.title

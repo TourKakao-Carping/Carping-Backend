@@ -13,7 +13,7 @@ from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
 from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, \
     MyEcoSerializer, InfoSerializer, MyShareSerializer, UserPostStatusSerializer
-from posts.models import EcoCarping, Share, UserPostInfo
+from posts.models import EcoCarping, Share, UserPostInfo, UserPost
 
 
 class MyPageView(GenericAPIView):
@@ -28,7 +28,7 @@ class MyPageView(GenericAPIView):
 
         if sort == 'autocamp':
             # 등록 / 스크랩
-            subsort = self.request.data.get('subsort', None)
+            subsort = data.get('subsort', None)
 
             if subsort == 'my':
                 qs = AutoCamp.objects.annotate(bookmark_count=Count("bookmark")).filter(
@@ -63,12 +63,36 @@ class MyPageView(GenericAPIView):
             else:
                 return response.response(error_message="INVALID_SUBSORT - choices are <my, scrap>")
 
-        # if sort == 'post':
-        #     # 발행 / 구매 / 스크랩
+        if sort == 'post':
+            # 발행 / 구매 / 스크랩
+            subsort = data.get('subsort', None)
+            buy_post = []
+
+            if subsort == 'my':
+                qs = UserPostInfo.objects.filter(author=user).order_by('-created_at')
+                serializer = UserPostStatusSerializer(qs, many=True)
+
+            elif subsort == 'buy':
+                for post in UserPost.objects.all():
+                    for i in range(len(post.approved_user.values())):
+                        if user.id == post.approved_user.values()[i].get('id'):
+                            buy_post.append(post.userpostinfo_set.get())
+                serializer = UserPostStatusSerializer(buy_post, many=True)
+
+            elif subsort == 'like':
+                qs = UserPostInfo.objects.filter(like=user).order_by('-created_at')
+                serializer = UserPostStatusSerializer(qs, many=True)
+
+            else:
+                return response.response(error_message="INVALID_SUBSORT - choices are <my, buy, like>")
+
+            response.success = True
+            response.code = HTTP_200_OK
+            return response.response(data=serializer.data)
 
         if sort == 'share':
             # 마이 / 좋아요
-            subsort = self.request.data.get('subsort', None)
+            subsort = data.get('subsort', None)
 
             if subsort == 'my':
                 qs = Share.objects.annotate(
@@ -87,7 +111,7 @@ class MyPageView(GenericAPIView):
 
         if sort == 'eco':
             # 마이 / 좋아요
-            subsort = self.request.data.get('subsort', None)
+            subsort = data.get('subsort', None)
 
             if subsort == 'my':
                 qs = EcoCarping.objects.filter(user=user).order_by('-created_at')
