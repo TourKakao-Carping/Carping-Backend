@@ -12,8 +12,8 @@ from bases.s3 import S3Client
 from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
 from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, \
-    MyEcoSerializer, InfoSerializer, MyShareSerializer, UserPostStatusSerializer
-from posts.models import EcoCarping, Share, UserPostInfo, UserPost
+    MyEcoSerializer, InfoSerializer, MyShareSerializer, UserPostStatusSerializer, UserPostPayStatusSerializer
+from posts.models import EcoCarping, Share, UserPostInfo, UserPost, UserPostPaymentRequest
 
 
 class MyPageView(GenericAPIView):
@@ -64,7 +64,7 @@ class MyPageView(GenericAPIView):
                 return response.response(error_message="INVALID_SUBSORT - choices are <my, scrap>")
 
         if sort == 'post':
-            # 발행 / 구매 / 스크랩
+            # 발행 / 구매 / 좋아요
             subsort = data.get('subsort', None)
             buy_post = []
 
@@ -206,14 +206,24 @@ class PostStatusView(GenericAPIView):
         data = request.data
         user = request.user
         sort = data.get('sort')
+        pay_status = []
 
         if sort == 0:
             qs = UserPostInfo.objects.filter(author=user, is_approved=0)
         elif sort == 1:
             qs = UserPostInfo.objects.filter(author=user, is_approved=1)
+        elif sort == 2:
+            for post_info in UserPostInfo.objects.filter(author=user, pay_type=1):
+                for i in range(len(UserPostPaymentRequest.objects.filter(userpost__userpostinfo=post_info, status=1))):
+                    pay_status.append(UserPostPaymentRequest.objects.filter(
+                        userpost__userpostinfo=post_info, status=1)[i].userpost.userpostinfo_set.get())
+            response.success = True
+            response.code = HTTP_200_OK
+            return response.response(data=UserPostPayStatusSerializer(pay_status, many=True).data)
+
         else:
             return response.response(error_message=
-                                     "INVALID_SORT - choices are <0, 1>")
+                                     "INVALID_SORT - choices are <0, 1, 2>")
         queryset = self.filter_queryset(qs)
         paginate(self, queryset)
 

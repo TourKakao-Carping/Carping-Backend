@@ -119,3 +119,22 @@ class UserPostStatusSerializer(serializers.ModelSerializer):
 
     def get_title(self, instance):
         return instance.user_post.title
+
+
+class UserPostPayStatusSerializer(serializers.ModelSerializer):
+    profile = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserPostInfo
+        fields = ['id', 'title', 'username', 'profile', 'pay_type', 'point']
+
+    def get_username(self, instance):
+        return instance.author.username
+
+    def get_profile(self, instance):
+        return instance.author.profile.get().image.url
+
+    def get_title(self, instance):
+        return instance.user_post.title
