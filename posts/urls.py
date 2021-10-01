@@ -26,6 +26,8 @@ urlpatterns = [
          name="user-post-create"),
     path('user-post/info/<int:pk>',
          UserPostInfoDetailAPIView.as_view(), name="user-post-info"),
+    path('user-post/info/<int:pk>/free', FreeUserPostBuyAPIView.as_view(),
+         name="free-user-post-buy"),
     path('user-post/info/<int:pk>/reviews',
          UserPostMoreReviewAPIView.as_view(), name="user-post-info"),
     path('user-post/<int:pk>',
