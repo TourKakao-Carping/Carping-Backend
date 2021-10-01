@@ -390,9 +390,9 @@ class RegionSearchView(APIView):
 
         sido_list = [_("강원도"), _("경기도"), _("경상남도"), _("경상북도"), _("광주광역시"),
                      _("대구광역시"), _("대전광역시"), _("부산광역시"), _(
-                         "서울특별시"), _("세종특별자치시"),
+                "서울특별시"), _("세종특별자치시"),
                      _("울산광역시"), _("인천광역시"), _(
-                         "전라남도"), _("전라북도"), _("제주특별자치도"),
+                "전라남도"), _("전라북도"), _("제주특별자치도"),
                      _("충청남도"), _("충청북도"), ]
 
         if 'sigungu' in request.data:
@@ -613,10 +613,12 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
         point = data.get('point')
         info = data.get('info')
         recommend_to = data.get('recommend_to')
-        if pay_type == 0:
-            is_approved = 1
+
+        if int(pay_type) == 0:
+            is_approved = True
         else:
-            is_approved = 0
+            is_approved = False
+
         try:
             with transaction.atomic():
                 serializer = self.get_serializer(data=request.data)
@@ -624,9 +626,11 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                 if serializer.is_valid():
                     self.perform_create(serializer)
                 latest = UserPost.objects.latest('id')
+
                 UserPostInfo.objects.create(author=request.user, user_post=latest, pay_type=pay_type,
                                             point=point, info=info, kakao_openchat_url=kakao_openchat_url,
                                             recommend_to=recommend_to, is_approved=is_approved)
+
                 Profile.objects.filter(user=request.user).update(author_comment=author_comment)
 
                 response.success = True
