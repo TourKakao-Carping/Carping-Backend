@@ -7,8 +7,8 @@ from posts.constants import PAY_STATUS_CANCEL, PAY_STATUS_ERROR, PAY_STATUS_SUCC
 
 
 class KakaoPayClient(object):
-    # BASE_URL = "http://chanjongp.co.kr/posts/"
-    BASE_URL = "http://localhost:8000/posts/"
+    BASE_URL = "http://chanjongp.co.kr/posts/"
+    # BASE_URL = "http://localhost:8000/posts/"
 
     ADMIN_KEY = getattr(settings, "KAKAO_APP_ADMIN_KEY")
     READY_URL = 'https://kapi.kakao.com/v1/payment/ready'
