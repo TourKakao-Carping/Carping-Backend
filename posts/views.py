@@ -653,6 +653,19 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
             return response.response(error_message=str(e))
 
 
+class FreeUserPostBuyAPIView(GenericAPIView):
+    def get(self, request, pk):
+        response = APIResponse(success=False, code=400)
+
+        userpost = UserPostInfo.objects.get(id=pk)
+        userpost.user_post.approved_user.add(request.user)
+
+        response.success = True
+        response.code = 200
+        return response.response(data=[{"message": "사용자 작성 무료포스트 0원 결제 완료"}])
+
+
+
 class UserPostPaymentReadyAPIView(APIView):
 
     def post(self, request, pk):
