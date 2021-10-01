@@ -40,21 +40,48 @@ from django.utils import timezone
 
 
 def upload_user_directory(instance, filename):
-
     email = instance.user.email
     now = timezone.now()
 
     # year/month/day/user_pk/20210707_s94203_123128.png
-    return 'img/{year}/{month}/{day}/user_{user_id}/{now}_{name}_{microsecond}_{extension}'.format(year=now.year, month=now.month, day=now.day, user_id=instance.user.id, now=now.strftime("%Y%m%d"), name=email.split('@')[0],
-                                                                                                   microsecond=now.microsecond, extension=os.path.splitext(filename)[1])
+    return 'img/{year}/{month}/{day}/user_{user_id}/{now}_{name}_{microsecond}_{extension}'.format(year=now.year,
+                                                                                                   month=now.month,
+                                                                                                   day=now.day,
+                                                                                                   user_id=instance.user.id,
+                                                                                                   now=now.strftime(
+                                                                                                       "%Y%m%d"), name=
+                                                                                                   email.split('@')[0],
+                                                                                                   microsecond=now.microsecond,
+                                                                                                   extension=
+                                                                                                   os.path.splitext(
+                                                                                                       filename)[1])
+
+
+# def upload_user_directory_userpost(instance, filename):
+#     post_info = instance.userpostinfo_set.get()
+#     email = post_info.author.email
+#
+#     now = timezone.now()
+#
+# # year/month/day/user_pk/20210707_s94203_123128.png return 'img/{year}/{month}/{day}/user_{user_id}/{now}_{name}_{
+# microsecond}_{extension}'.format(year=now.year, month=now.month, day=now.day, user_id=post_info.author.id,
+# now=now.strftime("%Y%m%d"), name=email.split('@')[0], microsecond=now.microsecond, extension=os.path.splitext(
+# filename)[1])
 
 
 def upload_user_directory_userpost(instance, filename):
-    post_info = instance.userpostinfo_set.get()
-    email = post_info.author.email
-
+    title = instance.title
+    pk = instance.id
     now = timezone.now()
 
-    # year/month/day/user_pk/20210707_s94203_123128.png
-    return 'img/{year}/{month}/{day}/user_{user_id}/{now}_{name}_{microsecond}_{extension}'.format(year=now.year, month=now.month, day=now.day, user_id=post_info.author.id, now=now.strftime("%Y%m%d"), name=email.split('@')[0],
-                                                                                                   microsecond=now.microsecond, extension=os.path.splitext(filename)[1])
+    # year/month/day/post_pk/20210707_s94203_123128.png
+    return 'img/{year}/{month}/{day}/posts_{pk}/{now}_{title}_{microsecond}_{extension}'.format(year=now.year,
+                                                                                                month=now.month,
+                                                                                                day=now.day, pk=pk,
+                                                                                                now=now.strftime(
+                                                                                                    "%Y%m%d"),
+                                                                                                title=title[:10],
+                                                                                                microsecond=now.microsecond,
+                                                                                                extension=
+                                                                                                os.path.splitext(
+                                                                                                    filename)[1])

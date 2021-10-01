@@ -1,10 +1,10 @@
-from comments.models import Review
+from django.db import transaction, DatabaseError
+
 from accounts.models import Profile
 import datetime
 
 from comments.serializers import ReviewSerializer
 from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
-from collections import OrderedDict
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -17,7 +17,7 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, DestroyModelMixin
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, DestroyModelMixin, CreateModelMixin
 
 from bases.payment import KakaoPayClient
 from bases.serializers import MessageSerializer
@@ -25,7 +25,7 @@ from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserP
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
     ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, \
     UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer, \
-    UserPostMoreReviewSerializer
+    UserPostMoreReviewSerializer, UserPostCreateSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate
 from bases.response import APIResponse
@@ -597,6 +597,43 @@ class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIVie
             return response.response(data=ret.data)
 
         except BaseException as e:
+            return response.response(error_message=str(e))
+
+
+# 유저 포스트 작성 뷰
+class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
+    serializer_class = UserPostCreateSerializer
+
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        data = request.data
+        author_comment = data.get('author_comment')
+        kakao_openchat_url = data.get('kakao_openchat_url')
+        pay_type = data.get('pay_type')
+        point = data.get('point')
+        info = data.get('info')
+        recommend_to = data.get('recommend_to')
+        if pay_type == 0:
+            is_approved = 1
+        else:
+            is_approved = 0
+        try:
+            with transaction.atomic():
+                serializer = self.get_serializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                if serializer.is_valid():
+                    self.perform_create(serializer)
+                latest = UserPost.objects.latest('id')
+                UserPostInfo.objects.create(author=request.user, user_post=latest, pay_type=pay_type,
+                                            point=point, info=info, kakao_openchat_url=kakao_openchat_url,
+                                            recommend_to=recommend_to, is_approved=is_approved)
+                Profile.objects.filter(user=request.user).update(author_comment=author_comment)
+
+                response.success = True
+                response.code = 200
+                return response.response(data=[{"message": "포스트 발행 완료"}])
+
+        except DatabaseError as e:
             return response.response(error_message=str(e))
 
 

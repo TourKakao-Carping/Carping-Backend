@@ -22,6 +22,8 @@ urlpatterns = [
     path('store', StoreListView.as_view(), name='store'),
     path('user-post', UserPostInfoListAPIView.as_view(),
          name="user-post-info-list"),
+    path('user-post/create', UserPostCreateAPIView.as_view(),
+         name="user-post-create"),
     path('user-post/info/<int:pk>',
          UserPostInfoDetailAPIView.as_view(), name="user-post-info"),
     path('user-post/info/<int:pk>/reviews',
