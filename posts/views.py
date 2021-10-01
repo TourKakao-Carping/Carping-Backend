@@ -6,6 +6,10 @@ import datetime
 from comments.serializers import ReviewSerializer
 from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
 
+from posts.permissions import UserPostAccessPermission
+from collections import OrderedDict
+
+
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from haversine import haversine
@@ -568,9 +572,16 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
 class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     serializer_class = UserPostDetailSerializer
+    permission_classes = (UserPostAccessPermission,)
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+
+    # def get_object(self):
+    #     return super().get_object()
+
+    # def check_object_permissions(self, request, obj):
+    #     return super().check_object_permissions(request, obj)
 
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
@@ -631,7 +642,8 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                                             point=point, info=info, kakao_openchat_url=kakao_openchat_url,
                                             recommend_to=recommend_to, is_approved=is_approved)
 
-                Profile.objects.filter(user=request.user).update(author_comment=author_comment)
+                Profile.objects.filter(user=request.user).update(
+                    author_comment=author_comment)
 
                 response.success = True
                 response.code = 200
@@ -677,7 +689,7 @@ class UserPostPaymentReadyAPIView(APIView):
         if success:
             response.success = True
             response.code = 200
-            return response.response(data=ready_process)
+            return response.response(data=[ready_process])
         else:
             return response.response(error_message=ready_process)
 

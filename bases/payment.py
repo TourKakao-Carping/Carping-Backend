@@ -7,8 +7,8 @@ from posts.constants import PAY_STATUS_CANCEL, PAY_STATUS_ERROR, PAY_STATUS_SUCC
 
 
 class KakaoPayClient(object):
-    # BASE_URL = "http://chanjongp.co.kr/posts/"
-    BASE_URL = "http://localhost:8000/posts/"
+    BASE_URL = "http://chanjongp.co.kr/posts/"
+    # BASE_URL = "http://localhost:8000/posts/"
 
     ADMIN_KEY = getattr(settings, "KAKAO_APP_ADMIN_KEY")
     READY_URL = 'https://kapi.kakao.com/v1/payment/ready'
@@ -53,6 +53,10 @@ class KakaoPayClient(object):
                     tid = res_json.pop('tid')
                     created_at = res_json.pop('created_at')
 
+                    res_json.pop("next_redirect_mobile_url")
+                    res_json.pop("next_redirect_pc_url")
+                    res_json.pop("ios_app_scheme")
+
                     payment_req.tid = tid
                     payment_req.ready_requested_at = created_at
 
@@ -83,7 +87,7 @@ class KakaoPayClient(object):
                 payment_req.status = PAY_STATUS_CANCEL
                 payment_req.save()
 
-                return True, "cancel"
+                return True, "결제가 취소되었습니다."
             else:
                 payment_req.status = PAY_STATUS_ERROR
                 payment_req.save()

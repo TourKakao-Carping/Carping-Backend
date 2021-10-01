@@ -12,8 +12,8 @@ from bases.s3 import S3Client
 from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
 from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, \
-    MyEcoSerializer, InfoSerializer, MyShareSerializer
-from posts.models import EcoCarping, Share
+    MyEcoSerializer, InfoSerializer, MyShareSerializer, UserPostStatusSerializer
+from posts.models import EcoCarping, Share, UserPostInfo
 
 
 class MyPageView(GenericAPIView):
@@ -171,3 +171,37 @@ class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet)
         except Exception as e:
             response.code = HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
+
+
+class PostStatusView(GenericAPIView):
+    serializer_class = UserPostStatusSerializer
+
+    def list(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+
+        data = request.data
+        user = request.user
+        sort = data.get('sort')
+
+        if sort == 0:
+            qs = UserPostInfo.objects.filter(author=user, is_approved=0)
+        elif sort == 1:
+            qs = UserPostInfo.objects.filter(author=user, is_approved=1)
+        else:
+            return response.response(error_message=
+                                     "INVALID_SORT - choices are <0, 1>")
+        queryset = self.filter_queryset(qs)
+        paginate(self, queryset)
+
+        response.success = True
+        response.code = HTTP_200_OK
+        return response.response(data=self.get_serializer(queryset, many=True).data)
+
+    @swagger_auto_schema(
+        operation_id=_("User-Post Status"),
+        operation_description=_("포스트 현황"),
+        request_body=MyPageSerializer,
+        tags=[_("mypage"), ]
+    )
+    def post(self, request, *args, **kwargs):
+        return self.list(request)

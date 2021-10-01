@@ -26,7 +26,7 @@ class UserPostFailCallbackAPIView(APIView):
             response.success = True
             response.code = 200
 
-            return response.response(data=_("결제가 실패하였습니다. 다시 시도해 주세요."))
+            return response.response(data=[_("결제가 실패하였습니다. 다시 시도해 주세요.")])
 
         except UserPostPaymentRequest.DoesNotExist:
             response.response(error_message=_("Not Found"))
@@ -48,10 +48,10 @@ class UserPostCancelCallbackAPIView(APIView):
                 response.success = True
                 response.code = 200
 
-                return response.response(data=status)
+                return response.response(data=[status])
             else:
 
-                return response.response(data=status)
+                return response.response(data=[status])
         except UserPostPaymentRequest.DoesNotExist:
             response.response(error_message=_("Not Found"))
 
@@ -75,7 +75,7 @@ class UserPostSuccessCallbackAPIView(APIView):
 
                 response.success = True
                 response.code = 200
-                return response.response(data=status)
+                return response.response(data=[status])
             else:
                 return response.response(error_message=status)
 
