@@ -250,7 +250,7 @@ class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Crea
 
             response.success = True
             response.code = HTTP_200_OK
-            return response.response(data=ret.data)
+            return response.response(data=[ret.data])
 
         except Exception as e:
             response.success = False
