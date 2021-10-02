@@ -383,7 +383,9 @@ class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Crea
 
         sort_obj.save()
         if region:
-            sort_obj.region = Region.objects.get(id=int(region))
+            if check_str_digit(region):
+                int(region)
+            sort_obj.region = Region.objects.get(id=region)
 
         change_obj = self.get_serializer(sort_obj)
 
