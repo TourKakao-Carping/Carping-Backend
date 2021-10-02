@@ -21,6 +21,8 @@ class Post(Base):
     title = models.CharField(max_length=100, null=False)
     thumbnail = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
+    thumbnail_with_text = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
     views = models.IntegerField(default=0)
     tags = TaggableManager(blank=True)
     campsite1 = models.ForeignKey(
