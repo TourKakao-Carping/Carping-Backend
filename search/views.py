@@ -259,10 +259,23 @@ class RegionTourView(GenericAPIView, ListModelMixin):
         data = request.data
         region = data.get('region')
 
-        qs = CampSite.objects.annotate(
-            bookmark_count=Count("bookmark")).filter(
-            area__contains=f"{region}").order_by('-bookmark_count')[:5]
-        serializer = self.get_serializer(qs, many=True)
+        popular = CampSite.objects.none()
+
+        popular_searched_site_name = list(Search.objects.values('name').annotate(
+            search_count=Count('name')).filter(
+            type=0).order_by('-search_count').values_list("name", flat=True))
+
+        for site_name in popular_searched_site_name:
+            if f"{region}" in CampSite.objects.get(name=site_name).area:
+                popular |= CampSite.objects.filter(name=site_name)
+
+        if len(popular) < 5:
+            qs = CampSite.objects.filter(area__icontains=f"{region}").exclude(id__in=popular)[:5-len(popular)]
+            result = list(popular) + list(qs)
+        else:
+            result = popular
+
+        serializer = self.get_serializer(result, many=True)
 
         response.code = 200
         response.success = True
@@ -328,7 +341,14 @@ class PopularCampSiteSearchView(GenericAPIView, ListModelMixin, DestroyModelMixi
                 popular |= CampSite.objects.filter(name=site_name)
 
         bookmark_qs = popular.bookmark_qs(request.user.pk)
-        serializer = self.get_serializer(bookmark_qs, many=True)
+
+        if len(bookmark_qs) < 3:
+            qs = CampSite.objects.filter(area__icontains=f"{region}").exclude(id__in=bookmark_qs).bookmark_qs(request.user.pk)[:3-len(bookmark_qs)]
+            result = list(bookmark_qs) + list(qs)
+        else:
+            result = bookmark_qs
+
+        serializer = self.get_serializer(result, many=True)
 
         response.code = 200
         response.success = True
