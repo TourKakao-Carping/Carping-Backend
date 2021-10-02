@@ -175,8 +175,7 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
     comment = CommentSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
     created_at = serializers.SerializerMethodField()
-    like_count = serializers.IntegerField()
-    is_liked = serializers.BooleanField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Share
@@ -195,6 +194,34 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
 
     def get_created_at(self, data):
         return modify_created_time(data)
+
+    def get_is_liked(self, data):
+        if data.like.through.objects.filter(user=self.context['request'].user, share=data):
+            return 1
+        return 0
+
+    def update(self, instance, validated_data):
+        """
+        기존에 저장되어 있다면 이미지 삭제하고 다시 업로드
+        """
+        fields = validated_data.keys()
+        s3 = S3Client()
+
+        for key in fields:
+            if key == "image1":
+                if not instance.image1 == "" and not instance.image1 == None:
+                    s3.delete_file(str(instance.image1))
+            elif key == "image2":
+                if not instance.image2 == "" and not instance.image2 == None:
+                    s3.delete_file(str(instance.image2))
+            elif key == "image3":
+                if not instance.image3 == "" and not instance.image3 == None:
+                    s3.delete_file(str(instance.image3))
+            else:
+                if not instance.image4 == "" and not instance.image4 == None:
+                    s3.delete_file(str(instance.image4))
+
+        return super().update(instance, validated_data)
 
 
 class SharePostSerializer(TaggitSerializer, ModelSerializer):
