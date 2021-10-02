@@ -385,13 +385,13 @@ class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Crea
         if region:
             if check_str_digit(region):
                 int(region)
-            sort_obj.region = Region.objects.get(id=region)
+            Share.objects.filter(id=sort_obj.id).update(region=Region.objects.get(id=region))
 
-        change_obj = self.get_serializer(sort_obj)
+        ret = super(ShareViewSet, self).retrieve(request)
 
         response.success = True
         response.code = 200
-        return response.response(data=[change_obj.data])
+        return response.response(data=[ret.data])
 
     def destroy(self, request, *args, **kwargs):
         response = APIResponse(success=False, code=400)
