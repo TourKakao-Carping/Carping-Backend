@@ -73,3 +73,16 @@ class UserKeywordSerializer(ModelSerializer):
     class Meta:
         model = Search
         fields = ['keyword']
+
+
+class PopularCampSiteSearchSerializer(ModelSerializer):
+    search_count = serializers.SerializerMethodField()
+    is_bookmarked = serializers.BooleanField()
+
+    class Meta:
+        model = CampSite
+        fields = ['id', 'name', 'address', 'search_count', 'type', 'image', 'is_bookmarked']
+
+    def get_search_count(self, obj):
+        count = Search.same_camp_search_count(Search, obj)
+        return count

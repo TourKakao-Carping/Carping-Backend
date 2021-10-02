@@ -145,3 +145,6 @@ class Search(Base):
 
     def same_keyword_count(self, obj):
         return self.objects.filter(keyword=obj.name).count()
+
+    def same_camp_search_count(self, obj):
+        return self.objects.filter(name=obj.name).count()

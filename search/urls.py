@@ -10,6 +10,7 @@ urlpatterns = [
     path('map', ToursiteSearchView.as_view(), name='map-search'),
     path('map/auto-camp', AutoCampMapView.as_view(), name='map-auto-camp'),
     path('region', RegionTourView.as_view(), name='region-popular-campsite'),
+    path('popular-site', PopularCampSiteSearchView.as_view(), name='popular-search-auto-camp'),
 ]
 
 router = routers.DefaultRouter()
