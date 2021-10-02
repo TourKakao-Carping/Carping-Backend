@@ -2,7 +2,7 @@ import sys
 
 from rest_framework.exceptions import MethodNotAllowed
 from bases.response import APIResponse
-from posts.models import EcoCarping, Post, Share
+from posts.models import EcoCarping, Post, Share, Region
 from posts.serializers import AutoCampPostSerializer, EcoCarpingSerializer, ShareSerializer, SharePostSerializer
 from bases.utils import check_str_digit
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -316,6 +316,7 @@ class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Crea
         image2 = request.data.get('image2')
         image3 = request.data.get('image3')
         image4 = request.data.get('image4')
+        region = request.data.get('region')
 
         if image1 == "":
             request.data.pop('image1')
@@ -381,6 +382,8 @@ class ShareViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Crea
         sort_obj.image4 = arr[3]
 
         sort_obj.save()
+        if region:
+            sort_obj.region = Region.objects.get(id=int(region))
 
         change_obj = self.get_serializer(sort_obj)
 
