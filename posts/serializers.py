@@ -197,8 +197,8 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
 
     def get_is_liked(self, data):
         if data.like.through.objects.filter(user=self.context['request'].user, share=data):
-            return 1
-        return 0
+            return True
+        return False
 
     def update(self, instance, validated_data):
         """
