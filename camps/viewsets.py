@@ -160,3 +160,15 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         response.success = True
         response.code = 200
         return response.response(data=[change_obj.data])
+
+    def destroy(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+        try:
+            ret = super(AutoCampViewSet, self).destroy(request)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[ret.data])
+        except Exception as e:
+            response.code = status.HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
