@@ -1,4 +1,5 @@
 import copy
+import logging
 
 from django.utils.datastructures import MultiValueDictKeyError
 
@@ -14,6 +15,8 @@ from camps.models import AutoCamp, CampSite
 from camps.serializers import AutoCampSerializer, CampSiteSerializer
 
 from django.utils.translation import ugettext_lazy as _
+
+logger = logging.getLogger('image')
 
 
 class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin, GenericViewSet):
@@ -90,6 +93,8 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         image2 = request.data.get('image2')
         image3 = request.data.get('image3')
         image4 = request.data.get('image4')
+
+        logger.info(request.data)
 
         if image1 == "":
             request.data.pop('image1')
