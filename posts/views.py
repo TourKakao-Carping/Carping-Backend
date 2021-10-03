@@ -29,7 +29,7 @@ from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserP
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
     ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, \
     UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer, \
-    UserPostMoreReviewSerializer, UserPostCreateSerializer
+    UserPostMoreReviewSerializer, UserPostCreateSerializer, PreUserPostCreateSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate
 from bases.response import APIResponse
@@ -609,6 +609,22 @@ class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIVie
 
         except BaseException as e:
             return response.response(error_message=str(e))
+
+
+# 유저 차박 포스트 발행 시 디폴트로 보여줄 채널소개 & 오픈채팅방 링크
+class PreUserPostCreateAPIView(ListModelMixin, GenericAPIView):
+    serializer_class = PreUserPostCreateSerializer
+
+    def get(self, request):
+        response = APIResponse(success=False, code=400)
+        user =request.user
+
+        pre_post = UserPostInfo.objects.filter(author=user).order_by('-id').first()
+        serializer = self.get_serializer(pre_post)
+
+        response.success = True
+        response.code = 200
+        return response.response(data=[serializer.data])
 
 
 # 유저 포스트 작성 뷰
