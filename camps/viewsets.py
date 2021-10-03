@@ -91,16 +91,16 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         image3 = request.data.get('image3')
         image4 = request.data.get('image4')
 
-        if image1 == "" or image1 == None:
+        if image1 == "":
             request.data.pop('image1')
 
-        if image2 == "" or image2 == None:
+        if image2 == "":
             request.data.pop('image2')
 
-        if image3 == "" or image3 == None:
+        if image3 == "":
             request.data.pop('image3')
 
-        if image4 == "" or image4 == None:
+        if image4 == "":
             request.data.pop('image4')
 
         # is_null에 있는 숫자에 해당되는 image 필드에 기존 이미지 삭제처리
