@@ -1,4 +1,5 @@
 from django.db import transaction, DatabaseError
+from rest_framework.permissions import IsAuthenticated
 
 from accounts.models import Profile
 import datetime
@@ -572,7 +573,7 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
 class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     serializer_class = UserPostDetailSerializer
-    permission_classes = (UserPostAccessPermission,)
+    permission_classes = (UserPostAccessPermission, IsAuthenticated)
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -663,7 +664,6 @@ class FreeUserPostBuyAPIView(GenericAPIView):
         response.success = True
         response.code = 200
         return response.response(data=[{"message": "사용자 작성 무료포스트 0원 결제 완료"}])
-
 
 
 class UserPostPaymentReadyAPIView(APIView):
