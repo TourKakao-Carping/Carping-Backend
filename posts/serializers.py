@@ -483,6 +483,17 @@ class UserPostMoreReviewSerializer(serializers.ModelSerializer):
         fields = ['review']
 
 
+class PreUserPostCreateSerializer(serializers.ModelSerializer):
+    author_comment = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserPostInfo
+        fields = ['author_comment', 'kakao_openchat_url']
+
+    def get_author_comment(self, instance):
+        return instance.author.profile.get().author_comment
+
+
 class UserPostCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
