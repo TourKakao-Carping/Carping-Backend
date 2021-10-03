@@ -412,7 +412,6 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
                                                          created_at__range=[pre_month, today]).count()
         eco_level = user.profile.get().level.level
         trade_fee = 500
-        vat = instance.point * 0.1
 
         # 케이스 1 - 작성 포스트 0개
         if user.user_post.count() == 0:
@@ -433,9 +432,7 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
         else:
             platform_fee = 0
 
-        print(user, sale_count, monthly_post_count, eco_level)
-
-        final_point = instance.point + trade_fee + platform_fee + vat
+        final_point = instance.point + trade_fee + platform_fee
         return final_point
 
 
