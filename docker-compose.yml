@@ -19,6 +19,7 @@ services:
     command: gunicorn carping.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ../volume/static:/usr/src/app/staticfiles
+      - ../logs:/usr/src/app/logs
     expose:
       - "8000"
     image: pcj0198/web

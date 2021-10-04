@@ -12,8 +12,8 @@ from bases.s3 import S3Client
 from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
 from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, \
-    MyEcoSerializer, InfoSerializer, MyShareSerializer, UserPostStatusSerializer
-from posts.models import EcoCarping, Share, UserPostInfo
+    MyEcoSerializer, InfoSerializer, MyShareSerializer, UserPostStatusSerializer, UserPostPayStatusSerializer
+from posts.models import EcoCarping, Share, UserPostInfo, UserPost, UserPostPaymentRequest
 
 
 class MyPageView(GenericAPIView):
@@ -28,7 +28,7 @@ class MyPageView(GenericAPIView):
 
         if sort == 'autocamp':
             # 등록 / 스크랩
-            subsort = self.request.data.get('subsort', None)
+            subsort = data.get('subsort', None)
 
             if subsort == 'my':
                 qs = AutoCamp.objects.annotate(bookmark_count=Count("bookmark")).filter(
@@ -63,12 +63,36 @@ class MyPageView(GenericAPIView):
             else:
                 return response.response(error_message="INVALID_SUBSORT - choices are <my, scrap>")
 
-        # if sort == 'post':
-        #     # 발행 / 구매 / 스크랩
+        if sort == 'post':
+            # 발행 / 구매 / 좋아요
+            subsort = data.get('subsort', None)
+            buy_post = []
+
+            if subsort == 'my':
+                qs = UserPostInfo.objects.filter(author=user).order_by('-created_at')
+                serializer = UserPostStatusSerializer(qs, many=True)
+
+            elif subsort == 'buy':
+                for post in UserPost.objects.all():
+                    for i in range(len(post.approved_user.values())):
+                        if user.id == post.approved_user.values()[i].get('id'):
+                            buy_post.append(post.userpostinfo_set.get())
+                serializer = UserPostStatusSerializer(buy_post, many=True)
+
+            elif subsort == 'like':
+                qs = UserPostInfo.objects.filter(like=user).order_by('-created_at')
+                serializer = UserPostStatusSerializer(qs, many=True)
+
+            else:
+                return response.response(error_message="INVALID_SUBSORT - choices are <my, buy, like>")
+
+            response.success = True
+            response.code = HTTP_200_OK
+            return response.response(data=serializer.data)
 
         if sort == 'share':
             # 마이 / 좋아요
-            subsort = self.request.data.get('subsort', None)
+            subsort = data.get('subsort', None)
 
             if subsort == 'my':
                 qs = Share.objects.annotate(
@@ -87,7 +111,7 @@ class MyPageView(GenericAPIView):
 
         if sort == 'eco':
             # 마이 / 좋아요
-            subsort = self.request.data.get('subsort', None)
+            subsort = data.get('subsort', None)
 
             if subsort == 'my':
                 qs = EcoCarping.objects.filter(user=user).order_by('-created_at')
@@ -182,14 +206,24 @@ class PostStatusView(GenericAPIView):
         data = request.data
         user = request.user
         sort = data.get('sort')
+        pay_status = []
 
         if sort == 0:
             qs = UserPostInfo.objects.filter(author=user, is_approved=0)
         elif sort == 1:
             qs = UserPostInfo.objects.filter(author=user, is_approved=1)
+        elif sort == 2:
+            for post_info in UserPostInfo.objects.filter(author=user, pay_type=1):
+                for i in range(len(UserPostPaymentRequest.objects.filter(userpost__userpostinfo=post_info, status=1))):
+                    pay_status.append(UserPostPaymentRequest.objects.filter(
+                        userpost__userpostinfo=post_info, status=1)[i].userpost.userpostinfo_set.get())
+            response.success = True
+            response.code = HTTP_200_OK
+            return response.response(data=UserPostPayStatusSerializer(pay_status, many=True).data)
+
         else:
             return response.response(error_message=
-                                     "INVALID_SORT - choices are <0, 1>")
+                                     "INVALID_SORT - choices are <0, 1, 2>")
         queryset = self.filter_queryset(qs)
         paginate(self, queryset)
 

@@ -76,6 +76,18 @@ class ReviewViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cre
             response.code = status.HTTP_400_BAD_REQUEST
             return response.response(error_message=[str(e)])
 
+    def destroy(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+        try:
+            ret = super(ReviewViewSet, self).destroy(request)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[ret.data])
+        except Exception as e:
+            response.code = status.HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
+
 
 class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin, GenericViewSet):
     serializer_class = CommentSerializer
@@ -130,6 +142,18 @@ class CommentViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Cr
             response.code = status.HTTP_200_OK
             return response.response(data=[ret.data])
 
+        except Exception as e:
+            response.code = status.HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
+
+    def destroy(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+        try:
+            ret = super(CommentViewSet, self).destroy(request)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[ret.data])
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
