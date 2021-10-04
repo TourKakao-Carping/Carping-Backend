@@ -415,19 +415,19 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
         # 케이스 1 - 작성 포스트 0개
         if user.user_post.count() == 0:
-            platform_fee = instance.point * 0.5
+            platform_fee = int(float(instance.point) * 0.5)
 
         # 케이스 2 - 자료판매 0건 이상 / 월 신규 자료등록수 1건 이상 / 에코카핑 지수 1
-        elif sale_count > 0 and monthly_post_count >= 1 and eco_level >= 1:
-            platform_fee = instance.point * 0.2
+        elif sale_count >= 0 and monthly_post_count >= 1 and eco_level >= 1:
+            platform_fee = int(float(instance.point) * 0.2)
 
         # 케이스 3 - 자료판매 10건 이상 / 월 신규 자료등록수 3건 이상 / 에코카핑 지수 2
         elif sale_count >= 10 and monthly_post_count >= 3 and eco_level >= 2:
-            platform_fee = instance.point * 0.15
+            platform_fee = int(float(instance.point) * 0.15)
 
         # 케이스 4 - 자료판매 20건 이상 / 월 신규 자료등록수 4건 이상 / 에코카핑 지수 3
         elif sale_count >= 20 and monthly_post_count >= 4 and eco_level >= 3:
-            platform_fee = instance.point * 0.1
+            platform_fee = int(float(instance.point) * 0.1)
 
         else:
             platform_fee = 0
