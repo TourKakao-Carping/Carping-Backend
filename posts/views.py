@@ -573,7 +573,6 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
 class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     serializer_class = UserPostDetailSerializer
-    permission_classes = (UserPostAccessPermission, IsAuthenticated)
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
