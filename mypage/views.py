@@ -216,7 +216,7 @@ class PostStatusView(GenericAPIView):
             for post_info in UserPostInfo.objects.filter(author=user, pay_type=1):
                 for i in range(len(UserPostPaymentRequest.objects.filter(userpost__userpostinfo=post_info, status=1))):
                     pay_status.append(UserPostPaymentRequest.objects.filter(
-                        userpost__userpostinfo=post_info, status=1)[i].userpost.userpostinfo_set.get())
+                        userpost__userpostinfo=post_info, status=1)[i])
             response.success = True
             response.code = HTTP_200_OK
             return response.response(data=UserPostPayStatusSerializer(pay_status, many=True).data)

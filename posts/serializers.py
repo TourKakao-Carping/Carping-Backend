@@ -1,18 +1,13 @@
-from dateutil.relativedelta import relativedelta
-
-from accounts.models import Profile
 from django.db.models.aggregates import Avg
-from django.http import request
 
 from bases.fee import compute_fee
 from comments.models import Review
-import datetime
 
 from rest_framework import serializers
 from taggit.serializers import TagListSerializerField, TaggitSerializer
 
 from bases.serializers import ModelSerializer
-from bases.utils import check_distance, modify_created_time
+from bases.utils import modify_created_time
 from bases.s3 import S3Client
 
 from comments.serializers import CommentSerializer, ReviewSerializer

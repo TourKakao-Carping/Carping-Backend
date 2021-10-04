@@ -1,4 +1,3 @@
-from dateutil.relativedelta import relativedelta
 from django.db import transaction, DatabaseError
 from rest_framework.permissions import IsAuthenticated
 
@@ -10,13 +9,10 @@ from comments.serializers import ReviewSerializer
 from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
 
 from posts.permissions import UserPostAccessPermission
-from collections import OrderedDict
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from haversine import haversine
 
-from django.conf import settings
 from django.db.models import Count, query, F
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
@@ -27,7 +23,7 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, DestroyMod
 
 from bases.payment import KakaoPayClient
 from bases.serializers import MessageSerializer
-from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo, UserPostPaymentRequest
+from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
     ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, \
     UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer, \
@@ -574,6 +570,7 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
 class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     serializer_class = UserPostDetailSerializer
+    permission_classes = (UserPostAccessPermission, IsAuthenticated)
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -628,7 +625,7 @@ class PreUserPostCreateAPIView(ListModelMixin, GenericAPIView):
         return response.response(data=[serializer.data])
 
 
-class ComputeFeeView(CreateModelMixin,GenericAPIView):
+class ComputeFeeView(CreateModelMixin, GenericAPIView):
     serializer_class = ComputeFeeSerializer
 
     def post(self, request):
@@ -693,25 +690,28 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
                     # UserPost 객체 생성
-                    userpost, created = self.perform_create(serializer)
+                    self.perform_create(serializer)
+                latest = UserPost.objects.latest('id')
 
                 # UserPostInfo 객체 생성
-                userpost_info, info_created = UserPostInfo.objects.create(author=user, user_post=created,
-                                                                          category=category, pay_type=pay_type,
-                                                                          point=point, info=info,
-                                                                          kakao_openchat_url=kakao_openchat_url,
-                                                                          recommend_to=recommend_to,
-                                                                          is_approved=is_approved)
+                UserPostInfo.objects.create(author=user, user_post=latest,
+                                            category=category, pay_type=pay_type,
+                                            point=point, info=info,
+                                            kakao_openchat_url=kakao_openchat_url,
+                                            recommend_to=recommend_to,
+                                            is_approved=is_approved)
+                info_latest = UserPostInfo.objects.latest('id')
+
                 if pay_type == 1:
                     if not check_data_key(bank) or not check_data_key(account_num):
                         return response.response(error_message="check values for payment-post(bank, account_num)")
 
                     values = compute_final(user, point)
-                    UserPostInfo.objects.filter(id=info_created.id).update(trade_fee=values[0],
-                                                                           platform_fee=values[1],
-                                                                           withholding_tax=values[2],
-                                                                           vat=values[3], final_point=values[4],
-                                                                           bank=bank, account_num=account_num)
+                    UserPostInfo.objects.filter(id=info_latest.id).update(trade_fee=values[0],
+                                                                          platform_fee=values[1],
+                                                                          withholding_tax=values[2],
+                                                                          vat=values[3], final_point=values[4],
+                                                                          bank=bank, account_num=account_num)
 
                 # 작가의 한마디(채널 소개) 업데이트
                 Profile.objects.filter(user=request.user).update(

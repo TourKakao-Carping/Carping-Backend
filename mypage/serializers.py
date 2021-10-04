@@ -125,16 +125,28 @@ class UserPostPayStatusSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
     title = serializers.SerializerMethodField()
     username = serializers.SerializerMethodField()
+    pay_type = serializers.SerializerMethodField()
+    point = serializers.SerializerMethodField()
+    pay_date = serializers.SerializerMethodField()
 
     class Meta:
-        model = UserPostInfo
-        fields = ['id', 'title', 'username', 'profile', 'pay_type', 'point']
+        model = UserPostPaymentRequest
+        fields = ['id', 'title', 'username', 'profile', 'pay_type', 'point', 'pay_date']
 
     def get_username(self, instance):
-        return instance.author.username
+        return instance.user.username
 
     def get_profile(self, instance):
-        return instance.author.profile.get().image.url
+        return instance.user.profile.get().image.url
 
     def get_title(self, instance):
-        return instance.user_post.title
+        return instance.userpost.title
+
+    def get_pay_type(self, instance):
+        return instance.userpost.userpostinfo_set.get().pay_type
+
+    def get_point(self, instance):
+        return instance.userpost.userpostinfo_set.get().point
+
+    def get_pay_date(self, data):
+        return data.created_at.strftime('%Y. %m. %d')
