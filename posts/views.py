@@ -11,7 +11,6 @@ from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
 from posts.permissions import UserPostAccessPermission
 from collections import OrderedDict
 
-
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from haversine import haversine
@@ -619,7 +618,7 @@ class PreUserPostCreateAPIView(ListModelMixin, GenericAPIView):
 
     def get(self, request):
         response = APIResponse(success=False, code=400)
-        user =request.user
+        user = request.user
 
         pre_post = UserPostInfo.objects.filter(author=user).order_by('-id').first()
         serializer = self.get_serializer(pre_post)
@@ -677,34 +676,37 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
 
                     # 최종 정산금 계산 & 은행 및 계좌 선택
                     # trade_fee, platform_fee, withholding_tax, vat, final_point / bank, account_num
+                    trade_fee = 500
 
                     # 케이스 1 - 첫 포스트 작성 시
-                    trade_fee = 500
                     if user.user_post.count() == 0:
-                        platform_fee = point * 0.5
+                        platform_fee = int(float(point) * 0.5)
 
                     # 케이스 2 - 자료판매 0건 이상 / 월 신규 자료등록수 1건 이상 / 에코카핑 지수 1
-                    elif sale_count > 0 and monthly_post_count >= 1 and eco_level >= 1:
-                        platform_fee = point * 0.2
+                    elif sale_count >= 0 and monthly_post_count >= 1 and eco_level >= 1:
+                        platform_fee = int(float(point) * 0.2)
 
                     # 케이스 3 - 자료판매 10건 이상 / 월 신규 자료등록수 3건 이상 / 에코카핑 지수 2
                     elif sale_count >= 10 and monthly_post_count >= 3 and eco_level >= 2:
-                        platform_fee = point * 0.15
+                        platform_fee = int(float(point) * 0.15)
 
                     # 케이스 4 - 자료판매 20건 이상 / 월 신규 자료등록수 4건 이상 / 에코카핑 지수 3
                     elif sale_count >= 20 and monthly_post_count >= 4 and eco_level >= 3:
-                        platform_fee = point * 0.1
+                        platform_fee = int(float(point) * 0.1)
 
-                    withholding_tax = point * 0.033
-                    vat = point * 0.1
-                    final_point = point - trade_fee - platform_fee - withholding_tax - vat
+                    else:
+                        platform_fee = 0
+
+                    withholding_tax = int(float(point) * 0.033)
+                    vat = int(float(point) * 0.1)
+                    final_point = int(point) - trade_fee - platform_fee - withholding_tax - vat
 
                     latest = UserPostInfo.objects.latest('id')
-                    UserPost.objects.filter(id=latest.id).update(trade_fee=trade_fee,
-                                                                 platform_fee=platform_fee,
-                                                                 withholding_tax=withholding_tax,
-                                                                 vat=vat, final_point=final_point,
-                                                                 bank=bank, account_num=account_num)
+                    UserPostInfo.objects.filter(id=latest.id).update(trade_fee=trade_fee,
+                                                                     platform_fee=platform_fee,
+                                                                     withholding_tax=withholding_tax,
+                                                                     vat=vat, final_point=final_point,
+                                                                     bank=bank, account_num=account_num)
 
                 # 작가의 한마디(채널 소개) 업데이트
                 Profile.objects.filter(user=request.user).update(
@@ -712,7 +714,7 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
 
                 response.success = True
                 response.code = 200
-                return response.response(data=[{"message": "포스트 발행 완료"}])
+                return response.response(data=[{"post_id": UserPost.objects.latest('id').id}])
 
         except DatabaseError as e:
             return response.response(error_message=str(e))
