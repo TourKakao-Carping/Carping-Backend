@@ -106,7 +106,7 @@ class UserPostStatusSerializer(serializers.ModelSerializer):
         # id, thumnail, title, review, is_liked
         model = UserPostInfo
         fields = ['id', 'title', 'total_star_avg', 'author', 'profile',
-                  'thumbnail', 'pay_type']
+                  'thumbnail', 'pay_type', 'is_approved']
 
     def get_author(self, instance):
         return instance.author.username
