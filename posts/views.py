@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.models import Profile
 import datetime
 
+from bases.fee import compute_final
 from comments.serializers import ReviewSerializer
 from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
 
@@ -30,7 +31,7 @@ from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserP
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
     ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, \
     UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer, \
-    UserPostMoreReviewSerializer, UserPostCreateSerializer, PreUserPostCreateSerializer
+    UserPostMoreReviewSerializer, UserPostCreateSerializer, PreUserPostCreateSerializer, ComputeFeeSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate
 from bases.response import APIResponse
@@ -627,6 +628,27 @@ class PreUserPostCreateAPIView(ListModelMixin, GenericAPIView):
         return response.response(data=[serializer.data])
 
 
+class ComputeFeeView(CreateModelMixin,GenericAPIView):
+    serializer_class = ComputeFeeSerializer
+
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        data = request.data
+        user = request.user
+
+        point = data.get('point')
+        if not check_data_key(point):
+            return response.response(error_message="No input - check 'point' value.")
+
+        values = compute_final(user, point)
+
+        response.success = True
+        response.code = 200
+        return response.response(data=[{"trade_fee": values[0]}, {"platform_fee": values[1]},
+                                       {"withholding_tax": values[2]}, {"vat": values[3]},
+                                       {"final_point": values[4]}])
+
+
 # 유저 포스트 작성 뷰
 class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
     serializer_class = UserPostCreateSerializer
@@ -638,18 +660,29 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
 
         author_comment = data.get('author_comment')
         kakao_openchat_url = data.get('kakao_openchat_url')
+
         category = data.get('category')
         info = data.get('info')
         recommend_to = data.get('recommend_to')
         pay_type = data.get('pay_type')
-        bank = data.get('bank')
-        account_num = data.get('account_num')
         point = data.get('point')
 
-        today = datetime.date.today() + relativedelta(days=1)
-        pre_month = today - relativedelta(months=1)
+        bank = data.get('bank')
+        account_num = data.get('account_num')
 
-        if int(pay_type) == 0:
+        if not check_data_key(author_comment) or not check_data_key(kakao_openchat_url):
+            return response.response(error_message="check pre-post values(author_comment, kakao_openchat_url")
+
+        if not check_data_key(category) or not check_data_key(info) or not check_data_key(recommend_to) \
+                or not check_data_key(pay_type) or not check_data_key(point):
+            return response.response(error_message="check post-info values(category, info, "
+                                                   "recommend_to, pay_type, point)")
+
+        if check_str_digit(pay_type):
+            int(pay_type)
+
+        # 무료 포스트인 경우 바로 승인 완료
+        if pay_type == 0:
             is_approved = True
         else:
             is_approved = False
@@ -660,52 +693,25 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
                     # UserPost 객체 생성
-                    self.perform_create(serializer)
-                latest = UserPost.objects.latest('id')
+                    userpost, created = self.perform_create(serializer)
 
                 # UserPostInfo 객체 생성
-                UserPostInfo.objects.create(author=user, user_post=latest, category=category, pay_type=pay_type,
-                                            point=point, info=info, kakao_openchat_url=kakao_openchat_url,
-                                            recommend_to=recommend_to, is_approved=is_approved)
-                if int(pay_type) == 1:
-                    sale_count = UserPostPaymentRequest.objects.filter(userpost__userpostinfo__author=user).count()
-                    monthly_post_count = UserPostInfo.objects.filter(author=user,
-                                                                     created_at__range=[pre_month, today]).count()
-                    eco_level = user.profile.get().level.level
+                userpost_info, info_created = UserPostInfo.objects.create(author=user, user_post=created,
+                                                                          category=category, pay_type=pay_type,
+                                                                          point=point, info=info,
+                                                                          kakao_openchat_url=kakao_openchat_url,
+                                                                          recommend_to=recommend_to,
+                                                                          is_approved=is_approved)
+                if pay_type == 1:
+                    if not check_data_key(bank) or not check_data_key(account_num):
+                        return response.response(error_message="check values for payment-post(bank, account_num)")
 
-                    # 최종 정산금 계산 & 은행 및 계좌 선택
-                    # trade_fee, platform_fee, withholding_tax, vat, final_point / bank, account_num
-                    trade_fee = 500
-
-                    # 케이스 1 - 첫 포스트 작성 시
-                    if user.user_post.count() == 0:
-                        platform_fee = int(float(point) * 0.5)
-
-                    # 케이스 2 - 자료판매 0건 이상 / 월 신규 자료등록수 1건 이상 / 에코카핑 지수 1
-                    elif sale_count >= 0 and monthly_post_count >= 1 and eco_level >= 1:
-                        platform_fee = int(float(point) * 0.2)
-
-                    # 케이스 3 - 자료판매 10건 이상 / 월 신규 자료등록수 3건 이상 / 에코카핑 지수 2
-                    elif sale_count >= 10 and monthly_post_count >= 3 and eco_level >= 2:
-                        platform_fee = int(float(point) * 0.15)
-
-                    # 케이스 4 - 자료판매 20건 이상 / 월 신규 자료등록수 4건 이상 / 에코카핑 지수 3
-                    elif sale_count >= 20 and monthly_post_count >= 4 and eco_level >= 3:
-                        platform_fee = int(float(point) * 0.1)
-
-                    else:
-                        platform_fee = 0
-
-                    withholding_tax = int(float(point) * 0.033)
-                    vat = int(float(point) * 0.1)
-                    final_point = int(point) - trade_fee - platform_fee - withholding_tax - vat
-
-                    latest = UserPostInfo.objects.latest('id')
-                    UserPostInfo.objects.filter(id=latest.id).update(trade_fee=trade_fee,
-                                                                     platform_fee=platform_fee,
-                                                                     withholding_tax=withholding_tax,
-                                                                     vat=vat, final_point=final_point,
-                                                                     bank=bank, account_num=account_num)
+                    values = compute_final(user, point)
+                    UserPostInfo.objects.filter(id=info_created.id).update(trade_fee=values[0],
+                                                                           platform_fee=values[1],
+                                                                           withholding_tax=values[2],
+                                                                           vat=values[3], final_point=values[4],
+                                                                           bank=bank, account_num=account_num)
 
                 # 작가의 한마디(채널 소개) 업데이트
                 Profile.objects.filter(user=request.user).update(
@@ -723,12 +729,17 @@ class FreeUserPostBuyAPIView(GenericAPIView):
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
 
-        userpost = UserPostInfo.objects.get(id=pk)
-        userpost.user_post.approved_user.add(request.user)
+        try:
+            userpost = UserPostInfo.objects.get(id=pk)
+            userpost.user_post.approved_user.add(request.user)
 
-        response.success = True
-        response.code = 200
-        return response.response(data=[{"message": "사용자 작성 무료포스트 0원 결제 완료"}])
+            response.success = True
+            response.code = 200
+            return response.response(data=[{"message": "사용자 작성 무료포스트 0원 결제 완료"}])
+
+        except Exception as e:
+            response.code = status.HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
 
 
 class UserPostPaymentReadyAPIView(APIView):

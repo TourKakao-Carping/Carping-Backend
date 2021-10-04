@@ -24,6 +24,8 @@ urlpatterns = [
          name="user-post-info-list"),
     path('user-post/pre-create', PreUserPostCreateAPIView.as_view(),
          name="user-post-pre-create"),
+    path('user-post/compute-fee', ComputeFeeView.as_view(),
+         name="user-post-compute-fee"),
     path('user-post/create', UserPostCreateAPIView.as_view(),
          name="user-post-create"),
     path('user-post/info/<int:pk>',
