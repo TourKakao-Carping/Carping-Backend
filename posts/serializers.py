@@ -1,3 +1,5 @@
+from dateutil.relativedelta import relativedelta
+
 from accounts.models import Profile
 from django.db.models.aggregates import Avg
 from django.http import request
@@ -12,7 +14,7 @@ from bases.utils import check_distance, modify_created_time
 from bases.s3 import S3Client
 
 from comments.serializers import CommentSerializer, ReviewSerializer
-from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo
+from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo, UserPostPaymentRequest
 from camps.models import CampSite
 
 
@@ -327,10 +329,12 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
     contents_count = serializers.SerializerMethodField()
 
+    final_point = serializers.SerializerMethodField()
+
     class Meta:
         model = UserPostInfo
         fields = ['id', 'userpost_id', 'author_name', 'author_profile', 'author_comment', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3', 'contents_count', 'like_count',  'kakao_openchat_url', 'star1_avg',
-                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'login_user', 'login_user_profile', 'review']
+                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'login_user', 'login_user_profile', 'review', 'final_point']
 
     def get_userpost_id(self, instance):
         return instance.user_post.id
@@ -425,7 +429,38 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
         else:
             return 5
 
-    # def
+    def get_final_point(self, instance):
+        user = self.context['request'].user
+        today = datetime.date.today() + relativedelta(days=1)
+        pre_month = today - relativedelta(months=1)
+
+        sale_count = UserPostPaymentRequest.objects.filter(userpost__userpostinfo__author=user).count()
+        monthly_post_count = UserPostInfo.objects.filter(author=user,
+                                                         created_at__range=[pre_month, today]).count()
+        eco_level = user.profile.get().level.level
+        trade_fee = 500
+
+        # 케이스 1 - 작성 포스트 0개
+        if user.user_post.count() == 0:
+            platform_fee = instance.point * 0.5
+
+        # 케이스 2 - 자료판매 0건 이상 / 월 신규 자료등록수 1건 이상 / 에코카핑 지수 1
+        elif sale_count > 0 and monthly_post_count >= 1 and eco_level >= 1:
+            platform_fee = instance.point * 0.2
+
+        # 케이스 3 - 자료판매 10건 이상 / 월 신규 자료등록수 3건 이상 / 에코카핑 지수 2
+        elif sale_count >= 10 and monthly_post_count >= 3 and eco_level >= 2:
+            platform_fee = instance.point * 0.15
+
+        # 케이스 4 - 자료판매 20건 이상 / 월 신규 자료등록수 4건 이상 / 에코카핑 지수 3
+        elif sale_count >= 20 and monthly_post_count >= 4 and eco_level >= 3:
+            platform_fee = instance.point * 0.1
+
+        else:
+            platform_fee = 0
+
+        final_point = instance.point + trade_fee + platform_fee
+        return final_point
 
 
 class OtherUserPostSerializer(serializers.ModelSerializer):

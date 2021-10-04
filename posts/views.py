@@ -1,3 +1,4 @@
+from dateutil.relativedelta import relativedelta
 from django.db import transaction, DatabaseError
 from rest_framework.permissions import IsAuthenticated
 
@@ -26,7 +27,7 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, DestroyMod
 
 from bases.payment import KakaoPayClient
 from bases.serializers import MessageSerializer
-from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo
+from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo, UserPostPaymentRequest
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
     ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, \
     UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer, \
@@ -635,12 +636,20 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
     def post(self, request):
         response = APIResponse(success=False, code=400)
         data = request.data
+        user = request.user
+
         author_comment = data.get('author_comment')
         kakao_openchat_url = data.get('kakao_openchat_url')
-        pay_type = data.get('pay_type')
-        point = data.get('point')
+        category = data.get('category')
         info = data.get('info')
         recommend_to = data.get('recommend_to')
+        pay_type = data.get('pay_type')
+        bank = data.get('bank')
+        account_num = data.get('account_num')
+        point = data.get('point')
+
+        today = datetime.date.today() + relativedelta(days=1)
+        pre_month = today - relativedelta(months=1)
 
         if int(pay_type) == 0:
             is_approved = True
@@ -652,13 +661,52 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                 serializer = self.get_serializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
+                    # UserPost 객체 생성
                     self.perform_create(serializer)
                 latest = UserPost.objects.latest('id')
 
-                UserPostInfo.objects.create(author=request.user, user_post=latest, pay_type=pay_type,
+                # UserPostInfo 객체 생성
+                UserPostInfo.objects.create(author=user, user_post=latest, category=category, pay_type=pay_type,
                                             point=point, info=info, kakao_openchat_url=kakao_openchat_url,
                                             recommend_to=recommend_to, is_approved=is_approved)
+                if int(pay_type) == 1:
+                    sale_count = UserPostPaymentRequest.objects.filter(userpost__userpostinfo__author=user).count()
+                    monthly_post_count = UserPostInfo.objects.filter(author=user,
+                                                                     created_at__range=[pre_month, today]).count()
+                    eco_level = user.profile.get().level.level
 
+                    # 최종 정산금 계산 & 은행 및 계좌 선택
+                    # trade_fee, platform_fee, withholding_tax, vat, final_point / bank, account_num
+
+                    # 케이스 1 - 첫 포스트 작성 시
+                    trade_fee = 500
+                    if user.user_post.count() == 0:
+                        platform_fee = point * 0.5
+
+                    # 케이스 2 - 자료판매 0건 이상 / 월 신규 자료등록수 1건 이상 / 에코카핑 지수 1
+                    elif sale_count > 0 and monthly_post_count >= 1 and eco_level >= 1:
+                        platform_fee = point * 0.2
+
+                    # 케이스 3 - 자료판매 10건 이상 / 월 신규 자료등록수 3건 이상 / 에코카핑 지수 2
+                    elif sale_count >= 10 and monthly_post_count >= 3 and eco_level >= 2:
+                        platform_fee = point * 0.15
+
+                    # 케이스 4 - 자료판매 20건 이상 / 월 신규 자료등록수 4건 이상 / 에코카핑 지수 3
+                    elif sale_count >= 20 and monthly_post_count >= 4 and eco_level >= 3:
+                        platform_fee = point * 0.1
+
+                    withholding_tax = point * 0.033
+                    vat = point * 0.1
+                    final_point = point - trade_fee - platform_fee - withholding_tax - vat
+
+                    latest = UserPostInfo.objects.latest('id')
+                    UserPost.objects.filter(id=latest.id).update(trade_fee=trade_fee,
+                                                                 platform_fee=platform_fee,
+                                                                 withholding_tax=withholding_tax,
+                                                                 vat=vat, final_point=final_point,
+                                                                 bank=bank, account_num=account_num)
+
+                # 작가의 한마디(채널 소개) 업데이트
                 Profile.objects.filter(user=request.user).update(
                     author_comment=author_comment)
 
