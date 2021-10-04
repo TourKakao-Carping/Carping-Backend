@@ -3,6 +3,8 @@ from dateutil.relativedelta import relativedelta
 from accounts.models import Profile
 from django.db.models.aggregates import Avg
 from django.http import request
+
+from bases.fee import compute_fee
 from comments.models import Review
 import datetime
 
@@ -177,8 +179,7 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
     comment = CommentSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
     created_at = serializers.SerializerMethodField()
-    like_count = serializers.IntegerField()
-    is_liked = serializers.BooleanField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Share
@@ -197,6 +198,34 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
 
     def get_created_at(self, data):
         return modify_created_time(data)
+
+    def get_is_liked(self, data):
+        if data.like.through.objects.filter(user=self.context['request'].user, share=data):
+            return True
+        return False
+
+    def update(self, instance, validated_data):
+        """
+        기존에 저장되어 있다면 이미지 삭제하고 다시 업로드
+        """
+        fields = validated_data.keys()
+        s3 = S3Client()
+
+        for key in fields:
+            if key == "image1":
+                if not instance.image1 == "" and not instance.image1 == None:
+                    s3.delete_file(str(instance.image1))
+            elif key == "image2":
+                if not instance.image2 == "" and not instance.image2 == None:
+                    s3.delete_file(str(instance.image2))
+            elif key == "image3":
+                if not instance.image3 == "" and not instance.image3 == None:
+                    s3.delete_file(str(instance.image3))
+            else:
+                if not instance.image4 == "" and not instance.image4 == None:
+                    s3.delete_file(str(instance.image4))
+
+        return super().update(instance, validated_data)
 
 
 class SharePostSerializer(TaggitSerializer, ModelSerializer):
@@ -403,34 +432,14 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
             return 5
 
     def get_final_point(self, instance):
-        user = self.context['request'].user
-        today = datetime.date.today() + relativedelta(days=1)
-        pre_month = today - relativedelta(months=1)
+        # 무료 포스트면 수수료 적용하지 않고 바로 0 리턴
+        if instance.point == 0 or None:
+            return 0
 
-        sale_count = UserPostPaymentRequest.objects.filter(userpost__userpostinfo__author=user).count()
-        monthly_post_count = UserPostInfo.objects.filter(author=user,
-                                                         created_at__range=[pre_month, today]).count()
-        eco_level = user.profile.get().level.level
+        user = self.context['request'].user
         trade_fee = 500
 
-        # 케이스 1 - 작성 포스트 0개
-        if user.user_post.count() == 0:
-            platform_fee = int(float(instance.point) * 0.5)
-
-        # 케이스 2 - 자료판매 0건 이상 / 월 신규 자료등록수 1건 이상 / 에코카핑 지수 1
-        elif sale_count >= 0 and monthly_post_count >= 1 and eco_level >= 1:
-            platform_fee = int(float(instance.point) * 0.2)
-
-        # 케이스 3 - 자료판매 10건 이상 / 월 신규 자료등록수 3건 이상 / 에코카핑 지수 2
-        elif sale_count >= 10 and monthly_post_count >= 3 and eco_level >= 2:
-            platform_fee = int(float(instance.point) * 0.15)
-
-        # 케이스 4 - 자료판매 20건 이상 / 월 신규 자료등록수 4건 이상 / 에코카핑 지수 3
-        elif sale_count >= 20 and monthly_post_count >= 4 and eco_level >= 3:
-            platform_fee = int(float(instance.point) * 0.1)
-
-        else:
-            platform_fee = 0
+        platform_fee = compute_fee(user, instance.point)
 
         final_point = instance.point + trade_fee + platform_fee
         return final_point
@@ -512,3 +521,11 @@ class UserPostCreateSerializer(serializers.ModelSerializer):
                   'sub_title3', 'text3', 'image3',
                   'sub_title4', 'text4', 'image4',
                   'sub_title5', 'text5', 'image5']
+
+
+class ComputeFeeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserPostInfo
+        fields = ['point', 'trade_fee', 'platform_fee',
+                  'withholding_tax', 'vat', 'final_point']
