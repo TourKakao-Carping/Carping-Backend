@@ -320,3 +320,46 @@ class SMSVerificationView(APIView):
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
+
+
+class UserWithdrawView(APIView):
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        try:
+            # 삭제 - 차박지, 에코카핑, 무료나눔, 무료포스트, 검색기록, 댓글, 리뷰,
+            # 스크랩, 좋아요, 휴대폰 인증 내역, 인증 정보
+
+            user.autocamp.all().delete()
+            user.eco.all().delete()
+            user.share.all().delete()
+            user.user_post.filter(pay_type=0).update()
+            user.search.all().delete()
+            user.review.all().delete()
+            user.comment.all().delete()
+
+            user.userpost_like.through.objects.filter(user=user).delete()
+            user.eco_like.through.objects.filter(user=user).delete()
+            user.share_like.through.objects.filter(user=user).delete()
+            user.review_like.through.objects.filter(user=user).delete()
+            user.comment_like.through.objects.filter(user=user).delete()
+
+            user.campsite_bookmark.through.objects.filter(user=user).delete()
+            user.autocamp_bookmark.through.objects.filter(user=user).delete()
+
+            SmsHistory.objects.filter(user_id=user.id).delete()
+            Certification.objects.filter(user=user).delete()
+
+            # 초기화 - 프로필(에코레벨은 1), 유저 정보, 인증 정보
+            Profile.objects.filter(user=user).update(phone=None, image=None, level=1, bio=None,
+                                                     interest=None, author_comment=None,
+                                                     account_num=None)
+            User.objects.filter(id=user.id).update(is_active=False, email=None, username=None)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[{"message": "탈퇴 완료"}])
+
+        except Exception as e:
+            response.code = status.HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))
