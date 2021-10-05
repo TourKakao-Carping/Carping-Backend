@@ -517,7 +517,7 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
         user = self.request.user
         pk = user.pk
         qs_info_qs = UserPostInfo.objects.all().filter(
-            is_approved=True).exclude(type=CATEGORY_DEACTIVATE).annotate(title=F('user_post__title'))
+            is_approved=True).exclude(category=CATEGORY_DEACTIVATE).annotate(title=F('user_post__title'))
 
         qs = qs_info_qs.like_qs(pk)
 
@@ -526,20 +526,20 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
 
-        try:
-            ret = super().retrieve(request)
-            response.success = True
-            response.code = 200
+        # try:
+        ret = super().retrieve(request)
+        response.success = True
+        response.code = 200
 
-            data = ret.data
-            review = data.pop('review')
-            review = review[:3]
-            data["review"] = review
+        data = ret.data
+        review = data.pop('review')
+        review = review[:3]
+        data["review"] = review
 
-            return response.response(data=[data])
+        return response.response(data=[data])
 
-        except BaseException as e:
-            return response.response(error_message=str(e))
+        # except BaseException as e:
+        # return response.response(error_message=str(e))
 
 
 class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):

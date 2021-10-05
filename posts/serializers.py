@@ -328,10 +328,13 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
     final_point = serializers.SerializerMethodField()
 
+    author_id = serializers.SerializerMethodField()
+    is_approved = serializers.SerializerMethodField()
+
     class Meta:
         model = UserPostInfo
         fields = ['id', 'userpost_id', 'author_name', 'author_profile', 'author_comment', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3', 'contents_count', 'like_count',  'kakao_openchat_url', 'star1_avg',
-                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'login_user', 'login_user_profile', 'review', 'final_point']
+                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'login_user', 'login_user_profile', 'review', 'final_point', 'author_id', 'is_approved']
 
     def get_userpost_id(self, instance):
         return instance.user_post.id
@@ -438,6 +441,20 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
         final_point = instance.point + trade_fee + platform_fee
         return final_point
+
+    def get_author_id(self, instance):
+        return instance.author.id
+
+    def get_is_approved(self, instance):
+        user = self.context['request'].user
+
+        user_approved_post_qs = user.approved_user.all()
+        post_id = instance.user_post.id
+
+        if user_approved_post_qs.filter(id=post_id).exists():
+            return True
+        else:
+            return False
 
 
 class OtherUserPostSerializer(serializers.ModelSerializer):
