@@ -672,7 +672,7 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
         account_num = data.get('account_num')
 
         if not check_data_key(author_comment) or not check_data_key(kakao_openchat_url):
-            return response.response(error_message="check pre-post values(author_comment, kakao_openchat_url")
+            return response.response(error_message="check pre-post values(author_comment, kakao_openchat_url)")
 
         if not check_data_key(category) or not check_data_key(info) or not check_data_key(recommend_to) \
                 or not check_data_key(pay_type) or not check_data_key(point):
@@ -694,36 +694,46 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
                     # UserPost 객체 생성
-                    userpost, created = self.perform_create(serializer)
+                    self.perform_create(serializer)
+                latest = UserPost.objects.latest('id')
 
                 # UserPostInfo 객체 생성
-                userpost_info, info_created = UserPostInfo.objects.create(author=user, user_post=created,
-                                                                          category=category, pay_type=pay_type,
-                                                                          point=point, info=info,
-                                                                          kakao_openchat_url=kakao_openchat_url,
-                                                                          recommend_to=recommend_to,
-                                                                          is_approved=is_approved)
+                UserPostInfo.objects.create(author=user, user_post=latest,
+                                            category=category, pay_type=pay_type,
+                                            point=point, info=info,
+                                            kakao_openchat_url=kakao_openchat_url,
+                                            recommend_to=recommend_to,
+                                            is_approved=is_approved)
+                info_latest = UserPostInfo.objects.latest('id')
+
                 if pay_type == 1:
                     if not check_data_key(bank) or not check_data_key(account_num):
-                        return response.response(error_message="check values for payment-post(bank, account_num)")
+                        raise Exception("check values for payment-post(bank, account_num)")
+
+                    info_latest.approved_user.add(user)
+
+                    info_latest.save()
 
                     values = compute_final(user, point)
-                    UserPostInfo.objects.filter(id=info_created.id).update(trade_fee=values[0],
-                                                                           platform_fee=values[1],
-                                                                           withholding_tax=values[2],
-                                                                           vat=values[3], final_point=values[4],
-                                                                           bank=bank, account_num=account_num)
+                    UserPostInfo.objects.filter(id=info_latest.id).update(trade_fee=values[0],
+                                                                          platform_fee=values[1],
+                                                                          withholding_tax=values[2],
+                                                                          vat=values[3], final_point=values[4],
+                                                                          bank=bank)
+                    # 계좌 번호 업데이트
+                    Profile.objects.filter(user=user).update(
+                        account_num=account_num)
 
                 # 작가의 한마디(채널 소개) 업데이트
-                Profile.objects.filter(user=request.user).update(
+                Profile.objects.filter(user=user).update(
                     author_comment=author_comment)
 
                 response.success = True
                 response.code = 200
                 return response.response(data=[{"post_id": UserPost.objects.latest('id').id}])
 
-        except DatabaseError as e:
-            return response.response(error_message=str(e))
+        except Exception as e:
+            return str(e)
 
 
 class FreeUserPostBuyAPIView(GenericAPIView):
