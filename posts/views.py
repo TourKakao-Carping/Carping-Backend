@@ -711,11 +711,12 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                                                                           platform_fee=values[1],
                                                                           withholding_tax=values[2],
                                                                           vat=values[3], final_point=values[4],
-                                                                          bank=bank, account_num=account_num)
+                                                                          bank=bank)
+                    # 계좌 번호 업데이트
+                    Profile.objects.filter(user=user).update(account_num=account_num)
 
                 # 작가의 한마디(채널 소개) 업데이트
-                Profile.objects.filter(user=request.user).update(
-                    author_comment=author_comment)
+                Profile.objects.filter(user=user).update(author_comment=author_comment)
 
                 response.success = True
                 response.code = 200

@@ -15,12 +15,6 @@ from bases.models import Base
 from posts.constants import SEARCH_TYPE_CHOICES
 
 
-def validate_phone(value):
-    regex = re.compile('\d{2,3}-\d{3,4}-\d{4}')
-    if not regex.match(value):
-        raise ValidationError("O-O-O 형식의 번호를 입력해주세요.")
-
-
 class UserManager(BaseUserManager):
     """
     Custom user model manager where email is the unique identifiers
@@ -91,8 +85,7 @@ class Profile(Base):
     image                   프로필 사진
     gender                  성별
     """
-    phone = models.CharField(max_length=50, null=True,
-                             blank=True, validators=[validate_phone])
+    phone = models.CharField(max_length=50, null=True, blank=True)
     image = models.ImageField(
         upload_to=upload_user_directory, default='img/default/default_img.jpg')
     gender = models.IntegerField(default=0, null=True)
@@ -118,6 +111,7 @@ class Profile(Base):
     #     SocialAccount, on_delete=CASCADE, null=True, related_name="socialaccount_fk")
     author_comment = models.CharField(
         max_length=100, verbose_name=_("작가의 한마디"), null=True, blank=True)
+    account_num = models.CharField(max_length=255, null=True, blank=True, verbose_name=_("계좌번호"))
 
     objects = ProfileManager()
 

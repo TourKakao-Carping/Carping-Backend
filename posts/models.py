@@ -160,7 +160,6 @@ class UserPostInfo(Base):
     vat = models.IntegerField(default=0, verbose_name=_("VAT 10%"))
     final_point = models.IntegerField(default=0, verbose_name=_("최종 정산금"))
     bank = models.IntegerField(default=0, choices=BANK_CHOICES, null=True, blank=True, verbose_name=_("은행"))
-    account_num = models.CharField(max_length=255, null=True, blank=True, verbose_name=_("계좌번호"))
     info = models.CharField(max_length=100, verbose_name=_("포스트 소개"))
     kakao_openchat_url = models.URLField(null=True, blank=True)
     recommend_to = models.CharField(max_length=100, verbose_name=_("추천하는 대상"))
