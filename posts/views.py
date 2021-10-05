@@ -594,9 +594,6 @@ class UserPostDeactivateAPIView(RetrieveModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     permission_classes = (AuthorOnlyAccessPermission, IsAuthenticated)
 
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
     def post(self, request, pk):
 
         response = APIResponse(success=False, code=400)
@@ -684,7 +681,7 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
         account_num = data.get('account_num')
 
         if not check_data_key(author_comment) or not check_data_key(kakao_openchat_url):
-            return response.response(error_message="check pre-post values(author_comment, kakao_openchat_url")
+            return response.response(error_message="check pre-post values(author_comment, kakao_openchat_url)")
 
         if not check_data_key(category) or not check_data_key(info) or not check_data_key(recommend_to) \
                 or not check_data_key(pay_type) or not check_data_key(point):
@@ -721,6 +718,10 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                 if pay_type == 1:
                     if not check_data_key(bank) or not check_data_key(account_num):
                         return response.response(error_message="check values for payment-post(bank, account_num)")
+
+                    info_latest.approved_user.add(user)
+
+                    info_latest.save()
 
                     values = compute_final(user, point)
                     UserPostInfo.objects.filter(id=info_latest.id).update(trade_fee=values[0],
