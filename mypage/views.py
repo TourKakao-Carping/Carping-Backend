@@ -13,6 +13,7 @@ from bases.utils import paginate, check_str_digit
 from camps.models import AutoCamp, CampSite
 from mypage.serializers import MyAutoCampSerializer, MyPageSerializer, ScrapCampSiteSerializer, \
     MyEcoSerializer, InfoSerializer, MyShareSerializer, UserPostStatusSerializer, UserPostPayStatusSerializer
+from posts.constants import CATEGORY_DEACTIVATE
 from posts.models import EcoCarping, Share, UserPostInfo, UserPost, UserPostPaymentRequest
 
 
@@ -69,18 +70,20 @@ class MyPageView(GenericAPIView):
             buy_post = []
 
             if subsort == 'my':
-                qs = UserPostInfo.objects.filter(author=user).order_by('-created_at')
+                qs = UserPostInfo.objects.filter(author=user).exclude(
+                    category=CATEGORY_DEACTIVATE).order_by('-created_at')
                 serializer = UserPostStatusSerializer(qs, many=True)
 
             elif subsort == 'buy':
-                for post in UserPost.objects.all():
+                for post in UserPost.objects.all().exclude(userpostinfo__category=CATEGORY_DEACTIVATE):
                     for i in range(len(post.approved_user.values())):
                         if user.id == post.approved_user.values()[i].get('id'):
                             buy_post.append(post.userpostinfo_set.get())
                 serializer = UserPostStatusSerializer(buy_post, many=True)
 
             elif subsort == 'like':
-                qs = UserPostInfo.objects.filter(like=user).order_by('-created_at')
+                qs = UserPostInfo.objects.filter(like=user).exclude(
+                    category=CATEGORY_DEACTIVATE).order_by('-created_at')
                 serializer = UserPostStatusSerializer(qs, many=True)
 
             else:
@@ -209,11 +212,11 @@ class PostStatusView(GenericAPIView):
         pay_status = []
 
         if sort == 0:
-            qs = UserPostInfo.objects.filter(author=user, is_approved=0)
+            qs = UserPostInfo.objects.filter(author=user, is_approved=0).exclude(category=CATEGORY_DEACTIVATE)
         elif sort == 1:
-            qs = UserPostInfo.objects.filter(author=user, is_approved=1)
+            qs = UserPostInfo.objects.filter(author=user, is_approved=1).exclude(category=CATEGORY_DEACTIVATE)
         elif sort == 2:
-            for post_info in UserPostInfo.objects.filter(author=user, pay_type=1):
+            for post_info in UserPostInfo.objects.filter(author=user, pay_type=1).exclude(category=CATEGORY_DEACTIVATE):
                 for i in range(len(UserPostPaymentRequest.objects.filter(userpost__userpostinfo=post_info, status=1))):
                     pay_status.append(UserPostPaymentRequest.objects.filter(
                         userpost__userpostinfo=post_info, status=1)[i])
