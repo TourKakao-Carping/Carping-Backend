@@ -14,3 +14,16 @@ class UserPostAccessPermission(permissions.BasePermission):
             return True
         else:
             return False
+
+
+class AuthorOnlyAccessPermission(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+
+        post_info = obj.userpostinfo_set.get()
+
+        if post_info.author == user:
+            return True
+        else:
+            return False

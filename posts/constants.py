@@ -19,7 +19,15 @@ CATEGORY_CHOICES = (
     (1, _("초보 차박러를 위한 포스트")),
     (2, _("차박에 관한 모든 것")),
     (3, _("차에 맞는 차박여행")),
+    (-99, _("비활성화")),
 )
+
+CATEGORY_BASE = 0
+CATEGORY_NEWBIE = 1
+CATEGORY_ALL_FOR_CAR = 2
+CATEGORY_FIT_CAR = 3
+CATEGORY_DEACTIVATE = -99
+
 
 BANK_CHOICES = (
     (0, _("카카오뱅크")),

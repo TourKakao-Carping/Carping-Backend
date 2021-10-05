@@ -1,3 +1,5 @@
+from rest_framework.exceptions import PermissionDenied
+from posts.messages import ALREADY_DEACTIVATED
 from django.db import transaction, DatabaseError
 from rest_framework.permissions import IsAuthenticated
 
@@ -6,9 +8,9 @@ import datetime
 
 from bases.fee import compute_final
 from comments.serializers import ReviewSerializer
-from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
+from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, POST_INFO_CATEGORY_LIST_NUM
 
-from posts.permissions import UserPostAccessPermission
+from posts.permissions import AuthorOnlyAccessPermission, UserPostAccessPermission
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -514,10 +516,10 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
     def get_queryset(self):
         user = self.request.user
         pk = user.pk
-        qs_info = UserPostInfo.objects.all().filter(
-            is_approved=True).annotate(title=F('user_post__title'))
+        qs_info_qs = UserPostInfo.objects.all().filter(
+            is_approved=True).exclude(type=CATEGORY_DEACTIVATE).annotate(title=F('user_post__title'))
 
-        qs = qs_info.like_qs(pk)
+        qs = qs_info_qs.like_qs(pk)
 
         return qs
 
@@ -567,19 +569,13 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
             return response.response(error_message=str(e))
 
 
-class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
+class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     serializer_class = UserPostDetailSerializer
     permission_classes = (UserPostAccessPermission, IsAuthenticated)
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
-
-    # def get_object(self):
-    #     return super().get_object()
-
-    # def check_object_permissions(self, request, obj):
-    #     return super().check_object_permissions(request, obj)
 
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
@@ -593,19 +589,37 @@ class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIVie
         except BaseException as e:
             return response.response(error_message=str(e))
 
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
 
-    def delete(self, request, pk):
+class UserPostDeactivateAPIView(RetrieveModelMixin, GenericAPIView):
+    queryset = UserPost.objects.all()
+    permission_classes = (AuthorOnlyAccessPermission, IsAuthenticated)
+
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    def post(self, request, pk):
+
         response = APIResponse(success=False, code=400)
 
         try:
-            ret = self.destroy(request)
+
+            post = self.get_object()
+
+            post_info = post.userpostinfo_set.get()
+
+            if post_info.category == CATEGORY_DEACTIVATE:
+                return response.response(error_message=ALREADY_DEACTIVATED)
+
+            post_info.category = CATEGORY_DEACTIVATE
+            post_info.is_approved = False
+
+            post_info.save()
+
             response.success = True
             response.code = 200
-            return response.response(data=ret.data)
 
-        except BaseException as e:
+            return response.response()
+        except PermissionDenied as e:
             return response.response(error_message=str(e))
 
 
@@ -617,7 +631,8 @@ class PreUserPostCreateAPIView(ListModelMixin, GenericAPIView):
         response = APIResponse(success=False, code=400)
         user = request.user
 
-        pre_post = UserPostInfo.objects.filter(author=user).order_by('-id').first()
+        pre_post = UserPostInfo.objects.filter(
+            author=user).order_by('-id').first()
         serializer = self.get_serializer(pre_post)
 
         response.success = True
@@ -642,7 +657,8 @@ class ComputeFeeView(CreateModelMixin, GenericAPIView):
         response.success = True
         response.code = 200
         return response.response(data=[{"trade_fee": values[0]}, {"platform_fee": values[1]},
-                                       {"withholding_tax": values[2]}, {"vat": values[3]},
+                                       {"withholding_tax": values[2]}, {
+                                           "vat": values[3]},
                                        {"final_point": values[4]}])
 
 
@@ -713,10 +729,12 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                                                                           vat=values[3], final_point=values[4],
                                                                           bank=bank)
                     # 계좌 번호 업데이트
-                    Profile.objects.filter(user=user).update(account_num=account_num)
+                    Profile.objects.filter(user=user).update(
+                        account_num=account_num)
 
                 # 작가의 한마디(채널 소개) 업데이트
-                Profile.objects.filter(user=user).update(author_comment=author_comment)
+                Profile.objects.filter(user=user).update(
+                    author_comment=author_comment)
 
                 response.success = True
                 response.code = 200
