@@ -20,10 +20,10 @@ class UserPostInfoQuerySet(models.QuerySet):
 
         pk_arr = []
 
-        i = 0
-        while i < A_TO_Z_LIST_NUM:
-            pk_arr.append(random.randint(min_id, max_id))
-            i += 1
+        while len(pk_arr) <= count:
+            random_num = random.randint(min_id, max_id)
+            if self.all().filter(id=random_num, is_approved=1).exists() and not random_num in pk_arr:
+                pk_arr.append(random_num)
 
         return self.all().filter(id__in=pk_arr)
 

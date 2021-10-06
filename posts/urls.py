@@ -21,7 +21,7 @@ urlpatterns = [
     # path('share/input-data', InputRegionView.as_view(), ),
     path('store', StoreListView.as_view(), name='store'),
 
-    # 메인페이지 List
+    # 메인페이지 List (A부터 Z, 차박 포스트 페이지, 카테고리)
     path('user-post', UserPostInfoListAPIView.as_view(),
          name="user-post-info-list"),
 
