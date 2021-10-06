@@ -9,13 +9,13 @@ import datetime
 from bases.fee import compute_final
 from comments.serializers import ReviewSerializer
 from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, POST_INFO_CATEGORY_LIST_NUM
-
 from posts.permissions import AuthorOnlyAccessPermission, UserPostAccessPermission
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
-from django.db.models import Count, query, F
+from django.conf import settings
+from django.db.models import Count, query, F, Q
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -487,7 +487,8 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
         else:
             qs_type = UserPostInfo.objects.filter(category=category)
 
-        qs = qs_type.like_qs(user.pk)
+        qs = qs_type.like_qs(user.pk).exclude(Q(is_approved=False) |
+                                              Q(category=CATEGORY_DEACTIVATE))
 
         return qs
 
@@ -717,7 +718,11 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
 
                 if pay_type == 1:
                     if not check_data_key(bank) or not check_data_key(account_num):
-                        return response.response(error_message="check values for payment-post(bank, account_num)")
+                        raise Exception("check values for payment-post(bank, account_num)")
+
+                    info_latest.approved_user.add(user)
+
+                    info_latest.save()
 
                     info_latest.approved_user.add(user)
 
@@ -741,8 +746,8 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                 response.code = 200
                 return response.response(data=[{"post_id": UserPost.objects.latest('id').id}])
 
-        except DatabaseError as e:
-            return response.response(error_message=str(e))
+        except Exception as e:
+            return str(e)
 
 
 class FreeUserPostBuyAPIView(GenericAPIView):
