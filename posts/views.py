@@ -690,7 +690,7 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                                                    "recommend_to, pay_type, point)")
 
         if check_str_digit(pay_type):
-            int(pay_type)
+            pay_type = int(pay_type)
 
         # 무료 포스트인 경우 바로 승인 완료
         if pay_type == 0:
@@ -720,13 +720,8 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                     if not check_data_key(bank) or not check_data_key(account_num):
                         raise Exception("check values for payment-post(bank, account_num)")
 
-                    info_latest.approved_user.add(user)
-
-                    info_latest.save()
-
-                    info_latest.approved_user.add(user)
-
-                    info_latest.save()
+                    latest.approved_user.add(user)
+                    latest.save()
 
                     values = compute_final(user, point)
                     UserPostInfo.objects.filter(id=info_latest.id).update(trade_fee=values[0],
@@ -747,7 +742,7 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                 return response.response(data=[{"post_id": UserPost.objects.latest('id').id}])
 
         except Exception as e:
-            return str(e)
+            return response.response(error_message=str(e))
 
 
 class FreeUserPostBuyAPIView(GenericAPIView):
