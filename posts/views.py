@@ -7,7 +7,7 @@ import datetime
 
 from bases.fee import compute_final
 from comments.serializers import ReviewSerializer
-from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
+from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM, CATEGORY_DEACTIVATE
 
 from posts.permissions import UserPostAccessPermission
 from collections import OrderedDict
@@ -17,7 +17,7 @@ from drf_yasg.utils import swagger_auto_schema
 from haversine import haversine
 
 from django.conf import settings
-from django.db.models import Count, query, F
+from django.db.models import Count, query, F, Q
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -489,7 +489,8 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
         else:
             qs_type = UserPostInfo.objects.filter(category=category)
 
-        qs = qs_type.like_qs(user.pk)
+        qs = qs_type.like_qs(user.pk).exclude(Q(is_approved=False) |
+                                              Q(category=CATEGORY_DEACTIVATE))
 
         return qs
 
