@@ -1,4 +1,5 @@
-from dateutil.relativedelta import relativedelta
+from rest_framework.exceptions import PermissionDenied
+from posts.messages import ALREADY_DEACTIVATED
 from django.db import transaction, DatabaseError
 from rest_framework.permissions import IsAuthenticated
 
@@ -7,14 +8,11 @@ import datetime
 
 from bases.fee import compute_final
 from comments.serializers import ReviewSerializer
-from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM, CATEGORY_DEACTIVATE
-
-from posts.permissions import UserPostAccessPermission
-from collections import OrderedDict
+from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, POST_INFO_CATEGORY_LIST_NUM
+from posts.permissions import AuthorOnlyAccessPermission, UserPostAccessPermission
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from haversine import haversine
 
 from django.conf import settings
 from django.db.models import Count, query, F, Q
@@ -27,7 +25,7 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, DestroyMod
 
 from bases.payment import KakaoPayClient
 from bases.serializers import MessageSerializer
-from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo, UserPostPaymentRequest
+from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
     ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, \
     UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer, \
@@ -519,30 +517,30 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
     def get_queryset(self):
         user = self.request.user
         pk = user.pk
-        qs_info = UserPostInfo.objects.all().filter(
-            is_approved=True).annotate(title=F('user_post__title'))
+        qs_info_qs = UserPostInfo.objects.all().filter(
+            is_approved=True).exclude(category=CATEGORY_DEACTIVATE).annotate(title=F('user_post__title'))
 
-        qs = qs_info.like_qs(pk)
+        qs = qs_info_qs.like_qs(pk)
 
         return qs
 
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
 
-        try:
-            ret = super().retrieve(request)
-            response.success = True
-            response.code = 200
+        # try:
+        ret = super().retrieve(request)
+        response.success = True
+        response.code = 200
 
-            data = ret.data
-            review = data.pop('review')
-            review = review[:3]
-            data["review"] = review
+        data = ret.data
+        review = data.pop('review')
+        review = review[:3]
+        data["review"] = review
 
-            return response.response(data=[data])
+        return response.response(data=[data])
 
-        except BaseException as e:
-            return response.response(error_message=str(e))
+        # except BaseException as e:
+        # return response.response(error_message=str(e))
 
 
 class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
@@ -572,19 +570,13 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
             return response.response(error_message=str(e))
 
 
-class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
+class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     serializer_class = UserPostDetailSerializer
     permission_classes = (UserPostAccessPermission, IsAuthenticated)
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
-
-    # def get_object(self):
-    #     return super().get_object()
-
-    # def check_object_permissions(self, request, obj):
-    #     return super().check_object_permissions(request, obj)
 
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
@@ -598,19 +590,34 @@ class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIVie
         except BaseException as e:
             return response.response(error_message=str(e))
 
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
 
-    def delete(self, request, pk):
+class UserPostDeactivateAPIView(RetrieveModelMixin, GenericAPIView):
+    queryset = UserPost.objects.all()
+    permission_classes = (AuthorOnlyAccessPermission, IsAuthenticated)
+
+    def post(self, request, pk):
+
         response = APIResponse(success=False, code=400)
 
         try:
-            ret = self.destroy(request)
+
+            post = self.get_object()
+
+            post_info = post.userpostinfo_set.get()
+
+            if post_info.category == CATEGORY_DEACTIVATE:
+                return response.response(error_message=ALREADY_DEACTIVATED)
+
+            post_info.category = CATEGORY_DEACTIVATE
+            post_info.is_approved = False
+
+            post_info.save()
+
             response.success = True
             response.code = 200
-            return response.response(data=ret.data)
 
-        except BaseException as e:
+            return response.response()
+        except PermissionDenied as e:
             return response.response(error_message=str(e))
 
 
@@ -622,7 +629,8 @@ class PreUserPostCreateAPIView(ListModelMixin, GenericAPIView):
         response = APIResponse(success=False, code=400)
         user = request.user
 
-        pre_post = UserPostInfo.objects.filter(author=user).order_by('-id').first()
+        pre_post = UserPostInfo.objects.filter(
+            author=user).order_by('-id').first()
         serializer = self.get_serializer(pre_post)
 
         response.success = True
@@ -630,7 +638,7 @@ class PreUserPostCreateAPIView(ListModelMixin, GenericAPIView):
         return response.response(data=[serializer.data])
 
 
-class ComputeFeeView(CreateModelMixin,GenericAPIView):
+class ComputeFeeView(CreateModelMixin, GenericAPIView):
     serializer_class = ComputeFeeSerializer
 
     def post(self, request):
@@ -647,7 +655,8 @@ class ComputeFeeView(CreateModelMixin,GenericAPIView):
         response.success = True
         response.code = 200
         return response.response(data=[{"trade_fee": values[0]}, {"platform_fee": values[1]},
-                                       {"withholding_tax": values[2]}, {"vat": values[3]},
+                                       {"withholding_tax": values[2]}, {
+                                           "vat": values[3]},
                                        {"final_point": values[4]}])
 
 
@@ -710,6 +719,10 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                 if pay_type == 1:
                     if not check_data_key(bank) or not check_data_key(account_num):
                         raise Exception("check values for payment-post(bank, account_num)")
+
+                    info_latest.approved_user.add(user)
+
+                    info_latest.save()
 
                     info_latest.approved_user.add(user)
 

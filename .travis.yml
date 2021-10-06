@@ -6,6 +6,7 @@ before_install:
 install:
   - pip install -r requirements.txt
 script:
+  - mkdir logs
   - python manage.py test
 cache:
   directories:
