@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, Q
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import GenericAPIView
 from django.utils.translation import ugettext_lazy as _
@@ -75,7 +75,8 @@ class MyPageView(GenericAPIView):
                 serializer = UserPostStatusSerializer(qs, many=True)
 
             elif subsort == 'buy':
-                for post in UserPost.objects.all().exclude(userpostinfo__category=CATEGORY_DEACTIVATE):
+                for post in UserPost.objects.all().exclude(Q(userpostinfo__category=CATEGORY_DEACTIVATE) |
+                                                           Q(userpostinfo__author=user)):
                     for i in range(len(post.approved_user.values())):
                         if user.id == post.approved_user.values()[i].get('id'):
                             buy_post.append(post.userpostinfo_set.get())
