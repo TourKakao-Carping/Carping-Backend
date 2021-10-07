@@ -447,6 +447,7 @@ class StoreListView(APIView):
 
 
 class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
+    # (A부터 Z, 차박 포스트 페이지, 카테고리)
     # serializer_class = UserPostListSerializer
 
     def get_serializer_class(self):
@@ -475,7 +476,7 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
         try:
             category = int(data.get('category'))
         except TypeError:
-            category = 0
+            category = 1
 
         if type == 1:
             qs_type = UserPostInfo.objects.random_qs(A_TO_Z_LIST_NUM)
@@ -527,20 +528,20 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
 
-        # try:
-        ret = super().retrieve(request)
-        response.success = True
-        response.code = 200
+        try:
+            ret = super().retrieve(request)
+            response.success = True
+            response.code = 200
 
-        data = ret.data
-        review = data.pop('review')
-        review = review[:3]
-        data["review"] = review
+            data = ret.data
+            review = data.pop('review')
+            review = review[:3]
+            data["review"] = review
 
-        return response.response(data=[data])
+            return response.response(data=[data])
 
-        # except BaseException as e:
-        # return response.response(error_message=str(e))
+        except BaseException as e:
+            return response.response(error_message=str(e))
 
 
 class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
@@ -718,7 +719,8 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
 
                 if pay_type == 1:
                     if not check_data_key(bank) or not check_data_key(account_num):
-                        raise Exception("check values for payment-post(bank, account_num)")
+                        raise Exception(
+                            "check values for payment-post(bank, account_num)")
 
                     latest.approved_user.add(user)
                     latest.save()

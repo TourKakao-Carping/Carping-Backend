@@ -7,6 +7,7 @@ import time
 import requests
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.db import transaction, DatabaseError
 from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -320,3 +321,50 @@ class SMSVerificationView(APIView):
         except Exception as e:
             response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
+
+
+# 회원탈퇴 - 유저 포스트는 삭제하면 안됨(결제내역과 묶여있음)
+class UserWithdrawView(APIView):
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+        try:
+            with transaction.atomic():
+                # 초기화 - 프로필(에코레벨은 1), 유저 정보, 인증 정보
+                profile = Profile.objects.filter(user=user)
+                user_obj = User.objects.filter(id=user.id)
+                if profile is None or user_obj is None:
+                    raise Exception('No user instance or profile instance')
+
+                profile.update(phone=None, image=None, level=1, bio=None,
+                               interest=None, author_comment=None,
+                               account_num=None)
+                user_obj.update(is_active=False, email=None, username=None)
+
+                # 삭제 - 차박지, 에코카핑, 무료나눔, 무료포스트, 검색기록, 댓글, 리뷰,
+                # 스크랩, 좋아요, 휴대폰 인증 내역, 인증 정보
+                user.autocamp.all().delete()
+                user.eco.all().delete()
+                user.share.all().delete()
+                user.search.all().delete()
+                user.review.all().delete()
+                user.comment.all().delete()
+
+                user.userpost_like.through.objects.filter(user=user).delete()
+                user.eco_like.through.objects.filter(user=user).delete()
+                user.share_like.through.objects.filter(user=user).delete()
+                user.review_like.through.objects.filter(user=user).delete()
+                user.comment_like.through.objects.filter(user=user).delete()
+
+                user.campsite_bookmark.through.objects.filter(user=user).delete()
+                user.autocamp_bookmark.through.objects.filter(user=user).delete()
+
+                SmsHistory.objects.filter(user_id=user.id).delete()
+                Certification.objects.filter(user=user).delete()
+
+                response.success = True
+                response.code = 200
+                return response.response(data=[{"message": "탈퇴 완료"}])
+
+        except Exception as e:
+            return str(e)

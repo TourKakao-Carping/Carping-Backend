@@ -1,4 +1,4 @@
-from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
+from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, POST_INFO_CATEGORY_LIST_NUM
 import random
 
 from django.db import models
@@ -20,27 +20,12 @@ class UserPostInfoQuerySet(models.QuerySet):
 
         pk_arr = []
 
-        i = 0
-        while i < A_TO_Z_LIST_NUM:
-            pk_arr.append(random.randint(min_id, max_id))
-            i += 1
+        while len(pk_arr) <= count:
+            random_num = random.randint(min_id, max_id)
+            if self.all().filter(id=random_num, is_approved=1).exists() and not random_num in pk_arr:
+                pk_arr.append(random_num)
 
         return self.all().filter(id__in=pk_arr)
-
-    # category function
-    # type -> "newbie", "carcamp", "campforcar"
-    def get_list(self, qs_all, category, count, user_pk):
-        qs = qs_all.filter(category=category)
-        qs = qs.like_qs(user_pk)
-
-        if qs.exists():
-            qs_count = qs.count()
-            if qs_count < count:
-                return qs[:qs_count]
-            else:
-                return qs[:count]
-        else:
-            return qs
 
     def like_qs(self, user_pk):
         qs = self.prefetch_related('like')
@@ -62,8 +47,23 @@ class UserPostInfoQuerySet(models.QuerySet):
 
         return qs
 
+    # category function
+    # type -> "newbie", "carcamp", "campforcar"
+    def get_list(self, qs_all, category, count, user_pk):
+        qs = qs_all.filter(category=category)
+        qs = qs.like_qs(user_pk)
+
+        if qs.exists():
+            qs_count = qs.count()
+            if qs_count < count:
+                return qs[:qs_count]
+            else:
+                return qs[:count]
+        else:
+            return qs
+
     def category_qs(self, count, user_pk):
-        qs_all = self.all().filter(is_approved=True)
+        qs_all = self.all().filter(is_approved=True).exclude(category=CATEGORY_DEACTIVATE)
 
         qs_arr = []
         for i in range(1, 5):
