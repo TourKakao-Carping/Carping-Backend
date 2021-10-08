@@ -116,8 +116,7 @@ class GoogleLoginView(SocialLoginView):
     def get_response(self):
         self.exception()
         user = self.user
-        extra_data = self.user.socialaccount_set.values("extra_data")[
-            0].get("extra_data")
+        extra_data = self.user.socialaccount_set.get().extra_data
         profile_qs = Profile.objects.filter(user=user)
         if profile_qs.exists():
             profile = profile_qs
@@ -127,6 +126,11 @@ class GoogleLoginView(SocialLoginView):
             'image': profile[0].image.url,
         }
         response = super().get_response()
+
+        if user.username == "" or user.username is None:
+            username = extra_data.get('email').split('@')[0]
+            User.objects.filter(id=user.id).update(username=username)
+            response.data["user"]["username"] = username
 
         if settings.SIMPLE_JWT['ROTATE_REFRESH_TOKENS']:
             user_refresh = OutstandingToken.objects.filter(user=user)
@@ -138,7 +142,7 @@ class GoogleLoginView(SocialLoginView):
                     blacklist_refresh.blacklist()
                 except AttributeError:
                     pass
-        User.objects.filter(id=user.id).update(username=extra_data.get('name'))
+
         del response.data["user"]["first_name"], response.data["user"]["last_name"]
         response.data["user"]["profile"] = profile_data
         return response
@@ -170,14 +174,13 @@ class KakaoLoginView(SocialLoginView):
         self.exception()
         user = self.user
         profile_qs = Profile.objects.filter(user=user)
-        extra_data = self.user.socialaccount_set.values("extra_data")[
-            0].get("extra_data")
+        extra_data = self.user.socialaccount_set.get().extra_data
         kakao_account = extra_data.get("kakao_account")
-        profile = kakao_account.get('profile')
 
         if profile_qs.exists():
             profile = profile_qs.first()
         else:
+            profile = kakao_account.get('profile')
             gender = profile.get('gender')
             profile = Profile.objects.create(
                 gender=gender, user=user)
@@ -187,6 +190,11 @@ class KakaoLoginView(SocialLoginView):
         }
 
         response = super().get_response()
+
+        if user.username == "" or user.username is None:
+            username = kakao_account.get('profile').get('nickname')
+            User.objects.filter(id=user.id).update(username=username)
+            response.data["user"]["username"] = username
 
         if settings.SIMPLE_JWT['ROTATE_REFRESH_TOKENS']:
             user_refresh = OutstandingToken.objects.filter(user=user)
@@ -199,7 +207,6 @@ class KakaoLoginView(SocialLoginView):
                 except AttributeError:
                     pass
 
-        User.objects.filter(id=user.id).update(username=profile.get('nickname'))
         del response.data["user"]["first_name"], response.data["user"]["last_name"]
         response.data["user"]["profile"] = profile_data
 
