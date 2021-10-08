@@ -11,9 +11,13 @@ class CustomOutstandingTokenAdmin(OutstandingTokenAdmin):
         return True
 
 
+class UserAdmin(admin.ModelAdmin):
+    list_display = ['id', 'username']
+
+
 admin.site.unregister(OutstandingToken)
 # admin.site.register(OutstandingToken, CustomOutstandingTokenAdmin)
-admin.site.register(User)
+admin.site.register(User, UserAdmin)
 admin.site.register(Profile)
 admin.site.register(Certification)
 admin.site.register(EcoLevel)
