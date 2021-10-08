@@ -550,9 +550,15 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
     def post(self, request, pk):
         response = APIResponse(success=False, code=400)
         sort = request.data.get('sort')
+        star = {}
 
         try:
             user_post = UserPostInfo.objects.get(pk=pk)
+            star["star1_avg"] = user_post.star1_avg()
+            star["star2_avg"] = user_post.star2_avg()
+            star["star3_avg"] = user_post.star3_avg()
+            star["star4_avg"] = user_post.star4_avg()
+            star["total_star_avg"] = user_post.total_star_avg()
             if sort == 'recent':
                 review = user_post.review.order_by('-created_at')
             elif sort == 'popular':
@@ -565,7 +571,7 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
             response.success = True
             response.code = 200
 
-            return response.response(data=serializer.data)
+            return response.response(data=[star, serializer.data])
 
         except BaseException as e:
             return response.response(error_message=str(e))
