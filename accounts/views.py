@@ -5,6 +5,7 @@ import re
 import time
 
 import requests
+from allauth.socialaccount.models import SocialAccount
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db import transaction, DatabaseError
@@ -115,6 +116,7 @@ class GoogleLoginView(SocialLoginView):
     def get_response(self):
         self.exception()
         user = self.user
+        extra_data = self.user.socialaccount_set.get().extra_data
         profile_qs = Profile.objects.filter(user=user)
         if profile_qs.exists():
             profile = profile_qs
@@ -124,6 +126,11 @@ class GoogleLoginView(SocialLoginView):
             'image': profile[0].image.url,
         }
         response = super().get_response()
+
+        if user.username == "" or user.username is None:
+            username = extra_data.get('email').split('@')[0]
+            User.objects.filter(id=user.id).update(username=username)
+            response.data["user"]["username"] = username
 
         if settings.SIMPLE_JWT['ROTATE_REFRESH_TOKENS']:
             user_refresh = OutstandingToken.objects.filter(user=user)
@@ -167,12 +174,12 @@ class KakaoLoginView(SocialLoginView):
         self.exception()
         user = self.user
         profile_qs = Profile.objects.filter(user=user)
+        extra_data = self.user.socialaccount_set.get().extra_data
+        kakao_account = extra_data.get("kakao_account")
+
         if profile_qs.exists():
             profile = profile_qs.first()
         else:
-            extra_data = self.user.socialaccount_set.values("extra_data")[
-                0].get("extra_data")
-            kakao_account = extra_data.get("kakao_account")
             profile = kakao_account.get('profile')
             gender = profile.get('gender')
             profile = Profile.objects.create(
@@ -183,6 +190,11 @@ class KakaoLoginView(SocialLoginView):
         }
 
         response = super().get_response()
+
+        if user.username == "" or user.username is None:
+            username = kakao_account.get('profile').get('nickname')
+            User.objects.filter(id=user.id).update(username=username)
+            response.data["user"]["username"] = username
 
         if settings.SIMPLE_JWT['ROTATE_REFRESH_TOKENS']:
             user_refresh = OutstandingToken.objects.filter(user=user)
@@ -209,7 +221,7 @@ class EcoRankingView(APIView):
 
     def get(self, request):
         response = APIResponse(success=False, code=400)
-        eco = User.objects.annotate(
+        eco = User.objects.exclude(is_active=False).annotate(
             num_ecos=Count('eco')).order_by('-num_ecos')[:7]
         today = datetime.date.today() + relativedelta(days=1)
         pre_month = today - relativedelta(months=1)
@@ -336,10 +348,10 @@ class UserWithdrawView(APIView):
                 if profile is None or user_obj is None:
                     raise Exception('No user instance or profile instance')
 
-                profile.update(phone=None, image=None, level=1, bio=None,
-                               interest=None, author_comment=None,
-                               account_num=None)
-                user_obj.update(is_active=False, email=None, username=None)
+                profile.update(phone=None, image='img/default/default_img.jpg',
+                               level=1, bio=None, interest=None,
+                               author_comment="탈퇴한 유저입니다.", account_num=None)
+                user_obj.update(is_active=False, email="", username="탈퇴한 유저입니다.")
 
                 # 삭제 - 차박지, 에코카핑, 무료나눔, 무료포스트, 검색기록, 댓글, 리뷰,
                 # 스크랩, 좋아요, 휴대폰 인증 내역, 인증 정보
@@ -361,10 +373,11 @@ class UserWithdrawView(APIView):
 
                 SmsHistory.objects.filter(user_id=user.id).delete()
                 Certification.objects.filter(user=user).delete()
+                SocialAccount.objects.filter(user=user).delete()
 
                 response.success = True
                 response.code = 200
                 return response.response(data=[{"message": "탈퇴 완료"}])
 
         except Exception as e:
-            return str(e)
+            return response.response(error_message=str(e))
