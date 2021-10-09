@@ -714,6 +714,9 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                     self.perform_create(serializer)
                 latest = UserPost.objects.latest('id')
 
+                latest.approved_user.add(user)
+                latest.save()
+
                 # UserPostInfo 객체 생성
                 UserPostInfo.objects.create(author=user, user_post=latest,
                                             category=category, pay_type=pay_type,
@@ -727,9 +730,6 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
                     if not check_data_key(bank) or not check_data_key(account_num):
                         raise Exception(
                             "check values for payment-post(bank, account_num)")
-
-                    latest.approved_user.add(user)
-                    latest.save()
 
                     values = compute_final(user, point)
                     UserPostInfo.objects.filter(id=info_latest.id).update(trade_fee=values[0],
