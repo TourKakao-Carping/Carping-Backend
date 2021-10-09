@@ -499,8 +499,8 @@ class UserPostDetailSerializer(serializers.ModelSerializer):
         return instance.userpostinfo_set.get().author.profile.get().author_comment
 
     def get_other_post(self, instance):
-        recent_post = instance.userpostinfo_set.get(
-        ).author.user_post.latest('id').user_post
+        recent_post = instance.userpostinfo_set.exclude(
+            is_approved=False).get().author.user_post.latest('id').user_post
         return OtherUserPostSerializer(recent_post).data
 
 
