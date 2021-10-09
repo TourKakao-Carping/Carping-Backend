@@ -309,9 +309,10 @@ class UserPostSearchView(GenericAPIView, ListModelMixin):
                                          | Q(user_post__text5__icontains=f"{keyword}")
                                          | Q(category__icontains=f"{keyword}")
                                          | Q(info__icontains=f"{keyword}")
-                                         | Q(recommend_to__icontains=f"{keyword}"))
+                                         | Q(recommend_to__icontains=f"{keyword}")).exclude(is_approved=False)
 
-        serializer = self.get_serializer(qs, many=True)
+        like_qs = qs.like_qs(request.user.pk)
+        serializer = self.get_serializer(like_qs, many=True)
 
         response.code = 200
         response.success = True
