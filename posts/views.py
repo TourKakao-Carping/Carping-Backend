@@ -745,7 +745,8 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
 
                 response.success = True
                 response.code = 200
-                return response.response(data=[{"post_id": UserPost.objects.latest('id').id}])
+                return response.response(data=[{"post_id": UserPost.objects.latest('id').id},
+                                               {"pay_type": pay_type}])
 
         except Exception as e:
             return response.response(error_message=str(e))
