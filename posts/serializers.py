@@ -420,13 +420,13 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
     def get_contents_count(self, instance):
         userpost = instance.user_post
 
-        if userpost.sub_title2 == None:
+        if userpost.sub_title2 == None or userpost.sub_title2 == "":
             return 1
-        elif userpost.sub_title3 == None:
+        elif userpost.sub_title3 == None or userpost.sub_title3 == "":
             return 2
-        elif userpost.sub_title4 == None:
+        elif userpost.sub_title4 == None or userpost.sub_title4 == "":
             return 3
-        elif userpost.sub_title5 == None:
+        elif userpost.sub_title5 == None or userpost.sub_title5 == "":
             return 4
         else:
             return 5
