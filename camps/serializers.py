@@ -64,12 +64,11 @@ class AutoCampSerializer(TaggitSerializer, ModelSerializer):
             elif key == "image3":
                 if not instance.image3 == "" and not instance.image3 == None:
                     s3.delete_file(str(instance.image3))
-            elif key == "imagr4":
+            elif key == "image4":
                 if not instance.image4 == "" and not instance.image4 == None:
                     s3.delete_file(str(instance.image4))
             else:
                 pass
-
         return super().update(instance, validated_data)
 
 
