@@ -354,7 +354,7 @@ class UserWithdrawView(APIView):
                 profile.update(phone=None, image='img/default/default_img.jpg',
                                level=1, bio=None, interest=None,
                                author_comment="탈퇴한 유저입니다.", account_num=None)
-                user_obj.update(is_active=False, email="", username=f"탈퇴유저 {number}")
+                user_obj.update(is_active=False, email=f"{number}@withdrew.com", username=f"탈퇴유저 {number}")
 
                 # 삭제 - 차박지, 에코카핑, 무료나눔, 무료포스트, 검색기록, 댓글, 리뷰,
                 # 스크랩, 좋아요, 휴대폰 인증 내역, 인증 정보
