@@ -1,3 +1,4 @@
+from re import I
 from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, POST_INFO_CATEGORY_LIST_NUM
 import random
 
@@ -13,17 +14,25 @@ class UserPostInfoQuerySet(models.QuerySet):
     차에 맞는 차박여행
     """
 
-    def random_qs(self, count):
+    def random_qs(self, count, id=False):
         range = self.all().aggregate(max_id=Max("id"), min_id=Min("id"))
         max_id = range["max_id"]
         min_id = range["min_id"]
 
         pk_arr = []
 
-        while len(pk_arr) <= count:
+        i = 0
+        while len(pk_arr) < count:
             random_num = random.randint(min_id, max_id)
             if self.all().filter(id=random_num, is_approved=1).exists() and not random_num in pk_arr:
-                pk_arr.append(random_num)
+                if id and random_num == id:
+                    pass
+                else:
+                    pk_arr.append(random_num)
+
+            i += 1
+            if i > max_id:
+                break
 
         return self.all().filter(id__in=pk_arr)
 

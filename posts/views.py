@@ -1,3 +1,4 @@
+from django.db.models.expressions import Subquery
 from rest_framework.exceptions import PermissionDenied
 from posts.messages import ALREADY_DEACTIVATED
 from django.db import transaction, DatabaseError
@@ -528,20 +529,35 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
 
-        try:
-            ret = super().retrieve(request)
-            response.success = True
-            response.code = 200
+        # try:
+        ret = super().retrieve(request)
+        response.success = True
+        response.code = 200
 
-            data = ret.data
-            review = data.pop('review')
-            review = review[:3]
-            data["review"] = review
+        data = ret.data
 
-            return response.response(data=[data])
+        category = data["category"]
 
-        except BaseException as e:
-            return response.response(error_message=str(e))
+        same_category_qs = UserPostInfo.objects.filter(
+            category=category, is_approved=True)
+
+        random_qs = same_category_qs.random_qs(3, data["id"])
+
+        context = {}
+        context["request"] = request
+        recommend_serializer = UserPostListSerializer(
+            random_qs, many=True, context=context)
+
+        data["recommend_psots"] = recommend_serializer.data
+
+        review = data.pop('review')
+        review = review[:3]
+        data["review"] = review
+
+        return response.response(data=[data])
+
+        # except BaseException as e:
+        # return response.response(error_message=str(e))
 
 
 class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
