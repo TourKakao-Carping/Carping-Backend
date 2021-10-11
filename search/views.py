@@ -333,9 +333,8 @@ class PopularCampSiteSearchView(GenericAPIView, ListModelMixin, DestroyModelMixi
 
         popular = CampSite.objects.none()
 
-        popular_searched_site_name = list(Search.objects.values('name').annotate(
-            search_count=Count('name')).filter(
-            type=0).order_by('-search_count').values_list("name", flat=True))
+        popular_searched_site_name = list(Search.objects.filter(
+            type=0).values_list("name", flat=True))
 
         for site_name in popular_searched_site_name:
             if f"{region}" in CampSite.objects.get(name=site_name).area:
@@ -344,16 +343,19 @@ class PopularCampSiteSearchView(GenericAPIView, ListModelMixin, DestroyModelMixi
         bookmark_qs = popular.bookmark_qs(request.user.pk)
 
         if len(bookmark_qs) < 3:
-            qs = CampSite.objects.filter(area__icontains=f"{region}").exclude(id__in=bookmark_qs).bookmark_qs(request.user.pk)[:3-len(bookmark_qs)]
+            qs = CampSite.objects.filter(area__icontains=f"{region}").exclude(id__in=bookmark_qs).bookmark_qs(
+                request.user.pk)[:3 - len(bookmark_qs)]
             result = list(bookmark_qs) + list(qs)
         else:
             result = bookmark_qs
 
         serializer = self.get_serializer(result, many=True)
 
+        data = sorted(serializer.data, key=lambda x: x['search_count'], reverse=True)
+
         response.code = 200
         response.success = True
-        return response.response(data=serializer.data)
+        return response.response(data=data)
 
     def post(self, request):
         return self.list(request)
