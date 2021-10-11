@@ -1,3 +1,4 @@
+from dateutil.relativedelta import relativedelta
 from django.db.models.expressions import Subquery
 from rest_framework.exceptions import PermissionDenied
 from posts.messages import ALREADY_DEACTIVATED
@@ -15,7 +16,6 @@ from posts.permissions import AuthorOnlyAccessPermission, UserPostAccessPermissi
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
-from django.conf import settings
 from django.db.models import Count, query, F, Q
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
@@ -213,6 +213,9 @@ class ShareSort(GenericAPIView):
             return response.response(error_message="'count' field is required")
         count = int(self.request.data.get('count', None))
 
+        today = datetime.date.today() + relativedelta(days=1)
+        pre_month = today - relativedelta(months=1)
+
         if sort == 'recent':
             if count == 0:
                 qs = Share.objects.annotate(
@@ -226,8 +229,16 @@ class ShareSort(GenericAPIView):
             serializer = self.get_serializer(
                 queryset, many=True).data
 
+            more_info = {}
+
             total_share = Share.objects.all().count()
-            serializer.insert(0, {"total_share": total_share})  # 안드와 요청 방식 상의
+            monthly_share_count = Share.objects.filter(user=request.user,
+                                                       created_at__range=[pre_month, today]).count()
+
+            more_info['total_share'] = total_share
+            more_info['monthly_share_count'] = monthly_share_count
+
+            serializer.insert(0, more_info)  # 안드와 요청 방식 상의
 
             response.success = True
             response.code = HTTP_200_OK
