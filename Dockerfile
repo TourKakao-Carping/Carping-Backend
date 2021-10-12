@@ -9,8 +9,7 @@ COPY requirements.txt ./
 
 
 RUN apt-get update \
-    && apt-get add --virtual build-deps gcc python3-dev musl-dev \
-    && apt-get add --no-cache mariadb-dev \
+    apt-get install -y libmysqlclient-dev \
     pip install --upgrade pip \
     pip install -r requirements.txt
 
