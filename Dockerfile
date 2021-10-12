@@ -8,13 +8,11 @@ WORKDIR /usr/src/app
 COPY requirements.txt ./
 
 
-RUN apt-get update \
-    apt-get install -y libmysqlclient-dev \
-    pip install --upgrade pip \
-    pip install -r requirements.txt
+RUN apt-get update && apt-get install -y libmysqlclient-dev
 
-RUN RUN pip install mysqlclient  \
-    apt-get del build-deps
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
 # Project를 /usr/src/app으로 복사
 COPY . .
 # 포트 설정
