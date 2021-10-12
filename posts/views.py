@@ -1,3 +1,5 @@
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from dateutil.relativedelta import relativedelta
 from django.db.models.expressions import Subquery
 from rest_framework.exceptions import PermissionDenied
@@ -717,6 +719,12 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
 
         if not check_data_key(author_comment) or not check_data_key(kakao_openchat_url):
             return response.response(error_message="check pre-post values(author_comment, kakao_openchat_url)")
+
+        try:
+            validate = URLValidator()
+            validate(kakao_openchat_url)
+        except ValidationError as e:
+            return response.response(error_message=str(e))
 
         if not check_data_key(category) or not check_data_key(info) or not check_data_key(recommend_to) \
                 or not check_data_key(pay_type) or not check_data_key(point):
