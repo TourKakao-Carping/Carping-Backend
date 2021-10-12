@@ -8,14 +8,14 @@ WORKDIR /usr/src/app
 COPY requirements.txt ./
 
 
-RUN apk update \
-    && apk add --virtual build-deps gcc python3-dev musl-dev \
-    && apk add --no-cache mariadb-dev \
+RUN apt-get update \
+    && apt-get add --virtual build-deps gcc python3-dev musl-dev \
+    && apt-get add --no-cache mariadb-dev \
     pip install --upgrade pip \
     pip install -r requirements.txt
 
 RUN RUN pip install mysqlclient  \
-    apk del build-deps
+    apt-get del build-deps
 # Project를 /usr/src/app으로 복사
 COPY . .
 # 포트 설정
