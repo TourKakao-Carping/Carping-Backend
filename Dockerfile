@@ -6,8 +6,16 @@ FROM python:3.8-slim-buster
 WORKDIR /usr/src/app
 # requirements.txt에 명시된 필요한 packages 설치
 COPY requirements.txt ./
-RUN pip install --upgrade pip \
+
+
+RUN apk update \
+    && apk add --virtual build-deps gcc python3-dev musl-dev \
+    && apk add --no-cache mariadb-dev \
+    pip install --upgrade pip \
     pip install -r requirements.txt
+
+RUN RUN pip install mysqlclient  \
+    apk del build-deps
 # Project를 /usr/src/app으로 복사
 COPY . .
 # 포트 설정
