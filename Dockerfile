@@ -9,7 +9,7 @@ COPY requirements.txt ./
 
 
 RUN apt-get update && apt-get install -y gcc && apt-get install -y default-libmysqlclient-dev
-RUN apt-get install python3-mysqldb  && apt-get install libssl-dev 
+RUN apt-get install -y python3-mysqldb  && apt-get install -y libssl-dev 
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
