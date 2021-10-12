@@ -70,10 +70,11 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
             elif key == "image3":
                 if not instance.image3 == "" and not instance.image3 == None:
                     s3.delete_file(str(instance.image3))
-            else:
+            elif key == "image4":
                 if not instance.image4 == "" and not instance.image4 == None:
                     s3.delete_file(str(instance.image4))
-
+            else:
+                pass
         return super().update(instance, validated_data)
 
 
@@ -216,10 +217,11 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
             elif key == "image3":
                 if not instance.image3 == "" and not instance.image3 == None:
                     s3.delete_file(str(instance.image3))
-            else:
+            elif key == "image4":
                 if not instance.image4 == "" and not instance.image4 == None:
                     s3.delete_file(str(instance.image4))
-
+            else:
+                pass
         return super().update(instance, validated_data)
 
 
@@ -333,8 +335,8 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserPostInfo
-        fields = ['id', 'userpost_id', 'author_name', 'author_profile', 'author_comment', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3', 'contents_count', 'like_count',  'kakao_openchat_url', 'star1_avg',
-                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'login_user', 'login_user_profile', 'review', 'final_point', 'author_id', 'is_approved']
+        fields = ['id', 'userpost_id', 'category', 'author_name', 'author_profile', 'author_comment', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3', 'contents_count', 'like_count',  'kakao_openchat_url', 'star1_avg',
+                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'login_user', 'login_user_profile', 'review', 'final_point', 'author_id', 'is_approved', ]
 
     def get_userpost_id(self, instance):
         return instance.user_post.id
@@ -418,13 +420,13 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
     def get_contents_count(self, instance):
         userpost = instance.user_post
 
-        if userpost.sub_title2 == None:
+        if userpost.sub_title2 == None or userpost.sub_title2 == "":
             return 1
-        elif userpost.sub_title3 == None:
+        elif userpost.sub_title3 == None or userpost.sub_title3 == "":
             return 2
-        elif userpost.sub_title4 == None:
+        elif userpost.sub_title4 == None or userpost.sub_title4 == "":
             return 3
-        elif userpost.sub_title5 == None:
+        elif userpost.sub_title5 == None or userpost.sub_title5 == "":
             return 4
         else:
             return 5

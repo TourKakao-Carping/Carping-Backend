@@ -1,5 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from dateutil.relativedelta import relativedelta
+from django.db.models.expressions import Subquery
 from rest_framework.exceptions import PermissionDenied
 from posts.messages import ALREADY_DEACTIVATED
 from django.db import transaction, DatabaseError
@@ -16,7 +18,6 @@ from posts.permissions import AuthorOnlyAccessPermission, UserPostAccessPermissi
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
-from django.conf import settings
 from django.db.models import Count, query, F, Q
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
@@ -214,6 +215,9 @@ class ShareSort(GenericAPIView):
             return response.response(error_message="'count' field is required")
         count = int(self.request.data.get('count', None))
 
+        today = datetime.date.today() + relativedelta(days=1)
+        pre_month = today - relativedelta(months=1)
+
         if sort == 'recent':
             if count == 0:
                 qs = Share.objects.annotate(
@@ -227,8 +231,16 @@ class ShareSort(GenericAPIView):
             serializer = self.get_serializer(
                 queryset, many=True).data
 
+            more_info = {}
+
             total_share = Share.objects.all().count()
-            serializer.insert(0, {"total_share": total_share})  # 안드와 요청 방식 상의
+            monthly_share_count = Share.objects.filter(user=request.user,
+                                                       created_at__range=[pre_month, today]).count()
+
+            more_info['total_share'] = total_share
+            more_info['monthly_share_count'] = monthly_share_count
+
+            serializer.insert(0, more_info)  # 안드와 요청 방식 상의
 
             response.success = True
             response.code = HTTP_200_OK
@@ -449,6 +461,7 @@ class StoreListView(APIView):
 
 
 class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
+    # (A부터 Z, 차박 포스트 페이지, 카테고리)
     # serializer_class = UserPostListSerializer
 
     def get_serializer_class(self):
@@ -477,7 +490,7 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
         try:
             category = int(data.get('category'))
         except TypeError:
-            category = 0
+            category = 1
 
         if type == 1:
             qs_type = UserPostInfo.objects.random_qs(A_TO_Z_LIST_NUM)
@@ -535,6 +548,21 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
         response.code = 200
 
         data = ret.data
+
+        category = data["category"]
+
+        same_category_qs = UserPostInfo.objects.filter(
+            category=category, is_approved=True)
+
+        random_qs = same_category_qs.random_qs(3, data["id"])
+
+        context = {}
+        context["request"] = request
+        recommend_serializer = UserPostListSerializer(
+            random_qs, many=True, context=context)
+
+        data["recommend_psots"] = recommend_serializer.data
+
         review = data.pop('review')
         review = review[:3]
         data["review"] = review
@@ -735,7 +763,8 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
 
                 if pay_type == 1:
                     if not check_data_key(bank) or not check_data_key(account_num):
-                        raise Exception("check values for payment-post(bank, account_num)")
+                        raise Exception(
+                            "check values for payment-post(bank, account_num)")
 
                     values = compute_final(user, point)
                     UserPostInfo.objects.filter(id=info_latest.id).update(trade_fee=values[0],
