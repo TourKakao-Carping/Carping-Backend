@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY requirements.txt ./
 
 
-RUN apt-get update && apt-get install gcc && apt-get install -y default-libmysqlclient-dev
+RUN apt-get update && apt-get install -y gcc && apt-get install -y default-libmysqlclient-dev
 RUN apt-get install python3-mysqldb  && apt-get install libssl-dev 
 
 RUN pip install --upgrade pip
