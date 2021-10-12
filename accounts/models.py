@@ -93,15 +93,15 @@ class Profile(Base):
         'EcoLevel', on_delete=CASCADE, related_name="user", default=1)
     bio = models.TextField(null=True, blank=True)
     INTEREST_CHOICES = (
-        ('차크닉', '🚗차크닉'),
-        ('혼차박', '⛺혼차박'),
-        ('퇴근박', '🌆퇴근박'),
-        ('불멍', '🔥불멍'),
-        ('바베큐', '🍖바베큐'),
-        ('오지캠핑', '🏕오지캠핑'),
-        ('레저', '🏄레저'),
-        ('낚시', '🎣낚시'),
-        ('클린 차박', '🌱클린 차박'),
+        (0, '🚗차크닉'),
+        (1, '⛺혼차박'),
+        (2, '🌆퇴근박'),
+        (3, '🔥불멍'),
+        (4, '🍖바베큐'),
+        (5, '🏕오지캠핑'),
+        (6, '🏄레저'),
+        (7, '🎣낚시'),
+        (8, '🌱클린 차박'),
     )
     interest = MultiSelectField(
         choices=INTEREST_CHOICES, null=True, blank=True)
