@@ -134,7 +134,7 @@ def reverse_geocode(longitude, latitude):
 
 def get_bounding_box(latitude, longitude, distancekm):
     rough_distance = units.degrees(arcminutes=units.nautical(kilometers=distancekm)) * 2
-    return (latitude - rough_distance,
-            latitude + rough_distance,
-            longitude - rough_distance,
-            longitude + rough_distance)
+    return (float(latitude) - rough_distance,
+            float(latitude) + rough_distance,
+            float(longitude) - rough_distance,
+            float(longitude) + rough_distance)
