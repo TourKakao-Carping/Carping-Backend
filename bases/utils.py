@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import requests
 from django.conf import settings
+from geopy import units
 from haversine import haversine
 
 URL = 'https://dapi.kakao.com/v2/local/geo/coord2regioncode.json'
@@ -129,3 +130,11 @@ def reverse_geocode(longitude, latitude):
         json_name = 'NaN'
 
     return json_name
+
+
+def get_bounding_box(latitude, longitude, distancekm):
+    rough_distance = units.degrees(arcminutes=units.nautical(kilometers=distancekm)) * 2
+    return (latitude - rough_distance,
+            latitude + rough_distance,
+            longitude - rough_distance,
+            longitude + rough_distance)
