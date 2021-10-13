@@ -8,7 +8,7 @@ from rest_framework.mixins import ListModelMixin, DestroyModelMixin
 
 from accounts.models import Search
 from bases.response import APIResponse
-from bases.utils import check_str_digit, check_distance
+from bases.utils import check_str_digit, check_distance, get_bounding_box
 from camps.models import TourSite, AutoCamp, CampSite
 from posts.models import UserPostInfo
 from posts.serializers import UserPostListSerializer
@@ -231,15 +231,30 @@ class AutoCampMapView(GenericAPIView, ListModelMixin):
             response.code = 400
             return response.response(error_message="check lat, lon")
 
-        qs = AutoCamp.objects.all()
+        # 30km 반경 설정, 계산 식 오차를 고려해 약 25로 잡음
+        min_latitude, max_latitude, min_longitude, max_longitude = \
+            get_bounding_box(user_lat, user_lon, 25)
+
+        qs = AutoCamp.objects.filter(
+            latitude__range=(
+                min_latitude,
+                max_latitude
+            ),
+            longitude__range=(
+                min_longitude,
+                max_longitude
+            )
+        )
+
         serializer = self.get_serializer(qs, many=True)
-        near_data = []
 
-        for i in serializer.data:
-            if i['distance'] <= 30:  # 30km 반경 설정
-                near_data.append(i)
+        # near_data = []
 
-        data = sorted(near_data, key=lambda x: x['distance'])
+        # for i in serializer.data:
+        #     if i['distance'] <= 30:  # 30km 반경 설정
+        #         near_data.append(i)
+
+        data = sorted(serializer.data, key=lambda x: x['distance'])
 
         response.code = 200
         response.success = True
@@ -269,7 +284,7 @@ class RegionTourView(GenericAPIView, ListModelMixin):
                 popular |= CampSite.objects.filter(name=site_name)
 
         if len(popular) < 5:
-            qs = CampSite.objects.filter(area__icontains=f"{region}").exclude(id__in=popular)[:5-len(popular)]
+            qs = CampSite.objects.filter(area__icontains=f"{region}").exclude(id__in=popular)[:5 - len(popular)]
             result = list(popular) + list(qs)
         else:
             result = popular
