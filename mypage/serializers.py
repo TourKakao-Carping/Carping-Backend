@@ -72,6 +72,7 @@ class MyPageSerializer(serializers.Serializer):
 
 
 class InfoSerializer(ModelSerializer):
+    id = serializers.SerializerMethodField()
     username = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
     level = serializers.SerializerMethodField()
@@ -80,6 +81,9 @@ class InfoSerializer(ModelSerializer):
     class Meta:
         model = Profile
         fields = ['id', 'image', 'username', 'email', 'phone', 'level', 'badge', 'bio', 'interest']
+
+    def get_id(self, data):
+        return data.user.id
 
     def get_username(self, data):
         return data.user.username
