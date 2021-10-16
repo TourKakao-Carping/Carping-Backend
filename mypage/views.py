@@ -1,9 +1,12 @@
 from django.db.models import Count, Q
+from django.http import Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import GenericAPIView
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.mixins import UpdateModelMixin, RetrieveModelMixin
+from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
+from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from accounts.models import Profile, User
@@ -144,27 +147,50 @@ class MyPageView(GenericAPIView):
         return self.list(request)
 
 
-class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
+class ProfileView(RetrieveModelMixin, APIView):
+    def get_object(self, pk):
+        try:
+            return Profile.objects.get(user_id=pk)
+        except Profile.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        response = APIResponse(success=False, code=400)
+
+        profile = self.get_object(pk)
+        serializer = InfoSerializer(profile)
+
+        response.success = True
+        response.code = HTTP_200_OK
+        return response.response(data=[serializer.data])
+
+
+class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericAPIView):
     serializer_class = InfoSerializer
     queryset = Profile.objects.all()
 
-    def retrieve(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = Profile.objects.get(user_id=request.user.pk)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, pk):
         response = APIResponse(success=False, code=400)
-        try:
-            ret = super(ProfileUpdateViewSet, self).retrieve(request)
-
-            response.success = True
-            response.code = HTTP_200_OK
-            return response.response(data=[ret.data])
-
-        except Exception as e:
-            response.success = False
-            response.code = HTTP_404_NOT_FOUND
-            return response.response(error_message=str(e))
-
-    def partial_update(self, request, pk=None, *args, **kwargs):
-        response = APIResponse(success=False, code=400)
-        my_info = Profile.objects.get(id=request.user.id)
+        my_info = Profile.objects.get(user_id=pk)
         interest = request.data.get('interest')
         username = request.data.get('username')
         bio = request.data.get('bio')
@@ -175,22 +201,21 @@ class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericViewSet)
 
             # 개인정보 수정 - 이름, 한줄소개, 관심키워드 변경 가능
             if not image:
-                User.objects.filter(id=my_info.user.id).update(username=username)
+                User.objects.filter(id=pk).update(username=username)
                 my_info.user.profile.update(bio=bio, interest=interest)
-                ret = super(ProfileUpdateViewSet, self).retrieve(request)
+                serializer = InfoSerializer(my_info)
 
                 response.code = 200
                 response.success = True
-                return response.response(data=[ret.data])
+                return response.response(data=[serializer.data])
 
             # 프로필 사진 변경
             if serializer.is_valid():
                 s3 = S3Client()
-                obj = self.get_object()
-                if obj.image:
-                    s3.delete_file(str(obj.image))
-                    obj.image = None
-                ret = super(ProfileUpdateViewSet, self).partial_update(request)
+                if my_info.image:
+                    s3.delete_file(str(my_info.image))
+                    my_info.image = None
+                ret = self.partial_update(request)
 
                 response.code = 200
                 response.success = True
