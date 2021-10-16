@@ -108,37 +108,41 @@ class Region(Base):
 
 
 class UserPost(Base):
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, verbose_name=_("제목"))
     thumbnail = models.ImageField(
-        upload_to=upload_user_directory_userpost)
+        upload_to=upload_user_directory_userpost, verbose_name=_("썸네일"))
 
-    sub_title1 = models.CharField(max_length=100)
-    text1 = models.TextField()
+    sub_title1 = models.CharField(max_length=100, verbose_name=_("1 - 소제목"))
+    text1 = models.TextField(verbose_name=_("1 - 내용"))
     image1 = models.ImageField(
-        upload_to=upload_user_directory_userpost, null=True, blank=True)
+        upload_to=upload_user_directory_userpost, null=True, blank=True, verbose_name=_("1 - 이미지"))
 
-    sub_title2 = models.CharField(max_length=100, null=True, blank=True)
-    text2 = models.TextField(null=True, blank=True)
+    sub_title2 = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name=_("2 - 소제목"))
+    text2 = models.TextField(null=True, blank=True, verbose_name=_("2 - 내용"))
     image2 = models.ImageField(
-        upload_to=upload_user_directory_userpost, null=True, blank=True)
+        upload_to=upload_user_directory_userpost, null=True, blank=True, verbose_name=_("2 - 이미지"))
 
-    sub_title3 = models.CharField(max_length=100, null=True, blank=True)
-    text3 = models.TextField(null=True, blank=True)
+    sub_title3 = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name=_("3 - 소제목"))
+    text3 = models.TextField(null=True, blank=True, verbose_name=_("3 - 내용"))
     image3 = models.ImageField(
-        upload_to=upload_user_directory_userpost, null=True, blank=True)
+        upload_to=upload_user_directory_userpost, null=True, blank=True, verbose_name=_("3 - 이미지"))
 
-    sub_title4 = models.CharField(max_length=100, null=True, blank=True)
-    text4 = models.TextField(null=True, blank=True)
+    sub_title4 = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name=_("4 - 소제목"))
+    text4 = models.TextField(null=True, blank=True, verbose_name=_("4 - 내용"))
     image4 = models.ImageField(
-        upload_to=upload_user_directory_userpost, null=True, blank=True)
+        upload_to=upload_user_directory_userpost, null=True, blank=True, verbose_name=_("4 - 이미지"))
 
-    sub_title5 = models.CharField(max_length=100, null=True, blank=True)
-    text5 = models.TextField(null=True, blank=True)
+    sub_title5 = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name=_("5 - 소제목"))
+    text5 = models.TextField(null=True, blank=True, verbose_name=_("5 - 내용"))
     image5 = models.ImageField(
-        upload_to=upload_user_directory_userpost, null=True, blank=True)
+        upload_to=upload_user_directory_userpost, null=True, blank=True, verbose_name=_("5 - 이미지"))
 
     approved_user = models.ManyToManyField(
-        User, blank=True, related_name='approved_user')
+        User, blank=True, related_name='approved_user', verbose_name=_("구매유저"))
 
     def __str__(self):
         return self.title
@@ -146,7 +150,7 @@ class UserPost(Base):
 
 class UserPostInfo(Base):
     author = models.ForeignKey(
-        User, on_delete=CASCADE, related_name="user_post")
+        User, on_delete=CASCADE, related_name="user_post", verbose_name=_("작성자"))
     user_post = models.ForeignKey(UserPost, on_delete=CASCADE)
     category = models.IntegerField(
         default=0, choices=CATEGORY_CHOICES, verbose_name=_("카테고리")
@@ -156,17 +160,19 @@ class UserPostInfo(Base):
     point = models.IntegerField(default=0, verbose_name=_("판매 금액"))
     trade_fee = models.IntegerField(default=0, verbose_name=_("거래 수수료"))
     platform_fee = models.IntegerField(default=0, verbose_name=_("플랫폼 제공 수수료"))
-    withholding_tax = models.IntegerField(default=0, verbose_name=_("소득세 원천징수 3.3%"))
+    withholding_tax = models.IntegerField(
+        default=0, verbose_name=_("소득세 원천징수 3.3%"))
     vat = models.IntegerField(default=0, verbose_name=_("VAT 10%"))
     final_point = models.IntegerField(default=0, verbose_name=_("최종 정산금"))
-    bank = models.IntegerField(default=0, choices=BANK_CHOICES, null=True, blank=True, verbose_name=_("은행"))
+    bank = models.IntegerField(
+        default=0, choices=BANK_CHOICES, null=True, blank=True, verbose_name=_("은행"))
     info = models.CharField(max_length=100, verbose_name=_("포스트 소개"))
     kakao_openchat_url = models.URLField(null=True, blank=True)
     recommend_to = models.CharField(max_length=100, verbose_name=_("추천하는 대상"))
     is_approved = models.BooleanField(default=0, verbose_name=_("관리자 승인여부"))
     like = models.ManyToManyField(
         User, related_name="userpost_like", blank=True)
-    views = models.IntegerField(default=0)
+    views = models.IntegerField(default=0, verbose_name=_("조회수"))
 
     objects = UserPostInfoManager()
 
@@ -200,9 +206,6 @@ class UserPostInfo(Base):
         if self.review_count() == 0:
             return 0
         return round(self.review.aggregate(models.Avg('total_star'))['total_star__avg'], 1)
-
-    def __str__(self):
-        return self.user_post.title
 
 # 이 테이블의 pk가 카카오페이 API 요청 시의 partner_order_id와 일치
 
