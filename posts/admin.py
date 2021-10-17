@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.http.request import HttpRequest
 from django.utils.html import format_html
 
 from posts.models import *
