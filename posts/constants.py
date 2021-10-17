@@ -23,6 +23,11 @@ CATEGORY_CHOICES = (
     (-99, _("비활성화")),
 )
 
+IS_APPROVED_CHOICES = (
+    (0, "비활성화"),
+    (1, "활성화")
+)
+
 CATEGORY_LIST = [-99, 0, 1, 2, 3, 4]
 CATEGORY_BASE = 0
 CATEGORY_NEWBIE = 1

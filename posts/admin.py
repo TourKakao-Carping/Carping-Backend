@@ -11,22 +11,22 @@ from django.utils.translation import ugettext_lazy as _
 
 class UserPostInfoInline(CompactInline):
     model = UserPostInfo
-    readonly_fields = ('id', 'category', 'pay_type', 'point', 'trade_fee', 'platform_fee', 'withholding_tax',
-                       'vat', 'final_point', 'bank', 'info', 'kakao_openchat_url', 'recommend_to', 'check_approved', 'unapprove_post', 'approve_post_list', 'views')
+    readonly_fields = ('id', 'pay_type', 'point', 'trade_fee', 'platform_fee', 'withholding_tax',
+                       'vat', 'final_point', 'bank', 'info', 'kakao_openchat_url', 'recommend_to', 'is_approved', 'category', 'unapprove_post', 'approve_post_list', 'views')
 
     extra = 0
 
-    def check_approved(self, obj):
-        if obj.is_approved:
-            return _("승인")
-        else:
-            return _("미승인")
+    # def check_approved(self, obj):
+    #     if obj.is_approved:
+    #         return _("승인")
+    #     else:
+    #         return _("미승인")
 
     def unapprove_post(self, obj):
         unapprove = f'<input type="button" value="비활성화" class="default" onclick="approve({obj.pk}, 5)">'
         return format_html(unapprove)
 
-    unapprove_post.short_description = _("비활성화")
+    # is_approved.short_description = _("비활성화")
 
     def approve_post_list(self, obj):
 
@@ -37,6 +37,8 @@ class UserPostInfoInline(CompactInline):
         approve_4 = f'<input type="button" value="인기 TOP3" class="default" onclick="approve({obj.pk}, 4)">'
 
         return format_html(approve_1 + approve_2 + approve_3 + approve_4)
+
+    approve_post_list.short_description = _("카테고리별 활성화")
 
 
 @admin.register(UserPost)
