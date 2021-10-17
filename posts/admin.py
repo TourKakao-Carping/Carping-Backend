@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 class UserPostInfoInline(CompactInline):
     model = UserPostInfo
     readonly_fields = ('id', 'category', 'pay_type', 'point', 'trade_fee', 'platform_fee', 'withholding_tax',
-                       'vat', 'final_point', 'bank', 'info', 'kakao_openchat_url', 'recommend_to', 'check_approved', 'approve_post', 'views')
+                       'vat', 'final_point', 'bank', 'info', 'kakao_openchat_url', 'recommend_to', 'check_approved', 'unapprove_post', 'approve_post_list', 'views')
 
     extra = 0
 
@@ -21,21 +21,22 @@ class UserPostInfoInline(CompactInline):
             return _("승인")
         else:
             return _("미승인")
-    # def has_add_permission(self, request: HttpRequest, obj) -> bool:
-    #     return False
 
-    # def has_change_permission(self, request: HttpRequest, obj):
+    def unapprove_post(self, obj):
+        unapprove = f'<input type="button" value="비활성화" class="default" onclick="approve({obj.pk}, 5)">'
+        return format_html(unapprove)
 
-    #     return False
+    unapprove_post.short_description = _("비활성화")
 
-    def approve_post(self, obj):
-        # approve = u'<input type="hidden" name="approve" value="1" id="form_action"><input type="button" value="활성화" class="default" name="approve_button" onclick="formSubmit(\'success\')">'
-        # unapprove = u'<input type="hidden" name="action" value="action" id="form_action"><input type="button" value="비활성화" class="default" name="KYC_complete" onclick="formSubmit(\'success\')">'
+    def approve_post_list(self, obj):
 
-        approve = '<input type="button" value="승인"  name="_customaction" onclick="location.href=\'{% url \'customeroverview\' %}\'"'
-        return format_html(approve)
+        # 차박, 차박을 위한, 차에 맞는, 인기 TOP 3
+        approve_1 = f'<input type="button" value="차박 초보" class="default" onclick="approve({obj.pk}, 1)">'
+        approve_2 = f'<input type="button" value="차박을 위한" class="default" onclick="approve({obj.pk}, 2)">'
+        approve_3 = f'<input type="button" value="차에 맞는" class="default" onclick="approve({obj.pk}, 3)">'
+        approve_4 = f'<input type="button" value="인기 TOP3" class="default" onclick="approve({obj.pk}, 4)">'
 
-    approve_post.short_description = _("승인 여부")
+        return format_html(approve_1 + approve_2 + approve_3 + approve_4)
 
 
 @admin.register(UserPost)

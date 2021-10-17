@@ -154,7 +154,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # djangorestframework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        # 'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         "rest_framework.authentication.TokenAuthentication",
@@ -174,6 +175,8 @@ SIMPLE_JWT = {
 }
 
 # User Authentication
+UNAUTHENTICATED_USER = 'django.contrib.auth.models.AnonymousUser',
+UNAUTHENTICATED_TOKEN = None
 
 AUTH_USER_MODEL = "accounts.User"
 
