@@ -16,17 +16,11 @@ class UserPostInfoInline(CompactInline):
 
     extra = 0
 
-    # def check_approved(self, obj):
-    #     if obj.is_approved:
-    #         return _("승인")
-    #     else:
-    #         return _("미승인")
-
     def unapprove_post(self, obj):
         unapprove = f'<input type="button" value="비활성화" class="default" onclick="approve({obj.pk}, 5)">'
         return format_html(unapprove)
 
-    # is_approved.short_description = _("비활성화")
+    unapprove_post.short_description = _("비활성화 버튼")
 
     def approve_post_list(self, obj):
 
@@ -38,7 +32,7 @@ class UserPostInfoInline(CompactInline):
 
         return format_html(approve_1 + approve_2 + approve_3 + approve_4)
 
-    approve_post_list.short_description = _("카테고리별 활성화")
+    approve_post_list.short_description = _("카테고리별 활성화 버튼")
 
 
 @admin.register(UserPost)
@@ -64,17 +58,6 @@ class UserPostAdmin(admin.ModelAdmin):
 
         return post_name
 
-    def response(self, request, obj):
-        print(obj)
-        opts = self.model._meta
-        pk_value = obj._get_pk_val()
-        preserved_filters = self.get_preserved_filters(request)
-        # print("1")
-        # if request.POST:
-        #     print(request.POST)
-        return super(UserPost, self).response_change(request, obj)
-        # return super().response_action(request, obj)
-
 
 # admin.site.register(Post)
 # admin.site.register(EcoCarping)
@@ -84,39 +67,3 @@ class UserPostAdmin(admin.ModelAdmin):
 # admin.site.register(UserPostInfo, PostInfoAdmin)
 # admin.site.register(UserPost, PostAdmin)
 # admin.site.register(UserPostPaymentRequest)
-
-
-# @admin.register(Token)
-# class AuditContractInputContents(admin.ModelAdmin):
-#     search_fields = ('id' ,'symbol')
-#     list_display = ('audit_contract', )
-#     readonly_fields= ('request_type', 'request_user', 'functions_1',)
-#     fields = ('coin', 'total_supply', 'symbol', 'request_type', 'request_user', 'contract_address')
-#     inlines = [AuditContractInline, DocsInline, TestCaseInline, VulnerabilityInline, ConclusionInline]
-
-#     def functions_1(self, obj):
-#         docs = obj.docs_set.filter(type=1)
-#         value = docs.values('title', 'content')
-#         return value
-
-#     def request_type(self, obj):
-#         audit = obj.auditcontract_set.get()
-#         return TYPE_INT_TO_STR[audit.type]
-
-#     request_type.short_description = _("신청 타입")
-
-#     def request_user(self, obj):
-#         audit = obj.auditcontract_set.get()
-#         return audit.user.username
-
-#     request_user.short_description = _("신청 유저")
-
-
-#     def audit_contract(self, obj):
-#         audit_name = "Audit | "
-
-#         audit = obj.auditcontract_set.get()
-
-
-#         audit_name += f"{audit.name}"
-#         return audit_name
