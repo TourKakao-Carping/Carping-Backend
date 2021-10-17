@@ -79,7 +79,7 @@ class UserPostInfoQuerySet(models.QuerySet):
             return qs
 
     def category_qs(self, count, user_pk):
-        qs_all = self.all().filter(is_approved=True).exclude(
+        qs_all = self.all().filter(is_approved=True, author__is_active=True).exclude(
             category=CATEGORY_DEACTIVATE).order_by('-created_at')
 
         qs_arr = []
