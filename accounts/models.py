@@ -87,7 +87,7 @@ class Profile(Base):
     """
     phone = models.CharField(max_length=50, null=True, blank=True)
     image = models.ImageField(
-        upload_to=upload_user_directory, default='img/default/default_img.jpg')
+        upload_to=upload_user_directory, null=True, blank=True)
     gender = models.IntegerField(default=0, null=True)
     level = models.ForeignKey(
         'EcoLevel', on_delete=CASCADE, related_name="user", default=1)
