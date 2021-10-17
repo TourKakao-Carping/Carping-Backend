@@ -211,10 +211,10 @@ class ProfileUpdateViewSet(RetrieveModelMixin, UpdateModelMixin, GenericAPIView)
 
             # 프로필 사진 변경
             if serializer.is_valid():
-                s3 = S3Client()
-                if my_info.image:
-                    s3.delete_file(str(my_info.image))
-                    my_info.image = None
+                # s3 = S3Client()
+                # if my_info.image:
+                #     s3.delete_file(str(my_info.image))
+                #     my_info.image = None
                 ret = self.partial_update(request)
 
                 response.code = 200
