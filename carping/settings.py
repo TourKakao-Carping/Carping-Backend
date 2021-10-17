@@ -6,6 +6,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+from django.utils.translation import ugettext_lazy as _
 
 from pathlib import Path
 import os
@@ -35,7 +36,11 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    # admin
+    'jet',
+    'jet.dashboard',
     'django.contrib.admin',
+
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -84,7 +89,7 @@ ROOT_URLCONF = 'carping.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -149,7 +154,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # djangorestframework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        # 'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         "rest_framework.authentication.TokenAuthentication",
@@ -169,6 +175,8 @@ SIMPLE_JWT = {
 }
 
 # User Authentication
+UNAUTHENTICATED_USER = 'django.contrib.auth.models.AnonymousUser',
+UNAUTHENTICATED_TOKEN = None
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -256,3 +264,53 @@ LOGGING = {
         },
     }
 }
+
+
+JET_SIDE_MENU_ITEMS = [
+    {'label': _('유료 포스트'), 'items': [
+        {'name': 'posts.userpost', 'label': _('유료 포스트 승인')},
+    ]},
+
+]
+
+
+JET_DEFAULT_THEME = 'light-violet'
+
+# jet setting
+JET_THEMES = [
+    {
+        'theme': 'default',
+        'color': '#47bac1',
+        'title': 'Default'
+    },
+    {
+        'theme': 'green',
+        'color': '#44b78b',
+        'title': 'Green'
+    },
+    {
+        'theme': 'light-green',
+        'color': '#2faa60',
+        'title': 'Light Green'
+    },
+    {
+        'theme': 'light-violet',
+        'color': '#a464c4',
+        'title': 'Light Violet'
+    },
+    {
+        'theme': 'light-blue',
+        'color': '#5EADDE',
+        'title': 'Light Blue'
+    },
+    {
+        'theme': 'light-gray',
+        'color': '#222',
+        'title': 'Light Gray'
+    },
+    {
+        'theme': 'carping',
+        'color': '#ff4e5e',
+        'title': 'Carping Main Color'
+    },
+]

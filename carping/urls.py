@@ -6,6 +6,8 @@ from django.views import defaults as default_views
 from carping.docs import schema_view
 
 urlpatterns = [
+    path('jet/', include('jet.urls', 'jet')),
+    path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),
     path('admin/', admin.site.urls),
     # path('accounts/', include('dj_rest_auth.urls')),
     # path('accounts/', include('dj_rest_auth.registration.urls')),

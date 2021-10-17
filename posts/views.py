@@ -2,17 +2,18 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from dateutil.relativedelta import relativedelta
 from django.db.models.expressions import Subquery
+from django.http.response import JsonResponse
 from rest_framework.exceptions import PermissionDenied
 from posts.messages import ALREADY_DEACTIVATED
 from django.db import transaction, DatabaseError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from accounts.models import Profile
 import datetime
 
 from bases.fee import compute_final
 from comments.serializers import ReviewSerializer
-from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, POST_INFO_CATEGORY_LIST_NUM
+from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_ALL_FOR_CAR, CATEGORY_DEACTIVATE, CATEGORY_LIST, CATEGORY_NEWBIE, POST_INFO_CATEGORY_LIST_NUM
 from posts.permissions import AuthorOnlyAccessPermission, UserPostAccessPermission
 
 from drf_yasg import openapi
@@ -659,7 +660,34 @@ class UserPostDeactivateAPIView(RetrieveModelMixin, GenericAPIView):
             return response.response(error_message=str(e))
 
 
+class UserPostAdminActionAPIView(GenericAPIView):
+    queryset = UserPostInfo.objects.all()
+    permission_classes = (AllowAny,)
+
+    def post(self, request, pk, type):
+        try:
+            post_info = self.get_object()
+            if type == 5:
+                type = CATEGORY_DEACTIVATE
+
+            if type in CATEGORY_LIST:
+                if type == CATEGORY_DEACTIVATE:
+                    post_info.category = type
+                    post_info.is_approved = False
+                else:
+                    post_info.category = type
+                    post_info.is_approved = True
+
+            post_info.save()
+
+            return JsonResponse(_("변경 완료되었습니다."), safe=False)
+        except BaseException as e:
+            print(str(e))
+            return JsonResponse(str(e), safe=False)
+
 # 유저 차박 포스트 발행 시 디폴트로 보여줄 채널소개 & 오픈채팅방 링크
+
+
 class PreUserPostCreateAPIView(ListModelMixin, GenericAPIView):
     serializer_class = PreUserPostCreateSerializer
 

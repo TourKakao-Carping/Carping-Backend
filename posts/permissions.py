@@ -23,6 +23,9 @@ class AuthorOnlyAccessPermission(permissions.BasePermission):
 
         post_info = obj.userpostinfo_set.get()
 
+        if user.is_superuser or user.is_staff:
+            return True
+
         if post_info.author == user:
             return True
         else:

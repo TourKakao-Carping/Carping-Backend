@@ -37,6 +37,10 @@ urlpatterns = [
     path('user-post/<int:pk>/deactivate',
          UserPostDeactivateAPIView.as_view(), name="user"),
 
+    # 유저포스트 활성/비활성화 Admin API
+    path('user-post/<int:pk>/<int:type>/admin',
+         UserPostAdminActionAPIView.as_view(), name="admin-user-activate"),
+
     # 상세보기 API
     path('user-post/info/<int:pk>',
          UserPostInfoDetailAPIView.as_view(), name="user-post-info"),
