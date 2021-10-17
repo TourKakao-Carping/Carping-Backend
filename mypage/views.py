@@ -87,7 +87,8 @@ class MyPageView(GenericAPIView):
 
             elif subsort == 'like':
                 qs = UserPostInfo.objects.filter(like=user).exclude(
-                    category=CATEGORY_DEACTIVATE).order_by('-created_at')
+                    Q(category=CATEGORY_DEACTIVATE) |
+                    Q(author__is_active=False)).order_by('-created_at')
                 serializer = UserPostStatusSerializer(qs, many=True)
 
             else:
