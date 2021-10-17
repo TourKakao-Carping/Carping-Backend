@@ -121,7 +121,7 @@ class GoogleLoginView(SocialLoginView):
         if profile_qs.exists():
             profile = profile_qs
         else:
-            profile = Profile.objects.update_or_create(user=user)
+            profile = Profile.objects.update_or_create(user=user, image='img/default/default_img.jpg')
         profile_data = {
             'image': profile[0].image.url,
         }
@@ -183,7 +183,7 @@ class KakaoLoginView(SocialLoginView):
             profile = kakao_account.get('profile')
             gender = profile.get('gender')
             profile = Profile.objects.create(
-                gender=gender, user=user)
+                gender=gender, user=user, image='img/default/default_img.jpg')
 
         profile_data = {
             "image": profile.image.url
@@ -351,7 +351,7 @@ class UserWithdrawView(APIView):
                 number = User.objects.filter(is_active=False).count()
                 number += 1
 
-                profile.update(phone=None, image=None,
+                profile.update(phone=None, image='img/default/default_img.jpg',
                                level=1, bio=None, interest=None,
                                author_comment="탈퇴한 유저입니다.", account_num=None)
                 user_obj.update(is_active=False, email=f"{number}@withdrew.com", username=f"탈퇴유저 {number}")
