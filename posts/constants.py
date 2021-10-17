@@ -92,6 +92,6 @@ SEARCH_TYPE_CHOICES = (
     (1, _("포스트")),
 )
 
-A_TO_Z_LIST_NUM = 3
+A_TO_Z_LIST_NUM = 4
 
 POST_INFO_CATEGORY_LIST_NUM = 3
