@@ -6,6 +6,10 @@ from django.db import models
 from django.db.models.expressions import F, Value, Case, Exists, Value, When
 from django.db.models.aggregates import Count, Max, Min
 
+import logging
+
+logger = logging.getLogger('random')
+
 
 class UserPostInfoQuerySet(models.QuerySet):
     """
@@ -24,16 +28,19 @@ class UserPostInfoQuerySet(models.QuerySet):
         i = 0
         while len(pk_arr) < count:
             random_num = random.randint(min_id, max_id)
-            if self.all().filter(id=random_num, is_approved=1).exists() and not random_num in pk_arr:
+            if self.all().filter(id=random_num, is_approved=True, author__is_active=True).exists() and not random_num in pk_arr:
                 if id and random_num == id:
                     pass
                 else:
                     pk_arr.append(random_num)
 
             i += 1
-            if i > max_id:
+            if i > max_id - min_id:
                 break
 
+        if not len(pk_arr) == count:
+            logger.info(pk_arr)
+#
         return self.all().filter(id__in=pk_arr)
 
     def like_qs(self, user_pk):
@@ -72,7 +79,8 @@ class UserPostInfoQuerySet(models.QuerySet):
             return qs
 
     def category_qs(self, count, user_pk):
-        qs_all = self.all().filter(is_approved=True).exclude(category=CATEGORY_DEACTIVATE)
+        qs_all = self.all().filter(is_approved=True, author__is_active=True).exclude(
+            category=CATEGORY_DEACTIVATE).order_by('-created_at')
 
         qs_arr = []
         for i in range(1, 5):

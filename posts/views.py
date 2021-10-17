@@ -501,10 +501,12 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
 
             return qs
         else:
-            qs_type = UserPostInfo.objects.filter(category=category)
+            qs_type = UserPostInfo.objects.filter(
+                category=category).order_by('-created_at')
 
         qs = qs_type.like_qs(user.pk).exclude(Q(is_approved=False) |
-                                              Q(category=CATEGORY_DEACTIVATE))
+                                              Q(category=CATEGORY_DEACTIVATE) |
+                                              Q(author__is_active=False))
 
         return qs
 
@@ -562,7 +564,7 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
         recommend_serializer = UserPostListSerializer(
             random_qs, many=True, context=context)
 
-        data["recommend_psots"] = recommend_serializer.data
+        data["recommend_posts"] = recommend_serializer.data
 
         review = data.pop('review')
         review = review[:3]
