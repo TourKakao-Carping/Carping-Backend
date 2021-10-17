@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.db.models.aggregates import Avg
 
 from bases.fee import compute_fee
@@ -11,6 +12,7 @@ from bases.utils import modify_created_time
 from bases.s3 import S3Client
 
 from comments.serializers import CommentSerializer, ReviewSerializer
+from posts.constants import CATEGORY_DEACTIVATE
 from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo, UserPostPaymentRequest
 from camps.models import CampSite
 
@@ -117,11 +119,11 @@ class AutoCampPostSerializer(TaggitSerializer, ModelSerializer):
 
         for i in range(3):
             camp = {}
-            camp["text"] = ret[f"text{i+1}"]
-            camp["image"] = ret[f"image{i+1}"]
-            camp["source"] = ret[f"source{i+1}"]
-            campsite_pk = ret[f"campsite{i+1}"]
-            camp["sub_title"] = ret[f"sub_title{i+1}"]
+            camp["text"] = ret[f"text{i + 1}"]
+            camp["image"] = ret[f"image{i + 1}"]
+            camp["source"] = ret[f"source{i + 1}"]
+            campsite_pk = ret[f"campsite{i + 1}"]
+            camp["sub_title"] = ret[f"sub_title{i + 1}"]
 
             if campsite_pk is not None:
                 campsite = CampSite.objects.get(id=campsite_pk)
@@ -141,7 +143,7 @@ class AutoCampPostSerializer(TaggitSerializer, ModelSerializer):
                 camp["website"] = ""
                 camp["sub_facility"] = ""
 
-            re_ret[f"campsite{i+1}"] = camp
+            re_ret[f"campsite{i + 1}"] = camp
 
         re_ret["count"] = count
         return re_ret
@@ -153,14 +155,12 @@ class PostLikeSerializer(serializers.Serializer):
 
 # 동네 검색
 class SigunguSearchSerializer(ModelSerializer):
-
     class Meta:
         model = Region
         fields = ['sido', 'sigungu']
 
 
 class DongSearchSerializer(ModelSerializer):
-
     class Meta:
         model = Region
         fields = ['id', 'sido', 'sigungu', 'dong']
@@ -333,8 +333,12 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserPostInfo
-        fields = ['id', 'userpost_id', 'author_name', 'author_profile', 'author_comment', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3', 'contents_count', 'like_count',  'kakao_openchat_url', 'star1_avg',
-                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'login_user', 'login_user_profile', 'review', 'final_point', 'author_id', 'is_approved']
+        fields = ['id', 'userpost_id', 'author_name', 'author_profile', 'author_comment', 'title', 'thumbnail', 'point',
+                  'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3',
+                  'contents_count', 'like_count', 'kakao_openchat_url', 'star1_avg',
+                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count',
+                  'review_count', 'login_user', 'login_user_profile', 'review', 'final_point', 'author_id',
+                  'is_approved']
 
     def get_userpost_id(self, instance):
         return instance.user_post.id
@@ -499,8 +503,12 @@ class UserPostDetailSerializer(serializers.ModelSerializer):
         return instance.userpostinfo_set.get().author.profile.get().author_comment
 
     def get_other_post(self, instance):
-        recent_post = instance.userpostinfo_set.exclude(
-            is_approved=False).get().author.user_post.latest('id').user_post
+        try:
+            recent_post = instance.userpostinfo_set.exclude(
+                Q(is_approved=False) | Q(category=CATEGORY_DEACTIVATE) |
+                Q(author__is_active=False)).get().author.user_post.latest('id').user_post
+        except:
+            return None
         return OtherUserPostSerializer(recent_post).data
 
 
@@ -524,7 +532,6 @@ class PreUserPostCreateSerializer(serializers.ModelSerializer):
 
 
 class UserPostCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = UserPost
         fields = ['id', 'title', 'thumbnail',
@@ -536,7 +543,6 @@ class UserPostCreateSerializer(serializers.ModelSerializer):
 
 
 class ComputeFeeSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = UserPostInfo
         fields = ['point', 'trade_fee', 'platform_fee',
