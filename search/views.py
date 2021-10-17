@@ -45,14 +45,16 @@ class MainSearchView(GenericAPIView, ListModelMixin):
                                      | Q(themenv__icontains=f"{keyword}")
                                      | Q(rental_item__icontains=f"{keyword}")
                                      | Q(tags__name__icontains=f"{keyword}"))
+        # near_data = []
+        #
+        # for i in serializer.data:
+        #     if i['distance'] <= 30:  # 30km 반경 설정
+        #         near_data.append(i)
+        #
+        # data = sorted(near_data, key=lambda x: x['distance'])
+
         serializer = self.get_serializer(qs, many=True)
-        near_data = []
-
-        for i in serializer.data:
-            if i['distance'] <= 30:  # 30km 반경 설정
-                near_data.append(i)
-
-        data = sorted(near_data, key=lambda x: x['distance'])
+        data = sorted(serializer.data, key=lambda x: x['distance'])
 
         response.code = 200
         response.success = True
