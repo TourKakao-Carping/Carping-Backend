@@ -18,4 +18,6 @@ urlpatterns = [
 
     path('send-sms', views.SmsSendView.as_view(), name='send-sms'),
     path('sms-verification', views.SMSVerificationView.as_view(), name='sms-verification'),
+
+    path("withdrawal", views.UserWithdrawView.as_view(), name="user-withdraw"),
 ]
