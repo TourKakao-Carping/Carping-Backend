@@ -1,18 +1,17 @@
-from accounts.models import Profile
 from django.db.models.aggregates import Avg
-from django.http import request
+
+from bases.fee import compute_fee
 from comments.models import Review
-import datetime
 
 from rest_framework import serializers
 from taggit.serializers import TagListSerializerField, TaggitSerializer
 
 from bases.serializers import ModelSerializer
-from bases.utils import check_distance, modify_created_time
+from bases.utils import modify_created_time
 from bases.s3 import S3Client
 
 from comments.serializers import CommentSerializer, ReviewSerializer
-from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo
+from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserPostInfo, UserPostPaymentRequest
 from camps.models import CampSite
 
 
@@ -71,10 +70,11 @@ class EcoCarpingSerializer(TaggitSerializer, ModelSerializer):
             elif key == "image3":
                 if not instance.image3 == "" and not instance.image3 == None:
                     s3.delete_file(str(instance.image3))
-            else:
+            elif key == "image4":
                 if not instance.image4 == "" and not instance.image4 == None:
                     s3.delete_file(str(instance.image4))
-
+            else:
+                pass
         return super().update(instance, validated_data)
 
 
@@ -175,8 +175,7 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
     comment = CommentSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
     created_at = serializers.SerializerMethodField()
-    like_count = serializers.IntegerField()
-    is_liked = serializers.BooleanField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Share
@@ -195,6 +194,35 @@ class ShareSerializer(TaggitSerializer, ModelSerializer):
 
     def get_created_at(self, data):
         return modify_created_time(data)
+
+    def get_is_liked(self, data):
+        if data.like.through.objects.filter(user=self.context['request'].user, share=data):
+            return True
+        return False
+
+    def update(self, instance, validated_data):
+        """
+        기존에 저장되어 있다면 이미지 삭제하고 다시 업로드
+        """
+        fields = validated_data.keys()
+        s3 = S3Client()
+
+        for key in fields:
+            if key == "image1":
+                if not instance.image1 == "" and not instance.image1 == None:
+                    s3.delete_file(str(instance.image1))
+            elif key == "image2":
+                if not instance.image2 == "" and not instance.image2 == None:
+                    s3.delete_file(str(instance.image2))
+            elif key == "image3":
+                if not instance.image3 == "" and not instance.image3 == None:
+                    s3.delete_file(str(instance.image3))
+            elif key == "image4":
+                if not instance.image4 == "" and not instance.image4 == None:
+                    s3.delete_file(str(instance.image4))
+            else:
+                pass
+        return super().update(instance, validated_data)
 
 
 class SharePostSerializer(TaggitSerializer, ModelSerializer):
@@ -277,6 +305,8 @@ class UserPostAddProfileSerializer(UserPostListSerializer):
 
 
 class UserPostInfoDetailSerializer(serializers.ModelSerializer):
+    userpost_id = serializers.SerializerMethodField()
+
     thumbnail = serializers.SerializerMethodField()
     author_name = serializers.SerializerMethodField()
     author_profile = serializers.SerializerMethodField()
@@ -298,10 +328,18 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
 
     contents_count = serializers.SerializerMethodField()
 
+    final_point = serializers.SerializerMethodField()
+
+    author_id = serializers.SerializerMethodField()
+    is_approved = serializers.SerializerMethodField()
+
     class Meta:
         model = UserPostInfo
-        fields = ['id', 'author_name', 'author_profile', 'author_comment', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3', 'contents_count', 'like_count',  'kakao_openchat_url', 'star1_avg',
-                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'login_user', 'login_user_profile', 'review']
+        fields = ['id', 'userpost_id', 'category', 'author_name', 'author_profile', 'author_comment', 'title', 'thumbnail', 'point', 'info', 'recommend_to', 'is_liked', 'preview_image1', 'preview_image2', 'preview_image3', 'contents_count', 'like_count',  'kakao_openchat_url', 'star1_avg',
+                  'star2_avg', 'star3_avg', 'star4_avg', 'my_star_avg', 'total_star_avg', 'my_review_count', 'review_count', 'login_user', 'login_user_profile', 'review', 'final_point', 'author_id', 'is_approved', ]
+
+    def get_userpost_id(self, instance):
+        return instance.user_post.id
 
     def get_thumbnail(self, instance):
         request = self.context.get('request')
@@ -382,34 +420,90 @@ class UserPostInfoDetailSerializer(serializers.ModelSerializer):
     def get_contents_count(self, instance):
         userpost = instance.user_post
 
-        if userpost.sub_title2 == None:
+        if userpost.sub_title2 == None or userpost.sub_title2 == "":
             return 1
-        elif userpost.sub_title3 == None:
+        elif userpost.sub_title3 == None or userpost.sub_title3 == "":
             return 2
-        elif userpost.sub_title4 == None:
+        elif userpost.sub_title4 == None or userpost.sub_title4 == "":
             return 3
-        elif userpost.sub_title5 == None:
+        elif userpost.sub_title5 == None or userpost.sub_title5 == "":
             return 4
         else:
             return 5
 
-    # def
+    def get_final_point(self, instance):
+        # 무료 포스트면 수수료 적용하지 않고 바로 0 리턴
+        if instance.point == 0 or None:
+            return 0
+
+        user = self.context['request'].user
+        trade_fee = 500
+
+        platform_fee = compute_fee(user, instance.point)
+
+        final_point = instance.point + trade_fee + platform_fee
+        return final_point
+
+    def get_author_id(self, instance):
+        return instance.author.id
+
+    def get_is_approved(self, instance):
+        user = self.context['request'].user
+
+        user_approved_post_qs = user.approved_user.all()
+        post_id = instance.user_post.id
+
+        if user_approved_post_qs.filter(id=post_id).exists():
+            return True
+        else:
+            return False
+
+
+class OtherUserPostSerializer(serializers.ModelSerializer):
+    pay_type = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserPost
+        fields = ['id', 'title', 'thumbnail', 'pay_type']
+
+    def get_pay_type(self, instance):
+        return instance.userpostinfo_set.get().pay_type
 
 
 class UserPostDetailSerializer(serializers.ModelSerializer):
     created_at = serializers.SerializerMethodField()
+    author_name = serializers.SerializerMethodField()
+    author_profile = serializers.SerializerMethodField()
+    author_comment = serializers.SerializerMethodField()
+    other_post = serializers.SerializerMethodField()
 
     class Meta:
         model = UserPost
-        fields = ['id', 'created_at', 'title', 'thumbnail',
+        fields = ['id', 'created_at', 'author_name', 'author_profile',
+                  'author_comment', 'title', 'thumbnail',
                   'sub_title1', 'text1', 'image1',
                   'sub_title2', 'text2', 'image2',
                   'sub_title3', 'text3', 'image3',
                   'sub_title4', 'text4', 'image4',
-                  'sub_title5', 'text5', 'image5']
+                  'sub_title5', 'text5', 'image5',
+                  'other_post']
 
     def get_created_at(self, data):
         return data.created_at.strftime('%Y. %m. %d')
+
+    def get_author_name(self, instance):
+        return instance.userpostinfo_set.get().author.username
+
+    def get_author_profile(self, instance):
+        return instance.userpostinfo_set.get().author.profile.get().image.url
+
+    def get_author_comment(self, instance):
+        return instance.userpostinfo_set.get().author.profile.get().author_comment
+
+    def get_other_post(self, instance):
+        recent_post = instance.userpostinfo_set.exclude(
+            is_approved=False).get().author.user_post.latest('id').user_post
+        return OtherUserPostSerializer(recent_post).data
 
 
 class UserPostMoreReviewSerializer(serializers.ModelSerializer):
@@ -420,46 +514,15 @@ class UserPostMoreReviewSerializer(serializers.ModelSerializer):
         fields = ['review']
 
 
-# class UserPostCreateSerializer(serializers.ModelSerializer):
-#     author_comment = serializers.SerializerMethodField()
-#     kakao_openchat_url = serializers.SerializerMethodField()
-#     pay_type = serializers.SerializerMethodField()
-#     point = serializers.SerializerMethodField()
-#     info = serializers.SerializerMethodField()
-#     recommend_to = serializers.SerializerMethodField()
-#     is_approved = serializers.SerializerMethodField()
-#
-#     class Meta:
-#         model = UserPost
-#         fields = ['id', 'author_comment', 'kakao_openchat_url', 'title', 'thumbnail',
-#                   'sub_title1', 'text1', 'image1',
-#                   'sub_title2', 'text2', 'image2',
-#                   'sub_title3', 'text3', 'image3',
-#                   'sub_title4', 'text4', 'image4',
-#                   'sub_title5', 'text5', 'image5',
-#                   'pay_type', 'point', 'info', 'recommend_to', 'is_approved']
-#
-#     def get_author_comment(self, data):
-#         print(data[0])
-#         return data[0].userpostinfo_set.get().author.profile.get().author_comment
-#
-#     def get_kakao_openchat_url(self, data):
-#         return data[0].userpostinfo_set.get().kakao_openchat_url
-#
-#     def get_pay_type(self, data):
-#         return data[0].userpostinfo_set.get().pay_type
-#
-#     def get_point(self, data):
-#         return data[0].userpostinfo_set.get().point
-#
-#     def get_info(self, data):
-#         return data[0].userpostinfo_set.get().info
-#
-#     def get_recommend_to(self, data):
-#         return data[0].userpostinfo_set.get().recommend_to
-#
-#     def get_is_approved(self, data):
-#         return data[0].userpostinfo_set.get().is_approved
+class PreUserPostCreateSerializer(serializers.ModelSerializer):
+    author_comment = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserPostInfo
+        fields = ['author_comment', 'kakao_openchat_url']
+
+    def get_author_comment(self, instance):
+        return instance.author.profile.get().author_comment
 
 
 class UserPostCreateSerializer(serializers.ModelSerializer):
@@ -472,3 +535,11 @@ class UserPostCreateSerializer(serializers.ModelSerializer):
                   'sub_title3', 'text3', 'image3',
                   'sub_title4', 'text4', 'image4',
                   'sub_title5', 'text5', 'image5']
+
+
+class ComputeFeeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserPostInfo
+        fields = ['point', 'trade_fee', 'platform_fee',
+                  'withholding_tax', 'vat', 'final_point']

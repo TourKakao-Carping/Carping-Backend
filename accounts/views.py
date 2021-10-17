@@ -121,7 +121,7 @@ class GoogleLoginView(SocialLoginView):
         if profile_qs.exists():
             profile = profile_qs
         else:
-            profile = Profile.objects.update_or_create(user=user)
+            profile = Profile.objects.update_or_create(user=user, image='img/default/default_img.jpg')
         profile_data = {
             'image': profile[0].image.url,
         }
@@ -183,7 +183,7 @@ class KakaoLoginView(SocialLoginView):
             profile = kakao_account.get('profile')
             gender = profile.get('gender')
             profile = Profile.objects.create(
-                gender=gender, user=user)
+                gender=gender, user=user, image='img/default/default_img.jpg')
 
         profile_data = {
             "image": profile.image.url

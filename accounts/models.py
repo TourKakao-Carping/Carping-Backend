@@ -15,12 +15,6 @@ from bases.models import Base
 from posts.constants import SEARCH_TYPE_CHOICES
 
 
-def validate_phone(value):
-    regex = re.compile('\d{2,3}-\d{3,4}-\d{4}')
-    if not regex.match(value):
-        raise ValidationError("O-O-O 형식의 번호를 입력해주세요.")
-
-
 class UserManager(BaseUserManager):
     """
     Custom user model manager where email is the unique identifiers
@@ -91,8 +85,7 @@ class Profile(Base):
     image                   프로필 사진
     gender                  성별
     """
-    phone = models.CharField(max_length=50, null=True,
-                             blank=True, validators=[validate_phone])
+    phone = models.CharField(max_length=50, null=True, blank=True)
     image = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
     gender = models.IntegerField(default=0, null=True)
@@ -100,15 +93,15 @@ class Profile(Base):
         'EcoLevel', on_delete=CASCADE, related_name="user", default=1)
     bio = models.TextField(null=True, blank=True)
     INTEREST_CHOICES = (
-        ('차크닉', '🚗차크닉'),
-        ('혼차박', '⛺혼차박'),
-        ('퇴근박', '🌆퇴근박'),
-        ('불멍', '🔥불멍'),
-        ('바베큐', '🍖바베큐'),
-        ('오지캠핑', '🏕오지캠핑'),
-        ('레저', '🏄레저'),
-        ('낚시', '🎣낚시'),
-        ('클린 차박', '🌱클린 차박'),
+        (0, '🚗차크닉'),
+        (1, '⛺혼차박'),
+        (2, '🌆퇴근박'),
+        (3, '🔥불멍'),
+        (4, '🍖바베큐'),
+        (5, '🏕오지캠핑'),
+        (6, '🏄레저'),
+        (7, '🎣낚시'),
+        (8, '🌱클린 차박'),
     )
     interest = MultiSelectField(
         choices=INTEREST_CHOICES, null=True, blank=True)
@@ -118,6 +111,7 @@ class Profile(Base):
     #     SocialAccount, on_delete=CASCADE, null=True, related_name="socialaccount_fk")
     author_comment = models.CharField(
         max_length=100, verbose_name=_("작가의 한마디"), null=True, blank=True)
+    account_num = models.CharField(max_length=255, null=True, blank=True, verbose_name=_("계좌번호"))
 
     objects = ProfileManager()
 
@@ -145,3 +139,6 @@ class Search(Base):
 
     def same_keyword_count(self, obj):
         return self.objects.filter(keyword=obj.name).count()
+
+    def same_camp_search_count(self, obj):
+        return self.objects.filter(name=obj.name).count()

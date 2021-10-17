@@ -21,6 +21,8 @@ class Post(Base):
     title = models.CharField(max_length=100, null=False)
     thumbnail = models.ImageField(
         upload_to=upload_user_directory, null=True, blank=True)
+    thumbnail_with_text = models.ImageField(
+        upload_to=upload_user_directory, null=True, blank=True)
     views = models.IntegerField(default=0)
     tags = TaggableManager(blank=True)
     campsite1 = models.ForeignKey(
@@ -95,6 +97,9 @@ class Share(Base):
     like = models.ManyToManyField(
         User, related_name="share_like", blank=True)
 
+    def like_count(self):
+        return self.like.values().count()
+
 
 class Region(Base):
     sido = models.CharField(max_length=50)
@@ -132,7 +137,8 @@ class UserPost(Base):
     image5 = models.ImageField(
         upload_to=upload_user_directory_userpost, null=True, blank=True)
 
-    approved_user = models.ManyToManyField(User, blank=True)
+    approved_user = models.ManyToManyField(
+        User, blank=True, related_name='approved_user')
 
     def __str__(self):
         return self.title
@@ -140,14 +146,20 @@ class UserPost(Base):
 
 class UserPostInfo(Base):
     author = models.ForeignKey(
-        User, on_delete=CASCADE, related_name="post_author")
+        User, on_delete=CASCADE, related_name="user_post")
     user_post = models.ForeignKey(UserPost, on_delete=CASCADE)
     category = models.IntegerField(
         default=0, choices=CATEGORY_CHOICES, verbose_name=_("카테고리")
     )
     pay_type = models.IntegerField(
         default=0, choices=PAY_CHOICES, verbose_name=_("유/무료 여부"))
-    point = models.IntegerField(default=0, verbose_name=_("가격"))
+    point = models.IntegerField(default=0, verbose_name=_("판매 금액"))
+    trade_fee = models.IntegerField(default=0, verbose_name=_("거래 수수료"))
+    platform_fee = models.IntegerField(default=0, verbose_name=_("플랫폼 제공 수수료"))
+    withholding_tax = models.IntegerField(default=0, verbose_name=_("소득세 원천징수 3.3%"))
+    vat = models.IntegerField(default=0, verbose_name=_("VAT 10%"))
+    final_point = models.IntegerField(default=0, verbose_name=_("최종 정산금"))
+    bank = models.IntegerField(default=0, choices=BANK_CHOICES, null=True, blank=True, verbose_name=_("은행"))
     info = models.CharField(max_length=100, verbose_name=_("포스트 소개"))
     kakao_openchat_url = models.URLField(null=True, blank=True)
     recommend_to = models.CharField(max_length=100, verbose_name=_("추천하는 대상"))

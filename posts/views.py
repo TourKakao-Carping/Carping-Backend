@@ -1,17 +1,24 @@
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+from dateutil.relativedelta import relativedelta
+from django.db.models.expressions import Subquery
+from rest_framework.exceptions import PermissionDenied
+from posts.messages import ALREADY_DEACTIVATED
 from django.db import transaction, DatabaseError
+from rest_framework.permissions import IsAuthenticated
 
 from accounts.models import Profile
 import datetime
 
+from bases.fee import compute_final
 from comments.serializers import ReviewSerializer
-from posts.constants import A_TO_Z_LIST_NUM, POST_INFO_CATEGORY_LIST_NUM
+from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, POST_INFO_CATEGORY_LIST_NUM
+from posts.permissions import AuthorOnlyAccessPermission, UserPostAccessPermission
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from haversine import haversine
 
-from django.conf import settings
-from django.db.models import Count, query, F
+from django.db.models import Count, query, F, Q
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -25,7 +32,7 @@ from posts.models import EcoCarping, Post, Share, Region, Store, UserPost, UserP
 from posts.serializers import AutoCampPostForWeekendSerializer, EcoCarpingSortSerializer, PostLikeSerializer, \
     ShareCompleteSerializer, ShareSortSerializer, SigunguSearchSerializer, DongSearchSerializer, StoreSerializer, \
     UserPostAddProfileSerializer, UserPostInfoDetailSerializer, UserPostListSerializer, UserPostDetailSerializer, \
-    UserPostMoreReviewSerializer, UserPostCreateSerializer
+    UserPostMoreReviewSerializer, UserPostCreateSerializer, PreUserPostCreateSerializer, ComputeFeeSerializer
 
 from bases.utils import check_data_key, check_str_digit, paginate
 from bases.response import APIResponse
@@ -208,6 +215,9 @@ class ShareSort(GenericAPIView):
             return response.response(error_message="'count' field is required")
         count = int(self.request.data.get('count', None))
 
+        today = datetime.date.today() + relativedelta(days=1)
+        pre_month = today - relativedelta(months=1)
+
         if sort == 'recent':
             if count == 0:
                 qs = Share.objects.annotate(
@@ -221,8 +231,16 @@ class ShareSort(GenericAPIView):
             serializer = self.get_serializer(
                 queryset, many=True).data
 
+            more_info = {}
+
             total_share = Share.objects.all().count()
-            serializer.insert(0, {"total_share": total_share})  # 안드와 요청 방식 상의
+            monthly_share_count = Share.objects.filter(user=request.user,
+                                                       created_at__range=[pre_month, today]).count()
+
+            more_info['total_share'] = total_share
+            more_info['monthly_share_count'] = monthly_share_count
+
+            serializer.insert(0, more_info)  # 안드와 요청 방식 상의
 
             response.success = True
             response.code = HTTP_200_OK
@@ -389,10 +407,10 @@ class RegionSearchView(APIView):
         sigungu = request.data.get('sigungu')
 
         sido_list = [_("강원도"), _("경기도"), _("경상남도"), _("경상북도"), _("광주광역시"),
-                     _("대구광역시"), _("대전광역시"), _("부산광역시"), _(
-                         "서울특별시"), _("세종특별자치시"),
-                     _("울산광역시"), _("인천광역시"), _(
-                         "전라남도"), _("전라북도"), _("제주특별자치도"),
+                     _("대구광역시"), _("대전광역시"), _("부산광역시"),
+                     _("서울특별시"), _("세종특별자치시"),
+                     _("울산광역시"), _("인천광역시"),
+                     _("전라남도"), _("전라북도"), _("제주특별자치도"),
                      _("충청남도"), _("충청북도"), ]
 
         if 'sigungu' in request.data:
@@ -443,6 +461,7 @@ class StoreListView(APIView):
 
 
 class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
+    # (A부터 Z, 차박 포스트 페이지, 카테고리)
     # serializer_class = UserPostListSerializer
 
     def get_serializer_class(self):
@@ -471,7 +490,7 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
         try:
             category = int(data.get('category'))
         except TypeError:
-            category = 0
+            category = 1
 
         if type == 1:
             qs_type = UserPostInfo.objects.random_qs(A_TO_Z_LIST_NUM)
@@ -483,7 +502,8 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
         else:
             qs_type = UserPostInfo.objects.filter(category=category)
 
-        qs = qs_type.like_qs(user.pk)
+        qs = qs_type.like_qs(user.pk).exclude(Q(is_approved=False) |
+                                              Q(category=CATEGORY_DEACTIVATE))
 
         return qs
 
@@ -512,30 +532,45 @@ class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
     def get_queryset(self):
         user = self.request.user
         pk = user.pk
-        qs_info = UserPostInfo.objects.all().filter(
-            is_approved=True).annotate(title=F('user_post__title'))
+        qs_info_qs = UserPostInfo.objects.all().filter(
+            is_approved=True).exclude(category=CATEGORY_DEACTIVATE).annotate(title=F('user_post__title'))
 
-        qs = qs_info.like_qs(pk)
+        qs = qs_info_qs.like_qs(pk)
 
         return qs
 
     def get(self, request, pk):
         response = APIResponse(success=False, code=400)
 
-        try:
-            ret = super().retrieve(request)
-            response.success = True
-            response.code = 200
+        # try:
+        ret = super().retrieve(request)
+        response.success = True
+        response.code = 200
 
-            data = ret.data
-            review = data.pop('review')
-            review = review[:3]
-            data["review"] = review
+        data = ret.data
 
-            return response.response(data=[data])
+        category = data["category"]
 
-        except BaseException as e:
-            return response.response(error_message=str(e))
+        same_category_qs = UserPostInfo.objects.filter(
+            category=category, is_approved=True)
+
+        random_qs = same_category_qs.random_qs(3, data["id"])
+
+        context = {}
+        context["request"] = request
+        recommend_serializer = UserPostListSerializer(
+            random_qs, many=True, context=context)
+
+        data["recommend_psots"] = recommend_serializer.data
+
+        review = data.pop('review')
+        review = review[:3]
+        data["review"] = review
+
+        return response.response(data=[data])
+
+        # except BaseException as e:
+        # return response.response(error_message=str(e))
 
 
 class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
@@ -544,9 +579,15 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
     def post(self, request, pk):
         response = APIResponse(success=False, code=400)
         sort = request.data.get('sort')
+        star = {}
 
         try:
             user_post = UserPostInfo.objects.get(pk=pk)
+            star["star1_avg"] = user_post.star1_avg()
+            star["star2_avg"] = user_post.star2_avg()
+            star["star3_avg"] = user_post.star3_avg()
+            star["star4_avg"] = user_post.star4_avg()
+            star["total_star_avg"] = user_post.total_star_avg()
             if sort == 'recent':
                 review = user_post.review.order_by('-created_at')
             elif sort == 'popular':
@@ -559,15 +600,16 @@ class UserPostMoreReviewAPIView(RetrieveModelMixin, GenericAPIView):
             response.success = True
             response.code = 200
 
-            return response.response(data=serializer.data)
+            return response.response(data=[star, serializer.data])
 
         except BaseException as e:
             return response.response(error_message=str(e))
 
 
-class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIView):
+class UserPostDetailAPIView(RetrieveModelMixin, GenericAPIView):
     queryset = UserPost.objects.all()
     serializer_class = UserPostDetailSerializer
+    permission_classes = (UserPostAccessPermission, IsAuthenticated)
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -584,20 +626,74 @@ class UserPostDetailAPIView(RetrieveModelMixin, DestroyModelMixin, GenericAPIVie
         except BaseException as e:
             return response.response(error_message=str(e))
 
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
 
-    def delete(self, request, pk):
+class UserPostDeactivateAPIView(RetrieveModelMixin, GenericAPIView):
+    queryset = UserPost.objects.all()
+    permission_classes = (AuthorOnlyAccessPermission, IsAuthenticated)
+
+    def post(self, request, pk):
+
         response = APIResponse(success=False, code=400)
 
         try:
-            ret = self.destroy(request)
+
+            post = self.get_object()
+
+            post_info = post.userpostinfo_set.get()
+
+            if post_info.category == CATEGORY_DEACTIVATE:
+                return response.response(error_message=ALREADY_DEACTIVATED)
+
+            post_info.category = CATEGORY_DEACTIVATE
+            post_info.is_approved = False
+
+            post_info.save()
+
             response.success = True
             response.code = 200
-            return response.response(data=ret.data)
 
-        except BaseException as e:
+            return response.response()
+        except PermissionDenied as e:
             return response.response(error_message=str(e))
+
+
+# 유저 차박 포스트 발행 시 디폴트로 보여줄 채널소개 & 오픈채팅방 링크
+class PreUserPostCreateAPIView(ListModelMixin, GenericAPIView):
+    serializer_class = PreUserPostCreateSerializer
+
+    def get(self, request):
+        response = APIResponse(success=False, code=400)
+        user = request.user
+
+        pre_post = UserPostInfo.objects.filter(
+            author=user).order_by('-id').first()
+        serializer = self.get_serializer(pre_post)
+
+        response.success = True
+        response.code = 200
+        return response.response(data=[serializer.data])
+
+
+class ComputeFeeView(CreateModelMixin, GenericAPIView):
+    serializer_class = ComputeFeeSerializer
+
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+        data = request.data
+        user = request.user
+
+        point = data.get('point')
+        if not check_data_key(point):
+            return response.response(error_message="No input - check 'point' value.")
+
+        values = compute_final(user, point)
+
+        response.success = True
+        response.code = 200
+        return response.response(data=[{"trade_fee": values[0]}, {"platform_fee": values[1]},
+                                       {"withholding_tax": values[2]}, {
+                                           "vat": values[3]},
+                                       {"final_point": values[4]}])
 
 
 # 유저 포스트 작성 뷰
@@ -607,33 +703,106 @@ class UserPostCreateAPIView(CreateModelMixin, GenericAPIView):
     def post(self, request):
         response = APIResponse(success=False, code=400)
         data = request.data
+        user = request.user
+
         author_comment = data.get('author_comment')
         kakao_openchat_url = data.get('kakao_openchat_url')
-        pay_type = data.get('pay_type')
-        point = data.get('point')
+
+        category = data.get('category')
         info = data.get('info')
         recommend_to = data.get('recommend_to')
+        pay_type = data.get('pay_type')
+        point = data.get('point')
+
+        bank = data.get('bank')
+        account_num = data.get('account_num')
+
+        if not check_data_key(author_comment) or not check_data_key(kakao_openchat_url):
+            return response.response(error_message="check pre-post values(author_comment, kakao_openchat_url)")
+
+        try:
+            validate = URLValidator()
+            validate(kakao_openchat_url)
+        except ValidationError as e:
+            return response.response(error_message=str(e))
+
+        if not check_data_key(category) or not check_data_key(info) or not check_data_key(recommend_to) \
+                or not check_data_key(pay_type) or not check_data_key(point):
+            return response.response(error_message="check post-info values(category, info, "
+                                                   "recommend_to, pay_type, point)")
+
+        if check_str_digit(pay_type):
+            pay_type = int(pay_type)
+
+        # 무료 포스트인 경우 바로 승인 완료
         if pay_type == 0:
             is_approved = True
         else:
             is_approved = False
+
         try:
             with transaction.atomic():
                 serializer = self.get_serializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
                 if serializer.is_valid():
+                    # UserPost 객체 생성
                     self.perform_create(serializer)
                 latest = UserPost.objects.latest('id')
-                UserPostInfo.objects.create(author=request.user, user_post=latest, pay_type=pay_type,
-                                            point=point, info=info, kakao_openchat_url=kakao_openchat_url,
-                                            recommend_to=recommend_to, is_approved=is_approved)
-                Profile.objects.filter(user=request.user).update(author_comment=author_comment)
+
+                latest.approved_user.add(user)
+                latest.save()
+
+                # UserPostInfo 객체 생성
+                UserPostInfo.objects.create(author=user, user_post=latest,
+                                            category=category, pay_type=pay_type,
+                                            point=point, info=info,
+                                            kakao_openchat_url=kakao_openchat_url,
+                                            recommend_to=recommend_to,
+                                            is_approved=is_approved)
+                info_latest = UserPostInfo.objects.latest('id')
+
+                if pay_type == 1:
+                    if not check_data_key(bank) or not check_data_key(account_num):
+                        raise Exception(
+                            "check values for payment-post(bank, account_num)")
+
+                    values = compute_final(user, point)
+                    UserPostInfo.objects.filter(id=info_latest.id).update(trade_fee=values[0],
+                                                                          platform_fee=values[1],
+                                                                          withholding_tax=values[2],
+                                                                          vat=values[3], final_point=values[4],
+                                                                          bank=bank)
+                    # 계좌 번호 업데이트
+                    Profile.objects.filter(user=user).update(
+                        account_num=account_num)
+
+                # 작가의 한마디(채널 소개) 업데이트
+                Profile.objects.filter(user=user).update(
+                    author_comment=author_comment)
 
                 response.success = True
                 response.code = 200
-                return response.response(data=[{"message": "포스트 발행 완료"}])
+                return response.response(data=[{"post_id": UserPost.objects.latest('id').id},
+                                               {"pay_type": pay_type}])
 
-        except DatabaseError as e:
+        except Exception as e:
+            return response.response(error_message=str(e))
+
+
+class FreeUserPostBuyAPIView(GenericAPIView):
+    def get(self, request, pk):
+        response = APIResponse(success=False, code=400)
+
+        try:
+            userpost = UserPostInfo.objects.get(id=pk)
+            userpost.user_post.approved_user.add(request.user)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[{"message": "사용자 작성 무료포스트 0원 결제 완료"}])
+
+        except Exception as e:
+            response.code = status.HTTP_404_NOT_FOUND
             return response.response(error_message=str(e))
 
 
@@ -660,7 +829,7 @@ class UserPostPaymentReadyAPIView(APIView):
         if success:
             response.success = True
             response.code = 200
-            return response.response(data=ready_process)
+            return response.response(data=[ready_process])
         else:
             return response.response(error_message=ready_process)
 

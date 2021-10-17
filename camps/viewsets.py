@@ -1,4 +1,5 @@
 import copy
+import logging
 
 from django.utils.datastructures import MultiValueDictKeyError
 
@@ -14,6 +15,8 @@ from camps.models import AutoCamp, CampSite
 from camps.serializers import AutoCampSerializer, CampSiteSerializer
 
 from django.utils.translation import ugettext_lazy as _
+
+logger = logging.getLogger('image')
 
 
 class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, CreateModelMixin, GenericViewSet):
@@ -91,6 +94,8 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         image3 = request.data.get('image3')
         image4 = request.data.get('image4')
 
+        logger.info(request.data)
+
         if image1 == "":
             request.data.pop('image1')
 
@@ -160,3 +165,15 @@ class AutoCampViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, C
         response.success = True
         response.code = 200
         return response.response(data=[change_obj.data])
+
+    def destroy(self, request, *args, **kwargs):
+        response = APIResponse(success=False, code=400)
+        try:
+            ret = super(AutoCampViewSet, self).destroy(request)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[ret.data])
+        except Exception as e:
+            response.code = status.HTTP_404_NOT_FOUND
+            return response.response(error_message=str(e))

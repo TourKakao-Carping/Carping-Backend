@@ -20,21 +20,40 @@ urlpatterns = [
     path('share/complete', ShareCompleteView.as_view(), name='share-complete'),
     # path('share/input-data', InputRegionView.as_view(), ),
     path('store', StoreListView.as_view(), name='store'),
+
+    # 메인페이지 List (A부터 Z, 차박 포스트 페이지, 카테고리)
     path('user-post', UserPostInfoListAPIView.as_view(),
          name="user-post-info-list"),
+
+    # 생성 API
+    path('user-post/pre-create', PreUserPostCreateAPIView.as_view(),
+         name="user-post-pre-create"),
+    path('user-post/compute-fee', ComputeFeeView.as_view(),
+         name="user-post-compute-fee"),
     path('user-post/create', UserPostCreateAPIView.as_view(),
          name="user-post-create"),
+
+    # 삭제 API
+    path('user-post/<int:pk>/deactivate',
+         UserPostDeactivateAPIView.as_view(), name="user"),
+
+    # 상세보기 API
     path('user-post/info/<int:pk>',
          UserPostInfoDetailAPIView.as_view(), name="user-post-info"),
+    path('user-post/info/<int:pk>/free', FreeUserPostBuyAPIView.as_view(),
+         name="free-user-post-buy"),
     path('user-post/info/<int:pk>/reviews',
          UserPostMoreReviewAPIView.as_view(), name="user-post-info"),
     path('user-post/<int:pk>',
          UserPostDetailAPIView.as_view(), name="user-post"),
+
     path('user-post/like', UserPostLike.as_view(), name='user-post-like'),
 
+    # 결제 API
     path('user-post/<int:pk>/payment-ready',
          UserPostPaymentReadyAPIView.as_view(), name='kakao-pay-ready'),
 
+    # 결제 콜백 API
     path('user-post/callback/<int:pk>/fail', UserPostFailCallbackAPIView.as_view(),
          name="user-post-fail-callback"),
     path('user-post/callback/<int:pk>/cancel', UserPostCancelCallbackAPIView.as_view(),
