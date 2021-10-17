@@ -672,13 +672,14 @@ class UserPostAdminActionAPIView(GenericAPIView):
 
             if type in CATEGORY_LIST:
                 if type == CATEGORY_DEACTIVATE:
-                    post_info.category = type
                     post_info.is_approved = False
-                else:
                     post_info.category = type
-                    post_info.is_approved = True
 
-            post_info.save()
+                else:
+                    post_info.is_approved = True
+                    post_info.category = type
+
+            post_info.save(update_fields=['is_approved', 'category'])
 
             return JsonResponse(_("변경 완료되었습니다."), safe=False)
         except BaseException as e:

@@ -169,7 +169,8 @@ class UserPostInfo(Base):
     info = models.CharField(max_length=100, verbose_name=_("포스트 소개"))
     kakao_openchat_url = models.URLField(null=True, blank=True)
     recommend_to = models.CharField(max_length=100, verbose_name=_("추천하는 대상"))
-    is_approved = models.BooleanField(default=0, verbose_name=_("관리자 승인여부"))
+    is_approved = models.BooleanField(
+        default=0, choices=IS_APPROVED_CHOICES, verbose_name=_("관리자 승인여부"))
     like = models.ManyToManyField(
         User, related_name="userpost_like", blank=True)
     views = models.IntegerField(default=0, verbose_name=_("조회수"))
