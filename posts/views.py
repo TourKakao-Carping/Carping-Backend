@@ -500,7 +500,8 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
 
             return qs
         else:
-            qs_type = UserPostInfo.objects.filter(category=category)
+            qs_type = UserPostInfo.objects.filter(
+                category=category).order_by('-created_at')
 
         qs = qs_type.like_qs(user.pk).exclude(Q(is_approved=False) |
                                               Q(category=CATEGORY_DEACTIVATE) |
