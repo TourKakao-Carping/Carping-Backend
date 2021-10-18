@@ -1,11 +1,9 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from dateutil.relativedelta import relativedelta
-from django.db.models.expressions import Subquery
 from django.http.response import JsonResponse
 from rest_framework.exceptions import PermissionDenied
 from posts.messages import ALREADY_DEACTIVATED
-from django.db import transaction, DatabaseError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from accounts.models import Profile
@@ -13,19 +11,19 @@ import datetime
 
 from bases.fee import compute_final
 from comments.serializers import ReviewSerializer
-from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_ALL_FOR_CAR, CATEGORY_DEACTIVATE, CATEGORY_LIST, CATEGORY_NEWBIE, POST_INFO_CATEGORY_LIST_NUM
+from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, POST_INFO_CATEGORY_LIST_NUM
 from posts.permissions import AuthorOnlyAccessPermission, UserPostAccessPermission
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
-from django.db.models import Count, query, F, Q
+from django.db.models import Count, F, Q
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, DestroyModelMixin, CreateModelMixin
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, CreateModelMixin
 
 from bases.payment import KakaoPayClient
 from bases.serializers import MessageSerializer
@@ -660,6 +658,7 @@ class UserPostDeactivateAPIView(RetrieveModelMixin, GenericAPIView):
             return response.response(error_message=str(e))
 
 
+# 관리자 승인 API
 class UserPostAdminActionAPIView(GenericAPIView):
     queryset = UserPostInfo.objects.all()
     permission_classes = (AllowAny,)
@@ -667,28 +666,24 @@ class UserPostAdminActionAPIView(GenericAPIView):
     def post(self, request, pk, type):
         try:
             post_info = self.get_object()
-            if type == 5:
-                type = CATEGORY_DEACTIVATE
 
-            if type in CATEGORY_LIST:
-                if type == CATEGORY_DEACTIVATE:
-                    post_info.is_approved = False
-                    post_info.category = type
+            if type == 0:
+                post_info.is_approved = True
+            else:
+                post_info.is_approved = False
+                post_info.category = CATEGORY_DEACTIVATE
+                post_info.rejected_reason = type
 
-                else:
-                    post_info.is_approved = True
-                    post_info.category = type
-
-            post_info.save(update_fields=['is_approved', 'category'])
+            post_info.save(
+                update_fields=['is_approved', 'category', 'rejected_reason'])
 
             return JsonResponse(_("변경 완료되었습니다."), safe=False)
         except BaseException as e:
             print(str(e))
             return JsonResponse(str(e), safe=False)
 
+
 # 유저 차박 포스트 발행 시 디폴트로 보여줄 채널소개 & 오픈채팅방 링크
-
-
 class PreUserPostCreateAPIView(ListModelMixin, GenericAPIView):
     serializer_class = PreUserPostCreateSerializer
 
