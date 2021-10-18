@@ -20,20 +20,23 @@ CATEGORY_CHOICES = (
     (2, _("차박에 관한 모든 것")),
     (3, _("차에 맞는 차박여행")),
     (4, _("인기 TOP 3")),
-    (-99, _("비활성화")),
 )
+
+REJECTED_CHOICES = (
+    (0, _("기본")),
+    (1, _("고객 정보 불일치")),
+    (2, _("포스트 신뢰도 미충족")),
+    (3, _("포스트 가격 조건 미충족")),
+    (4, _("포스트 내용 및 이미지 누락")),
+    (5, _("기타")),
+)
+
 
 IS_APPROVED_CHOICES = (
     (0, "비활성화"),
     (1, "활성화")
 )
 
-CATEGORY_LIST = [-99, 0, 1, 2, 3, 4]
-CATEGORY_BASE = 0
-CATEGORY_NEWBIE = 1
-CATEGORY_ALL_FOR_CAR = 2
-CATEGORY_FIT_CAR = 3
-CATEGORY_TOP_3 = 4
 CATEGORY_DEACTIVATE = -99
 
 BANK_CHOICES = (

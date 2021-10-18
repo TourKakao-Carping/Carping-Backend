@@ -1,5 +1,5 @@
 from re import I
-from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, POST_INFO_CATEGORY_LIST_NUM
+from posts.constants import CATEGORY_DEACTIVATE
 import random
 
 from django.db import models

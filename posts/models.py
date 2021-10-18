@@ -174,6 +174,8 @@ class UserPostInfo(Base):
     like = models.ManyToManyField(
         User, related_name="userpost_like", blank=True)
     views = models.IntegerField(default=0, verbose_name=_("조회수"))
+    rejected_reason = models.IntegerField(
+        default=0, choices=REJECTED_CHOICES, verbose_name=_("거절사유"))
 
     objects = UserPostInfoManager()
 
