@@ -7,7 +7,7 @@ install:
   - pip install -r requirements.txt
 script:
   - mkdir logs
-  - python manage.py test
+  - sh start.sh
 cache:
   directories:
     - "$HOME/.m2/repository"
