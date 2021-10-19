@@ -167,7 +167,8 @@ class UserPostInfo(Base):
     bank = models.IntegerField(
         default=0, choices=BANK_CHOICES, null=True, blank=True, verbose_name=_("은행"))
     info = models.CharField(max_length=100, verbose_name=_("포스트 소개"))
-    kakao_openchat_url = models.URLField(null=True, blank=True)
+    kakao_openchat_url = models.URLField(
+        null=True, blank=True, verbose_name=_("카카오 오픈챗 URL"))
     recommend_to = models.CharField(max_length=100, verbose_name=_("추천하는 대상"))
     is_approved = models.BooleanField(
         default=0, choices=IS_APPROVED_CHOICES, verbose_name=_("관리자 승인여부"))
