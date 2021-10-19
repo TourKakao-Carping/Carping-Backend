@@ -20,7 +20,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.db.models import Count, F, Q
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, CreateModelMixin
@@ -637,7 +637,6 @@ class UserPostDeactivateAPIView(RetrieveModelMixin, GenericAPIView):
         response = APIResponse(success=False, code=400)
 
         try:
-
             post = self.get_object()
 
             post_info = post.userpostinfo_set.get()
@@ -659,13 +658,12 @@ class UserPostDeactivateAPIView(RetrieveModelMixin, GenericAPIView):
 
 
 # 관리자 승인 API
-class UserPostAdminActionAPIView(GenericAPIView):
-    queryset = UserPostInfo.objects.all()
+class UserPostAdminActionAPIView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request, pk, type):
         try:
-            post_info = self.get_object()
+            post_info = UserPostInfo.objects.get(id=pk)
 
             if type == 0:
                 post_info.is_approved = True
@@ -678,6 +676,10 @@ class UserPostAdminActionAPIView(GenericAPIView):
                 update_fields=['is_approved', 'category', 'rejected_reason'])
 
             return JsonResponse(_("변경 완료되었습니다."), safe=False)
+
+        except UserPostInfo.DoesNotExist:
+            return JsonResponse("유저 포스트 정보를 찾을 수 없습니다.", safe=False)
+
         except BaseException as e:
             print(str(e))
             return JsonResponse(str(e), safe=False)

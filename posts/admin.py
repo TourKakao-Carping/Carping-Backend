@@ -9,9 +9,10 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class UserPostInfoInline(CompactInline):
+    fields = ('id', 'pay_type', 'point', 'trade_fee', 'platform_fee', 'withholding_tax',
+              'vat', 'final_point', 'bank', 'info', 'kakao_openchat_url', 'recommend_to', 'is_approved', 'category', 'approve_post_list', 'rejected_reason', 'unapprove_post', 'views')
+    readonly_fields = fields
     model = UserPostInfo
-    readonly_fields = ('id', 'pay_type', 'point', 'trade_fee', 'platform_fee', 'withholding_tax',
-                       'vat', 'final_point', 'bank', 'info', 'kakao_openchat_url', 'recommend_to', 'is_approved', 'category', 'approve_post_list', 'rejected_reason', 'unapprove_post', 'views')
 
     extra = 0
 
@@ -24,11 +25,13 @@ class UserPostInfoInline(CompactInline):
         5. 기타
         """
 
-        # 차박, 차박을 위한, 차에 맞는, 인기 TOP 3
         if not obj.is_approved and not obj.category == CATEGORY_DEACTIVATE:
             approve_1 = f'<input type="button" value="활성화" class="default" onclick="approve({obj.pk}, 0)">'
         else:
-            approve_1 = "활성화 되었습니다."
+            if obj.is_approved:
+                approve_1 = _("이미 활성화된 포스트입니다.")
+            else:
+                approve_1 = _("이미 비활성화된 포스트입니다.")
 
         return format_html(approve_1)
 
@@ -62,6 +65,12 @@ class UserPostAdmin(admin.ModelAdmin):
     readonly_fields = ('title', 'thumbnail', 'sub_title1', 'text1', 'image1', 'sub_title2', 'text2', 'image2',
                        'sub_title3', 'text3', 'image3', 'sub_title4', 'text4', 'image4', 'sub_title5', 'text5', 'image5', 'approved_user',)
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     def get_readonly_fields(self, request, obj):
         return super().get_readonly_fields(request, obj=obj)
 
@@ -70,9 +79,11 @@ class UserPostAdmin(admin.ModelAdmin):
 
         userpost = obj.userpostinfo_set.get()
         if userpost.is_approved:
-            post_name += f" | O"
+            post_name += f" | 승인"
+        elif not userpost.rejected_reason == 0:
+            post_name += f" | 거절"
         else:
-            post_name += f" | X"
+            post_name += f" | 미승인"
 
         return post_name
 
