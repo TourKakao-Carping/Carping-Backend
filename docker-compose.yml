@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: web
-    command: sh start.sh
+    command: sh scripts/start.sh
     volumes:
       - ../volume/static:/usr/src/app/staticfiles
       - ../logs:/usr/src/app/logs
