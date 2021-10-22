@@ -5,4 +5,5 @@ files:
     destination: /home/ubuntu/carping/zip/
     overwrite: yes
 hooks:
-  ApplicationStart: scripts/run.sh
+  ApplicationStart:
+    - location: scripts/run.sh
