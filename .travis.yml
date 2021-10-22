@@ -18,14 +18,28 @@ branches:
     - main
 before_deploy:
   - zip -r aws-carping ./*
-  - mkdir -p dpl_cd_upload
-  - mv aws-carping.zip dpl_cd_upload/aws-carping.zip
+  - mkdir -p dp_upload
+  - mv aws-carping.zip dp_upload/aws-carping.zip
 deploy:
   - provider: s3
     access_key_id: "$AWS_ACCESS_KEY"
     secret_access_key: "$AWS_SECRET_KEY"
-    local_dir: dpl_cd_upload
+    local_dir: dp_upload
     skip_cleanup: true
+    on:
+      repo: TourKakao-Carping/Carping-Backend
+      branch: main
+    bucket: chanjongs
+    region: ap-northeast-2
+
+  - provider: codedeploy
+    access_key_id: "$AWS_ACCESS_KEY"
+    secret_access_key: "$AWS_SECRET_KEY"
+    key: aws-carping.zip
+    bundle_type: zip
+    application: chan-deploy
+    deployment_group: carping
+    wait-until-deployed: true
     on:
       repo: TourKakao-Carping/Carping-Backend
       branch: main
