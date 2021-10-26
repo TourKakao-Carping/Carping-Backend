@@ -158,6 +158,10 @@ class GoogleLoginView(SocialLoginView):
     def post(self, request):
         response = APIResponse(success=False, code=400)
 
+        data = request.data
+
+        logger.info(data)
+
         try:
             self.exception(response)
 
@@ -240,7 +244,9 @@ class KakaoLoginView(SocialLoginView):
 
     def post(self, request):
         response = APIResponse(success=False, code=400)
+        data = request.data
 
+        logger.info(data)
         try:
             self.exception(response)
 
