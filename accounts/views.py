@@ -159,7 +159,7 @@ class GoogleLoginView(SocialLoginView):
         response = APIResponse(success=False, code=400)
 
         data = request.data
-        logger.ifno("Google Login Data Below")
+        logger.info("Google Login Data Below")
         logger.info(data)
 
         try:
@@ -246,7 +246,7 @@ class KakaoLoginView(SocialLoginView):
         response = APIResponse(success=False, code=400)
         data = request.data
 
-        logger.ifno("Kakao Login Data Below")
+        logger.info("Kakao Login Data Below")
         logger.info(data)
 
         try:
