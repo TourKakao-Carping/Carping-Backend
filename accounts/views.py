@@ -156,7 +156,7 @@ class GoogleLoginView(SocialLoginView):
         return response
 
     def post(self, request):
-        # response = APIResponse(success=False, code=400)
+        response = APIResponse(success=False, code=400)
 
         try:
             self.exception(response)
@@ -239,7 +239,7 @@ class KakaoLoginView(SocialLoginView):
         return response
 
     def post(self, request):
-        # response = APIResponse(success=False, code=400)
+        response = APIResponse(success=False, code=400)
 
         try:
             self.exception(response)
