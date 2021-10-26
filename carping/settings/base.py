@@ -253,7 +253,15 @@ LOGGING = {
             'propagate': False,
         },
         'image': {
-            'handlers': ['console', 'mail_admins', 'file'],
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+        'login': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+        'random': {
+            'handlers': ['console', 'file'],
             'level': 'INFO',
         },
     }
