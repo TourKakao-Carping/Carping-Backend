@@ -159,7 +159,7 @@ class GoogleLoginView(SocialLoginView):
         response = APIResponse(success=False, code=400)
 
         data = request.data
-
+        logger.ifno("Google Login Data Below")
         logger.info(data)
 
         try:
@@ -172,7 +172,7 @@ class GoogleLoginView(SocialLoginView):
             # response.code = 200
             # return response.response(data=[req.data])
         except BaseException as e:
-            logger.info("Account Error :" + str(e))
+            # logger.info("Account Error :" + str(e))
             return response.response(error_message=str(e))
 
     adapter_class = google_view.GoogleOAuth2Adapter
@@ -246,7 +246,9 @@ class KakaoLoginView(SocialLoginView):
         response = APIResponse(success=False, code=400)
         data = request.data
 
+        logger.ifno("Kakao Login Data Below")
         logger.info(data)
+
         try:
             self.exception(response)
 
@@ -256,7 +258,7 @@ class KakaoLoginView(SocialLoginView):
             # response.code = 200
             # return response.response(data=[req.data])
         except BaseException as e:
-            logger.info("Account Error :" + str(e))
+            logger.info("Kakao Account Error :" + str(e))
             return response.response(error_message=str(e))
 
     adapter_class = kakao_view.KakaoOAuth2Adapter

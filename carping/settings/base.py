@@ -241,6 +241,14 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'standard',
         },
+        'login_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/querydict.log'),
+            'maxBytes': 1024*1024*5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'standard',
+        },
     },
     'loggers': {
         'django': {
@@ -257,7 +265,7 @@ LOGGING = {
             'level': 'INFO',
         },
         'login': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console', 'login_file'],
             'level': 'INFO',
         },
         'random': {
