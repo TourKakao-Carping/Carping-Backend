@@ -3,14 +3,15 @@ import json
 import random
 import re
 import time
-
 import requests
+import logging
+
 from allauth.socialaccount.models import SocialAccount
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db import transaction, DatabaseError
-from django.db.models import Count
-from django.http import JsonResponse
+from django.db.models import Count, Prefetch, Q
+from django.http import JsonResponse, response
 from django.shortcuts import redirect
 from rest_framework import status
 
@@ -35,6 +36,8 @@ KAKAO_CALLBACK_URI = BASE_URL + "/accounts/kakao/callback"
 GOOGLE_CALLBACK_URI = BASE_URL + '/accounts/google/callback'
 
 state = getattr(settings, 'STATE')
+
+logger = logging.getLogger('login')
 
 
 def kakao_login(request):
@@ -100,31 +103,36 @@ class GoogleLoginView(SocialLoginView):
         profile_request = requests.get(
             "https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
         profile_json = profile_request.json()
+
         email = profile_json.get('email')
-        user = User.objects.filter(email=email)
+
+        user = User.objects.filter(
+            ~Q(socialaccount__provider="google"), email=email)
+
         if user.exists():
             return True
         else:
             return False
 
-    def exception(self):
+    def exception(self, resposne):
         is_email_user = self.check_email()
-        if not is_email_user:
-            return JsonResponse({"err_msg": "email already exists."}, status=status.HTTP_400_BAD_REQUEST)
-        return super().post
+        if is_email_user:
+            return response.response(error_message="Email Already Exists with Other Provider.")
 
     def get_response(self):
-        self.exception()
         user = self.user
         extra_data = self.user.socialaccount_set.get().extra_data
         profile_qs = Profile.objects.filter(user=user)
+
         if profile_qs.exists():
             profile = profile_qs
         else:
-            profile = Profile.objects.update_or_create(user=user, image='img/default/default_img.jpg')
+            profile = Profile.objects.update_or_create(
+                user=user, image='img/default/default_img.jpg')
         profile_data = {
             'image': profile[0].image.url,
         }
+
         response = super().get_response()
 
         if user.username == "" or user.username is None:
@@ -147,6 +155,21 @@ class GoogleLoginView(SocialLoginView):
         response.data["user"]["profile"] = profile_data
         return response
 
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+
+        try:
+            self.exception(response)
+
+            req = super().post(request)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[req.data])
+        except BaseException as e:
+            logger.info("Account Error :" + str(e))
+            return response.response(error_message=str(e))
+
     adapter_class = google_view.GoogleOAuth2Adapter
 
 
@@ -156,25 +179,28 @@ class KakaoLoginView(SocialLoginView):
         profile_request = requests.get(
             "https://kapi.kakao.com/v2/user/me", headers={"Authorization": f"Bearer {access_token}"})
         profile_json = profile_request.json()
+
         kakao_account = profile_json.get('kakao_account')
         email = kakao_account.get('email')
-        user = User.objects.filter(email=email)
+
+        user = User.objects.filter(
+            ~Q(socialaccount__provider="kakao"), email=email)
+
         if user.exists():
             return True
         else:
             return False
 
-    def exception(self):
+    def exception(self, response):
         is_email_user = self.check_email()
-        if not is_email_user:
-            return JsonResponse({"err_msg": "email already exists."}, status=status.HTTP_400_BAD_REQUEST)
-        return super().post
+        if is_email_user:
+            return response.response(error_message="Email Already Exists with Other Provider.")
 
     def get_response(self):
-        self.exception()
         user = self.user
         profile_qs = Profile.objects.filter(user=user)
         extra_data = self.user.socialaccount_set.get().extra_data
+
         kakao_account = extra_data.get("kakao_account")
 
         if profile_qs.exists():
@@ -209,8 +235,22 @@ class KakaoLoginView(SocialLoginView):
 
         del response.data["user"]["first_name"], response.data["user"]["last_name"]
         response.data["user"]["profile"] = profile_data
-
         return response
+
+    def post(self, request):
+        response = APIResponse(success=False, code=400)
+
+        try:
+            self.exception(response)
+
+            req = super().post(request)
+
+            response.success = True
+            response.code = 200
+            return response.response(data=[req.data])
+        except BaseException as e:
+            logger.info("Account Error :" + str(e))
+            return response.response(error_message=str(e))
 
     adapter_class = kakao_view.KakaoOAuth2Adapter
 
@@ -307,8 +347,10 @@ class SMSVerificationView(APIView):
         response = APIResponse(success=False, code=400)
         user = request.user
         try:
-            auth_num = SmsHistory.objects.filter(user_id=user.pk).order_by('-id')[0].auth_num
-            fail_count = SmsHistory.objects.get(user_id=user.pk, auth_num=auth_num).fail_count
+            auth_num = SmsHistory.objects.filter(
+                user_id=user.pk).order_by('-id')[0].auth_num
+            fail_count = SmsHistory.objects.get(
+                user_id=user.pk, auth_num=auth_num).fail_count
 
             if fail_count >= 3:
                 response.success = True
@@ -316,8 +358,10 @@ class SMSVerificationView(APIView):
                 return response.response(data=[{"message": "인증 문자 발송을 다시 요청해주세요."}])
 
             if str(auth_num) == str(request.data.get('auth_num')):
-                SmsHistory.objects.filter(user_id=user.pk, auth_num=auth_num).update(auth_num_check=auth_num)
-                Certification.objects.update_or_create(user=user, authorized=True)
+                SmsHistory.objects.filter(user_id=user.pk, auth_num=auth_num).update(
+                    auth_num_check=auth_num)
+                Certification.objects.update_or_create(
+                    user=user, authorized=True)
                 response.success = True
                 response.code = 200
                 return response.response(data=[{"message": "인증 완료"}])
@@ -354,7 +398,8 @@ class UserWithdrawView(APIView):
                 profile.update(phone=None, image='img/default/default_img.jpg',
                                level=1, bio=None, interest=None,
                                author_comment="탈퇴한 유저입니다.", account_num=None)
-                user_obj.update(is_active=False, email=f"{number}@withdrew.com", username=f"탈퇴유저 {number}")
+                user_obj.update(
+                    is_active=False, email=f"{number}@withdrew.com", username=f"탈퇴유저 {number}")
 
                 # 삭제 - 차박지, 에코카핑, 무료나눔, 무료포스트, 검색기록, 댓글, 리뷰,
                 # 스크랩, 좋아요, 휴대폰 인증 내역, 인증 정보
@@ -371,8 +416,10 @@ class UserWithdrawView(APIView):
                 user.review_like.through.objects.filter(user=user).delete()
                 user.comment_like.through.objects.filter(user=user).delete()
 
-                user.campsite_bookmark.through.objects.filter(user=user).delete()
-                user.autocamp_bookmark.through.objects.filter(user=user).delete()
+                user.campsite_bookmark.through.objects.filter(
+                    user=user).delete()
+                user.autocamp_bookmark.through.objects.filter(
+                    user=user).delete()
 
                 SmsHistory.objects.filter(user_id=user.id).delete()
                 Certification.objects.filter(user=user).delete()

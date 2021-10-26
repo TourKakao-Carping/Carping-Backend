@@ -265,6 +265,10 @@ JET_SIDE_MENU_ITEMS = [
         {'name': 'posts.userpost', 'label': _('유료 포스트 승인')},
     ]},
 
+    {'label': _('유저'), 'items': [
+        {'name': 'accounts.user', 'label': _('유저 리스트')},
+    ]},
+
 ]
 
 
