@@ -520,11 +520,13 @@ class UserPostInfoListAPIView(ListModelMixin, GenericAPIView):
             response.code = status.HTTP_400_BAD_REQUEST
             return response.response(error_message=_("Invalid type"))
 
-        list = super().list(request)
-
-        response.code = 200
-        response.success = True
-        return response.response(data=list.data)
+        try:
+            list = super().list(request)
+            response.code = 200
+            response.success = True
+            return response.response(data=list.data)
+        except:
+            return response.response(data=[])
 
 
 class UserPostInfoDetailAPIView(RetrieveModelMixin, GenericAPIView):
