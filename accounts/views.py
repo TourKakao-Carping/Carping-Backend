@@ -156,16 +156,17 @@ class GoogleLoginView(SocialLoginView):
         return response
 
     def post(self, request):
-        response = APIResponse(success=False, code=400)
+        # response = APIResponse(success=False, code=400)
 
         try:
             self.exception(response)
 
             req = super().post(request)
 
-            response.success = True
-            response.code = 200
-            return response.response(data=[req.data])
+            return req
+            # response.success = True
+            # response.code = 200
+            # return response.response(data=[req.data])
         except BaseException as e:
             logger.info("Account Error :" + str(e))
             return response.response(error_message=str(e))
@@ -238,16 +239,16 @@ class KakaoLoginView(SocialLoginView):
         return response
 
     def post(self, request):
-        response = APIResponse(success=False, code=400)
+        # response = APIResponse(success=False, code=400)
 
         try:
             self.exception(response)
 
             req = super().post(request)
-
-            response.success = True
-            response.code = 200
-            return response.response(data=[req.data])
+            return req
+            # response.success = True
+            # response.code = 200
+            # return response.response(data=[req.data])
         except BaseException as e:
             logger.info("Account Error :" + str(e))
             return response.response(error_message=str(e))
