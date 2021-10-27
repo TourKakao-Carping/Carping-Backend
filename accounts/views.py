@@ -30,10 +30,10 @@ from bases.response import APIResponse
 from bases.utils import make_signature
 from posts.models import EcoCarping
 
-BASE_URL = "http://localhost:8000"
+# BASE_URL = "http://localhost:8000"
 
-KAKAO_CALLBACK_URI = BASE_URL + "/accounts/kakao/callback"
-GOOGLE_CALLBACK_URI = BASE_URL + '/accounts/google/callback'
+# KAKAO_CALLBACK_URI = BASE_URL + "/accounts/kakao/callback"
+# GOOGLE_CALLBACK_URI = BASE_URL + '/accounts/google/callback'
 
 state = getattr(settings, 'STATE')
 
@@ -117,7 +117,7 @@ class GoogleLoginView(SocialLoginView):
     def exception(self, resposne):
         is_email_user = self.check_email()
         if is_email_user:
-            return response.response(error_message="Email Already Exists with Other Provider.")
+            return JsonResponse(error_message="Email Already Exists with Other Provider.", status=403)
 
     def get_response(self):
         user = self.user
@@ -156,24 +156,23 @@ class GoogleLoginView(SocialLoginView):
         return response
 
     def post(self, request):
-        response = APIResponse(success=False, code=400)
+        # response = APIResponse(success=False, code=400)
 
         data = request.data
-        logger.info("Google Login Data Below")
-        logger.info(data)
-
         try:
             self.exception(response)
 
             req = super().post(request)
 
             # return req
-            response.success = True
-            response.code = 200
+            # response.success = True
+            # response.code = 200
             return JsonResponse(req.data)
         except BaseException as e:
-            # logger.info("Account Error :" + str(e))
-            return response.response(error_message=str(e))
+            logger.info("Account Error Below")
+            logger.info(str(e))
+
+            return JsonResponse(error_message="Error When Making User.", status=400)
 
     adapter_class = google_view.GoogleOAuth2Adapter
 
@@ -199,7 +198,7 @@ class KakaoLoginView(SocialLoginView):
     def exception(self, response):
         is_email_user = self.check_email()
         if is_email_user:
-            return response.response(error_message="Email Already Exists with Other Provider.")
+            return JsonResponse(error_message="Email Already Exists with Other Provider.", status=403)
 
     def get_response(self):
         user = self.user
@@ -243,23 +242,21 @@ class KakaoLoginView(SocialLoginView):
         return response
 
     def post(self, request):
-        response = APIResponse(success=False, code=400)
+        # response = APIResponse(success=False, code=400)
         data = request.data
-
-        logger.info("Kakao Login Data Below")
-        logger.info(data)
 
         try:
             self.exception(response)
 
             req = super().post(request)
-            # return req
-            response.success = True
-            response.code = 200
+            # response.success = True
+            # response.code = 200
             return JsonResponse(req.data)
         except BaseException as e:
-            logger.info("Kakao Account Error :" + str(e))
-            return response.response(error_message=str(e))
+            logger.info("Account Error Below")
+            logger.info(str(e))
+
+            return JsonResponse(error_message="Error When Making User.", status=400)
 
     adapter_class = kakao_view.KakaoOAuth2Adapter
 
