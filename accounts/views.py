@@ -170,7 +170,7 @@ class GoogleLoginView(SocialLoginView):
             # return req
             response.success = True
             response.code = 200
-            return response.response(data=[req.data])
+            return JsonResponse(req.data)
         except BaseException as e:
             # logger.info("Account Error :" + str(e))
             return response.response(error_message=str(e))
@@ -256,7 +256,7 @@ class KakaoLoginView(SocialLoginView):
             # return req
             response.success = True
             response.code = 200
-            return response.response(data=[req.data])
+            return JsonResponse(req.data)
         except BaseException as e:
             logger.info("Kakao Account Error :" + str(e))
             return response.response(error_message=str(e))
@@ -264,7 +264,7 @@ class KakaoLoginView(SocialLoginView):
     adapter_class = kakao_view.KakaoOAuth2Adapter
 
 
-# 5. 에코랭킹 api - 상위 7개 (프사, 뱃지, 아이디, 순위, 에카포스트 수)
+# 5. 에코랭킹 api - 상위 7개 (프사, 뱃지, 아이디, 순위, 에코포스트 수)
 class EcoRankingView(APIView):
     allowed_method = ["GET"]
 
