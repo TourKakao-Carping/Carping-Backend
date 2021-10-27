@@ -117,7 +117,7 @@ class GoogleLoginView(SocialLoginView):
     def exception(self):
         is_email_user = self.check_email()
         if is_email_user:
-            return JsonResponse({"error_message": "Error When Making User."}, status=403)
+            return JsonResponse({"error_message": "User Already Exists With Other Provider"}, status=403)
 
     def get_response(self):
         user = self.user
@@ -170,6 +170,10 @@ class GoogleLoginView(SocialLoginView):
             logger.info("Account Error Below")
             logger.info(str(e))
 
+            error_keys = e.keys()
+            if 'non_field_errors' in error_keys:
+                return JsonResponse({"error_message": "User Already Exists With Other Provider"}, status=403)
+
             return JsonResponse({"error_message": "Error When Making User."}, status=400)
 
     adapter_class = google_view.GoogleOAuth2Adapter
@@ -196,7 +200,7 @@ class KakaoLoginView(SocialLoginView):
     def exception(self):
         is_email_user = self.check_email()
         if is_email_user:
-            return JsonResponse({"error_message": "Error When Making User."}, status=403)
+            return JsonResponse({"error_message": "User Already Exists With Other Provider"}, status=403)
 
     def get_response(self):
         user = self.user
@@ -251,6 +255,10 @@ class KakaoLoginView(SocialLoginView):
         except BaseException as e:
             logger.info("Account Error Below")
             logger.info(str(e))
+
+            error_keys = e.keys()
+            if 'non_field_errors' in error_keys:
+                return JsonResponse({"error_message": "User Already Exists With Other Provider"}, status=403)
 
             return JsonResponse({"error_message": "Error When Making User."}, status=400)
 
