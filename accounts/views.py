@@ -114,7 +114,7 @@ class GoogleLoginView(SocialLoginView):
         else:
             return False
 
-    def exception(self, resposne):
+    def exception(self):
         is_email_user = self.check_email()
         if is_email_user:
             return JsonResponse({"error_message", "Error When Making User."}, status=403)
@@ -158,7 +158,7 @@ class GoogleLoginView(SocialLoginView):
     def post(self, request):
         # response = APIResponse(success=False, code=400)
         try:
-            self.exception(response)
+            self.exception()
 
             req = super().post(request)
 
@@ -193,7 +193,7 @@ class KakaoLoginView(SocialLoginView):
         else:
             return False
 
-    def exception(self, response):
+    def exception(self):
         is_email_user = self.check_email()
         if is_email_user:
             return JsonResponse({"error_message", "Error When Making User."}, status=403)
@@ -242,7 +242,7 @@ class KakaoLoginView(SocialLoginView):
     def post(self, request):
         # response = APIResponse(success=False, code=400)
         try:
-            self.exception(response)
+            self.exception()
 
             req = super().post(request)
             # response.success = True
