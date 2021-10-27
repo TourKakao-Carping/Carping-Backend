@@ -111,7 +111,8 @@ class Profile(Base):
     #     SocialAccount, on_delete=CASCADE, null=True, related_name="socialaccount_fk")
     author_comment = models.CharField(
         max_length=100, verbose_name=_("작가의 한마디"), null=True, blank=True)
-    account_num = models.CharField(max_length=255, null=True, blank=True, verbose_name=_("계좌번호"))
+    account_num = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name=_("계좌번호"))
 
     objects = ProfileManager()
 
