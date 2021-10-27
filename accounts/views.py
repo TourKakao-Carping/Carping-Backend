@@ -167,10 +167,10 @@ class GoogleLoginView(SocialLoginView):
 
             req = super().post(request)
 
-            return req
-            # response.success = True
-            # response.code = 200
-            # return response.response(data=[req.data])
+            # return req
+            response.success = True
+            response.code = 200
+            return response.response(data=[req.data])
         except BaseException as e:
             # logger.info("Account Error :" + str(e))
             return response.response(error_message=str(e))
@@ -253,10 +253,10 @@ class KakaoLoginView(SocialLoginView):
             self.exception(response)
 
             req = super().post(request)
-            return req
-            # response.success = True
-            # response.code = 200
-            # return response.response(data=[req.data])
+            # return req
+            response.success = True
+            response.code = 200
+            return response.response(data=[req.data])
         except BaseException as e:
             logger.info("Kakao Account Error :" + str(e))
             return response.response(error_message=str(e))
