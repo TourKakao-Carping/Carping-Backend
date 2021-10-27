@@ -30,10 +30,10 @@ from bases.response import APIResponse
 from bases.utils import make_signature
 from posts.models import EcoCarping
 
-# BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8000"
 
-# KAKAO_CALLBACK_URI = BASE_URL + "/accounts/kakao/callback"
-# GOOGLE_CALLBACK_URI = BASE_URL + '/accounts/google/callback'
+KAKAO_CALLBACK_URI = BASE_URL + "/accounts/kakao/callback"
+GOOGLE_CALLBACK_URI = BASE_URL + '/accounts/google/callback'
 
 state = getattr(settings, 'STATE')
 
@@ -117,7 +117,7 @@ class GoogleLoginView(SocialLoginView):
     def exception(self, resposne):
         is_email_user = self.check_email()
         if is_email_user:
-            return JsonResponse(error_message="Email Already Exists with Other Provider.", status=403)
+            return JsonResponse({"error_message", "Error When Making User."}, status=403)
 
     def get_response(self):
         user = self.user
@@ -157,8 +157,6 @@ class GoogleLoginView(SocialLoginView):
 
     def post(self, request):
         # response = APIResponse(success=False, code=400)
-
-        data = request.data
         try:
             self.exception(response)
 
@@ -172,7 +170,7 @@ class GoogleLoginView(SocialLoginView):
             logger.info("Account Error Below")
             logger.info(str(e))
 
-            return JsonResponse(error_message="Error When Making User.", status=400)
+            return JsonResponse({"error_message", "Error When Making User."}, status=400)
 
     adapter_class = google_view.GoogleOAuth2Adapter
 
@@ -198,7 +196,7 @@ class KakaoLoginView(SocialLoginView):
     def exception(self, response):
         is_email_user = self.check_email()
         if is_email_user:
-            return JsonResponse(error_message="Email Already Exists with Other Provider.", status=403)
+            return JsonResponse({"error_message", "Error When Making User."}, status=403)
 
     def get_response(self):
         user = self.user
@@ -243,8 +241,6 @@ class KakaoLoginView(SocialLoginView):
 
     def post(self, request):
         # response = APIResponse(success=False, code=400)
-        data = request.data
-
         try:
             self.exception(response)
 
@@ -256,7 +252,7 @@ class KakaoLoginView(SocialLoginView):
             logger.info("Account Error Below")
             logger.info(str(e))
 
-            return JsonResponse(error_message="Error When Making User.", status=400)
+            return JsonResponse({"error_message", "Error When Making User."}, status=400)
 
     adapter_class = kakao_view.KakaoOAuth2Adapter
 
