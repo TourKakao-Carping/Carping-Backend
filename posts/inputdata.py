@@ -27,7 +27,7 @@ class InputRegionView(APIView):
         user = secrets["DATABASES"]["default"]["USER"]
         pw = secrets["DATABASES"]["default"]["PASSWORD"]
 
-        conn = pymysql.connect(host=host, user=user, password=pw, db='carping')
+        conn = pymysql.connect(host=host, user=user, password=pw, db='carping_real')
         curs = conn.cursor(pymysql.cursors.DictCursor)
 
         for i in range(2, 18497):

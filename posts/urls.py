@@ -7,6 +7,7 @@ from posts.views import *
 from posts.callback import *
 
 urlpatterns = [
+    # path('region', InputRegionView.as_view(), name="input-region"),
     path('autocamp/weekend-post',
          GetAutoCampPostForWeekend.as_view(), name="weekend-post"),
     path('eco-carping/sort',
