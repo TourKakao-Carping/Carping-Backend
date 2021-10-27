@@ -18,6 +18,7 @@ from rest_framework import status
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao import views as kakao_view
 from allauth.socialaccount.providers.google import views as google_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
@@ -166,13 +167,14 @@ class GoogleLoginView(SocialLoginView):
             # response.success = True
             # response.code = 200
             return JsonResponse(req.data)
+        except ValidationError as e:
+            logger.info("Account Error Below")
+            logger.info(str(e))
+            return JsonResponse({"error_message": "User Already Exists With Other Provider"}, status=403)
+
         except BaseException as e:
             logger.info("Account Error Below")
             logger.info(str(e))
-
-            error_keys = e.keys()
-            if 'non_field_errors' in error_keys:
-                return JsonResponse({"error_message": "User Already Exists With Other Provider"}, status=403)
 
             return JsonResponse({"error_message": "Error When Making User."}, status=400)
 
@@ -252,13 +254,14 @@ class KakaoLoginView(SocialLoginView):
             # response.success = True
             # response.code = 200
             return JsonResponse(req.data)
-        except BaseException as e:
+        except ValidationError as e:
             logger.info("Account Error Below")
             logger.info(str(e))
 
-            error_keys = e.keys()
-            if 'non_field_errors' in error_keys:
-                return JsonResponse({"error_message": "User Already Exists With Other Provider"}, status=403)
+            return JsonResponse({"error_message": "User Already Exists With Other Provider"}, status=403)
+        except BaseException as e:
+            logger.info("Account Error Below")
+            logger.info(str(e))
 
             return JsonResponse({"error_message": "Error When Making User."}, status=400)
 
