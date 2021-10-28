@@ -234,19 +234,20 @@ class AutoCampMapView(GenericAPIView, ListModelMixin):
             return response.response(error_message="check lat, lon")
 
         # 30km 반경 설정, 계산 식 오차를 고려해 약 25로 잡음
-        min_latitude, max_latitude, min_longitude, max_longitude = \
-            get_bounding_box(user_lat, user_lon, 25)
-
-        qs = AutoCamp.objects.filter(
-            latitude__range=(
-                min_latitude,
-                max_latitude
-            ),
-            longitude__range=(
-                min_longitude,
-                max_longitude
-            )
-        )
+        # min_latitude, max_latitude, min_longitude, max_longitude = \
+        #     get_bounding_box(user_lat, user_lon, 25)
+        #
+        # qs = AutoCamp.objects.filter(
+        #     latitude__range=(
+        #         min_latitude,
+        #         max_latitude
+        #     ),
+        #     longitude__range=(
+        #         min_longitude,
+        #         max_longitude
+        #     )
+        # )
+        qs = AutoCamp.objects.all()
 
         serializer = self.get_serializer(qs, many=True)
 
