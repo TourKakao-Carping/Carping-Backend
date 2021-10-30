@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from accounts.models import Profile
 import datetime
+from django.db import transaction
 
 from bases.fee import compute_final
 from comments.serializers import ReviewSerializer
@@ -662,8 +663,6 @@ class UserPostDeactivateAPIView(RetrieveModelMixin, GenericAPIView):
 
 
 # 관리자 승인 API
-
-
 class UserPostAdminActionAPIView(APIView):
     permission_classes = (AllowAny,)
 
@@ -671,19 +670,16 @@ class UserPostAdminActionAPIView(APIView):
         try:
             post_info = UserPostInfo.objects.get(id=pk)
 
-            # if type == 0:
-            #     post_info.is_approved = True
-            # else:
-            #     post_info.is_approved = False
-            #     post_info.category = CATEGORY_DEACTIVATE
-            #     post_info.rejected_reason = type
+            if type == 0:
+                post_info.is_approved = True
+            else:
+                post_info.is_approved = False
+                post_info.category = CATEGORY_DEACTIVATE
+                post_info.rejected_reason = type
 
-            # post_info.save(
-            #     update_fields=['is_approved', 'category', 'rejected_reason'])
+            post_info.save(
+                update_fields=['is_approved', 'category', 'rejected_reason'])
 
-            author = post_info.author
-
-            send_email(post_info.is_approved, type, author.email)
             return JsonResponse(_("변경 완료되었습니다."), safe=False)
 
         except UserPostInfo.DoesNotExist:

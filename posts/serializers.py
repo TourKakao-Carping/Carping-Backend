@@ -147,6 +147,9 @@ class AutoCampPostSerializer(TaggitSerializer, ModelSerializer):
             re_ret[f"campsite{i + 1}"] = camp
 
         re_ret["count"] = count
+
+        instance.views += 1
+        instance.save()
         return re_ret
 
 
