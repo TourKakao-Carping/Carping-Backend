@@ -1,0 +1,82 @@
+@import url(//spoqa.github.io/spoqa-han-sans/css/SpoqaHanSans-kr.css);
+
+@font-face {
+    font-family: 'paybooc-Bold';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/paybooc-Bold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    width: 670px;
+    margin-left: 40px;
+    font-family: 'Spoqa Han Sans Neo', 'Spoqa Han Sans JP', sans-serif;
+    font-weight: 700;
+}
+
+.logo-txt {
+    font-family: 'paybooc-Bold';
+    font-style: normal;
+    font-weight: bold;
+    font-size: 17px;
+    line-height: 21px;
+    margin-left: 10px;
+}
+
+.thanks-for-post {
+    /* position: absolute; */
+    width: 277px;
+    height: 86px;
+    left: 40px;
+    margin-top: 82px;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 26px;
+    line-height: 43px;
+}
+
+.hello-user {
+    /* position: absolute; */
+    width: 152px;
+    height: 21px;
+    margin-top: 42px;
+    font-weight: bold;
+    line-height: 21px;
+}
+
+.logo-color{
+    color: #5F51EF;
+}
+
+.result-detail {
+    width: 70%;
+    margin-top: 13px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 18px;
+    color: #666666;
+    letter-spacing: 0.5px;
+}
+
+.detail-table {
+    width: 520px;
+    margin-top: 76px;
+    border-top: 1px solid #5F51EF;
+    border-bottom: 1px solid #D3D3D3;
+    border-collapse: collapse;
+    word-break: break-all;
+}
+
+.title-bold {
+    font-size: 12px;
+    border-bottom: 1px solid #D3D3D3;
+}
+
+.content-bold {
+    font-size: 12px;
+    text-align: center;
+}
+.each-title-size {
+    height: 40px;
+    text-align: center;
+}
