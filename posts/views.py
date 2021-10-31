@@ -684,8 +684,8 @@ class UserPostAdminActionAPIView(APIView):
             post_title = post_info.user_post.title
             post_category = CATEGORY_TO_STR[post_info.category]
 
-            send_email(post_info.is_approved, type,
-                       author, post_title, post_category)
+            # send_email(post_info.is_approved, type,
+            #            author, post_title, post_category)
 
             # send_email(True, type,
             #            author, post_title, post_category)
