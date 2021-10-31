@@ -180,6 +180,7 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 AWS_S3_REGION_NAME = 'ap-northeast-2'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'images/')
+MEDIA_URL = '/images/'
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
@@ -329,8 +330,6 @@ JET_THEMES = [
     },
 ]
 
-
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_PORT = '587'
-
 EMAIL_USE_TLS = True

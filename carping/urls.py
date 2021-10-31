@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.views import defaults as default_views
+from django.conf.urls.static import static
 
 from carping.docs import schema_view
 
@@ -18,7 +19,7 @@ urlpatterns = [
     path('comments/', include('comments.urls')),
     path('mypage/', include('mypage.urls')),
     path('search/', include('search.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Swagger
 urlpatterns += [

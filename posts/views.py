@@ -680,6 +680,13 @@ class UserPostAdminActionAPIView(APIView):
             post_info.save(
                 update_fields=['is_approved', 'category', 'rejected_reason'])
 
+            author = post_info.author
+            post_title = post_info.user_post.title
+            post_category = post_info.category
+
+            send_email(post_info.is_approved, type,
+                       author, post_title, post_category)
+
             return JsonResponse(_("변경 완료되었습니다."), safe=False)
 
         except UserPostInfo.DoesNotExist:
