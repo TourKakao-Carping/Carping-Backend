@@ -14,7 +14,7 @@ from django.db import transaction
 
 from bases.fee import compute_final
 from comments.serializers import ReviewSerializer
-from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, POST_INFO_CATEGORY_LIST_NUM
+from posts.constants import A_TO_Z_LIST_NUM, CATEGORY_DEACTIVATE, CATEGORY_TO_STR, POST_INFO_CATEGORY_LIST_NUM
 from posts.permissions import AuthorOnlyAccessPermission, UserPostAccessPermission
 
 from drf_yasg import openapi
@@ -682,11 +682,13 @@ class UserPostAdminActionAPIView(APIView):
 
             author = post_info.author
             post_title = post_info.user_post.title
-            post_category = post_info.category
+            post_category = CATEGORY_TO_STR[post_info.category]
 
             send_email(post_info.is_approved, type,
                        author, post_title, post_category)
 
+            # send_email(True, type,
+            #            author, post_title, post_category)
             return JsonResponse(_("변경 완료되었습니다."), safe=False)
 
         except UserPostInfo.DoesNotExist:
