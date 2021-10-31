@@ -281,16 +281,16 @@ LOGGING = {
 }
 
 
-JET_SIDE_MENU_ITEMS = [
-    {'label': _('유료 포스트'), 'items': [
-        {'name': 'posts.userpost', 'label': _('유료 포스트 승인')},
-    ]},
+# JET_SIDE_MENU_ITEMS = [
+#     {'label': _('유료 포스트'), 'items': [
+#         {'name': 'posts.userpost', 'label': _('유료 포스트 승인')},
+#     ]},
 
-    {'label': _('유저'), 'items': [
-        {'name': 'accounts.user', 'label': _('유저 리스트')},
-    ]},
+#     {'label': _('유저'), 'items': [
+#         {'name': 'accounts.user', 'label': _('유저 리스트')},
+#     ]},
 
-]
+# ]
 
 
 JET_DEFAULT_THEME = 'light-violet'
