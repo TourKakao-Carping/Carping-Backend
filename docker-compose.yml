@@ -18,14 +18,15 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: web
-    command: sh scripts/start.sh
+    command: sh start.sh
     volumes:
       - ../volume/static:/usr/src/app/staticfiles
       - ../logs:/usr/src/app/logs
     networks:
       - carping-network
     expose:
-      - "8000:8000/tcp"
+      - "587"
+      - "8000"
     image: pcj0198/web
 networks:
   carping-network:
