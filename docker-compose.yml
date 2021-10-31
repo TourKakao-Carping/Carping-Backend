@@ -9,6 +9,8 @@ services:
     volumes:
       - ../volume/nginx:/etc/nginx/conf.d
       - ../volume/static:/staticfiles
+    networks:
+      - carping-network
     depends_on:
       - web
   web:
@@ -20,6 +22,11 @@ services:
     volumes:
       - ../volume/static:/usr/src/app/staticfiles
       - ../logs:/usr/src/app/logs
+    networks:
+      - carping-network
     expose:
       - "8000"
     image: pcj0198/web
+networks:
+  carping-network:
+    external: true
