@@ -18,7 +18,7 @@ class CampSiteQuerySet(models.QuerySet):
         if sort == "recent":
             return qs.order_by('-created_at')
         elif sort == "popular":
-            return qs.order_by('views')
+            return qs.order_by('-views')
         else:
             return qs
 
@@ -28,7 +28,7 @@ class CampSiteQuerySet(models.QuerySet):
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
-            return qs.order_by('views')
+            return qs.order_by('-views')
         else:
             return qs
 
@@ -44,7 +44,7 @@ class CampSiteQuerySet(models.QuerySet):
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
-            return qs.order_by('views')
+            return qs.order_by('-views')
         else:
             return qs
 
@@ -54,7 +54,7 @@ class CampSiteQuerySet(models.QuerySet):
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
-            return qs.order_by('views')
+            return qs.order_by('-views')
         else:
             return qs
 
@@ -65,7 +65,7 @@ class CampSiteQuerySet(models.QuerySet):
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
-            return qs.order_by('views')
+            return qs.order_by('-views')
         else:
             return qs
 
@@ -85,7 +85,7 @@ class CampSiteQuerySet(models.QuerySet):
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
-            return qs.order_by('views')
+            return qs.order_by('-views')
         else:
             return qs
 
@@ -106,7 +106,7 @@ class CampSiteQuerySet(models.QuerySet):
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
-            return qs.order_by('views')
+            return qs.order_by('-views')
         else:
             return qs
 
@@ -124,7 +124,7 @@ class CampSiteQuerySet(models.QuerySet):
         if sort == "recent":
             return qs.order_by('-created_at')
         if sort == "popular":
-            return qs.order_by('views')
+            return qs.order_by('-views')
         else:
             return qs
 

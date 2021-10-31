@@ -40,7 +40,10 @@ class UserPostInfoQuerySet(models.QuerySet):
 
         if not len(pk_arr) == count:
             logger.info(pk_arr)
-#
+
+        if len(pk_arr) < 2:
+            return self.all().filter(id__gte=min_id, id__lte=max_id, is_approved=True, author__is_active=True)
+
         return self.all().filter(id__in=pk_arr)
 
     def like_qs(self, user_pk):
