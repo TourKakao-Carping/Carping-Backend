@@ -25,7 +25,7 @@ services:
     networks:
       - carping-network
     expose:
-      - "8000:8000"
+      - "8000:8000/tcp"
     image: pcj0198/web
 networks:
   carping-network:
