@@ -88,11 +88,9 @@ class UserPostAdmin(admin.ModelAdmin):
         return post_name
 
 
-# admin.site.register(Post)
-# admin.site.register(EcoCarping)
-# admin.site.register(Share)
-# admin.site.register(Region)
-# admin.site.register(Store)
-# admin.site.register(UserPostInfo, PostInfoAdmin)
-# admin.site.register(UserPost, PostAdmin)
-# admin.site.register(UserPostPaymentRequest)
+admin.site.register(Post)
+admin.site.register(EcoCarping)
+admin.site.register(Share)
+admin.site.register(Region)
+admin.site.register(Store)
+admin.site.register(UserPostPaymentRequest)
