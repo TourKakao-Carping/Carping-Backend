@@ -684,12 +684,12 @@ class UserPostAdminActionAPIView(APIView):
             post_title = post_info.user_post.title
             post_category = CATEGORY_TO_STR[post_info.category]
 
-            # send_email(post_info.is_approved, type,
-            #            author, post_title, post_category)
+            send_email(post_info.is_approved, type,
+                       author, post_title, post_category)
 
             # send_email(True, type,
             #            author, post_title, post_category)
-            return JsonResponse(_("변경 완료되었습니다."), safe=False)
+            return JsonResponse(_("승인여부 이메일을 전송했습니다."), safe=False)
 
         except UserPostInfo.DoesNotExist:
             return JsonResponse("유저 포스트 정보를 찾을 수 없습니다.", safe=False)
