@@ -25,7 +25,6 @@ services:
     networks:
       - carping-network
     expose:
-      - "587"
       - "8000"
     image: pcj0198/web
 networks:
