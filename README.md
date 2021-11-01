@@ -1,46 +1,29 @@
-# 카핑 (Carping)
-
-![banner](./img/0001.jpg)
+![banner](./img/0001.png)
 
 # Server Environment
 
-### - Python 3.7
+![banner](./img/0010.png)
 
-### - Django 3.2.5
+![flow](./img/0009.png)
 
-### - Django-Rest-Framework 3.12.4
+# Service Information
 
-### - MariaDB
+![flow](./img/0002.png)
+![flow](./img/0003.png)
+![flow](./img/0004.png)
+![flow](./img/0005.png)
+![flow](./img/0006.png)
+![flow](./img/0007.png)
+![flow](./img/0008.png)
 
-### - Docker
-
-### - AWS EC2
-
-### - AWS RDS
-
-### - Nginx
-
-# Used Data List
-
-### [한국관광공사\_고캠핑 정보조회 서비스](https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15063201)
-
-### [한국관광공사 생태관광 정보](https://www.data.go.kr/data/15016069/openapi.do)
-
-### [한국관광공사\_국문 관광정보 서비스](https://www.data.go.kr/data/15057787/openapi.do)
-
-# Technical Flow
-
-![flow](./img/0011.jpg)
-
-## Base Setting
+# Base Setting
 
 ```
 pip install -r requirements.txt
-
-python manage.py test
+python manage.py runserver --settings=carping.settings.development
 ```
 
-## Docker
+# Docker
 
 ```
 docker-compose up --build -d
